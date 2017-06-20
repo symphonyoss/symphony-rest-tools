@@ -1,7 +1,7 @@
 # symphony-rest-tools
 Low level tools for use with the Symphony public REST API
 
-##ProbePod
+## ProbePod
 This command line utility probes a host for the presence of 
 a Symphony pod. If a client certificate is provided then it
 attempts to authenticate and makes a call to the pod and agent
@@ -19,7 +19,7 @@ provided by the various servers to which connections are made
 to the client certificate (if any). This file is compatible
 with the [Symphony Java Client](https://github.com/symphonyoss/symphony-java-client)
 
-###Usage:
+### Usage:
 
 probePod.sh [-keystore certFile] [-storepass password] [-storetype keystoreType] [hostname]
 
@@ -46,7 +46,7 @@ The password for the provided keystore, default "changeit"
  on the standard input.
  
 
-###Example:
+### Example:
 
 ```$ probePod.sh -keystore bot.user5.p12 nexus2
 name=nexus2
@@ -92,7 +92,7 @@ End server certs:
 CN=*.symphony.com,OU=Domain Control Validated
 
 ```
-###Building
+### Building
 
 ```$ git clone https://github.com/bruceskingle/symphony-rest-tools.git
 Cloning into 'symphony-rest-tools'...
