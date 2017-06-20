@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>symphony-rest-tools</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<name>Symphony REST tools</name>
+	<description>Low level tools for use with the Symphony public REST API</description>
+	<url>https://github.com/bruceskingle/symphony-rest-tools</url>
+
+	<parent>
+		<groupId>org.symphonyoss</groupId>
+		<artifactId>symphonyoss</artifactId>
+		<version>3</version>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git://github.com/bruceskingle/symphony-rest-tools.git</connection>
+		<developerConnection>scm:git:git@github.com:bruceskingle/symphony-rest-tools.git</developerConnection>
+		<url>https://github.com/bruceskingle/symphony-rest-tools</url>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		
+		<dist.name>${project.artifactId}-${project.version}</dist.name>
+    <dist.root>${project.build.directory}/${dist.name}</dist.root>
+    <dist.path>${dist.root}/${dist.base}</dist.path>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>sonatype-oss-public</id>
+			<url>https://oss.sonatype.org/content/groups/public/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- Gather all the jars needed for the examples to run. -->
+						<id>dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+       <!--  <version>3.0.0</version> -->
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/assemble.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>assemble</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.symphonyoss.symphony</groupId>
+			<artifactId>jcurl</artifactId>
+			<version>0.9.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+		<!-- <dependency> <groupId>org.symphonyoss.symphony</groupId> <artifactId>symphony-client</artifactId> 
+			<version>1.0.2-SNAPSHOT</version> </dependency> -->
+	</dependencies>
+
+</project>
