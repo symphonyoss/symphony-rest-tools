@@ -48,7 +48,8 @@ The password for the provided keystore, default "changeit"
 
 ### Example:
 
-```$ probePod.sh -keystore bot.user5.p12 nexus2
+```
+$ probePod.sh -keystore bot.user5.p12 nexus2
 name=nexus2
 domain=.symphony.com
 
@@ -94,7 +95,8 @@ CN=*.symphony.com,OU=Domain Control Validated
 ```
 ### Building
 
-```$ git clone https://github.com/bruceskingle/symphony-rest-tools.git
+```
+$ git clone https://github.com/bruceskingle/symphony-rest-tools.git
 Cloning into 'symphony-rest-tools'...
 remote: Counting objects: 5, done.
 remote: Compressing objects: 100% (5/5), done.
