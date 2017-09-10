@@ -3,17 +3,38 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<groupId>org.symphonyoss</groupId>
+		<artifactId>symphonyoss</artifactId>
+		<version>6</version>
+	</parent>
+	
 	<artifactId>symphony-rest-tools</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<name>Symphony REST tools</name>
 	<description>Low level tools for use with the Symphony public REST API</description>
 	<url>https://github.com/bruceskingle/symphony-rest-tools</url>
-
-	<parent>
-		<groupId>org.symphonyoss</groupId>
-		<artifactId>symphonyoss</artifactId>
-		<version>3</version>
-	</parent>
+	<!--
+~
+~ Copyright 2017 The Symphony Software Foundation
+~
+~ Licensed to The Symphony Software Foundation (SSF) under one
+~ or more contributor license agreements.  See the NOTICE file
+~ distributed with this work for additional information
+~ regarding copyright ownership.  The ASF licenses this file
+~ to you under the Apache License, Version 2.0 (the
+~ "License"); you may not use this file except in compliance
+~ with the License.  You may obtain a copy of the License at
+~
+~   http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing,
+~ software distributed under the License is distributed on an
+~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+~ KIND, either express or implied.  See the License for the
+~ specific language governing permissions and limitations
+~ under the License.
+-->
 
 	<licenses>
 		<license>
@@ -27,6 +48,31 @@
 		<developerConnection>scm:git:git@github.com:bruceskingle/symphony-rest-tools.git</developerConnection>
 		<url>https://github.com/bruceskingle/symphony-rest-tools</url>
 	</scm>
+	
+	<developers>
+        <developer>
+            <id>ldrozdz</id>
+            <name>Łukasz Dróżdż</name>
+            <email>lukasz@symphony.com</email>
+            <url>http://github.com/ldrozdz</url>
+            <organization>Symphony Communication Services LLC</organization>
+            <organizationUrl>http://symphony.com</organizationUrl>
+            <roles>
+                <role>Senior Director Platform</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>bruceskingle</id>
+            <name>Bruce Skingle</name>
+            <email>bruce.skingle@symphony.com</email>
+            <url>http://github.com/bruceskingle</url>
+            <organization>Symphony Communication Services LLC</organization>
+            <organizationUrl>http://symphony.com</organizationUrl>
+            <roles>
+                <role>Chief Architect</role>
+            </roles>
+        </developer>
+    </developers>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -72,7 +118,6 @@
 			</plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-       <!--  <version>3.0.0</version> -->
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/assemble.xml</descriptor>
@@ -94,15 +139,13 @@
 		<dependency>
 			<groupId>org.symphonyoss.symphony</groupId>
 			<artifactId>jcurl</artifactId>
-			<version>0.9.4-SNAPSHOT</version>
+			<version>0.9.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
 			<version>3.0.2</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.symphonyoss.symphony</groupId> <artifactId>symphony-client</artifactId> 
-			<version>1.0.2-SNAPSHOT</version> </dependency> -->
 	</dependencies>
 
 </project>
