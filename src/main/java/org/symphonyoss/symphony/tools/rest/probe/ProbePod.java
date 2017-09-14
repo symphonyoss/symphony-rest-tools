@@ -472,14 +472,15 @@ public class ProbePod
     }
     
     Builder builder = getJCurl()
-        .expect(401);
+        .expect(401)
+        .expect(200);
     
     cookieAuth(builder);
     
     Probe checkAuthResult = new Probe(name_, domain_, "", port,
         "/").setProbePath("login/checkauth?type=user", MIME_JSON);
     
-    doProbe(builder.build(), checkAuthResult, 401);
+    doProbe(builder.build(), checkAuthResult, 200, 401);
 
     if (checkAuthResult.isFailed())
     {
