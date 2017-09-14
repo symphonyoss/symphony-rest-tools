@@ -471,7 +471,44 @@ public class ProbePod
       }
     }
     
-    Builder builder = getJCurl();
+    Builder builder = getJCurl()
+        .expect(401);
+    
+    cookieAuth(builder);
+    
+    Probe checkAuthResult = new Probe(name_, domain_, "", port,
+        "/").setProbePath("login/checkauth?type=user", MIME_JSON);
+    
+    doProbe(builder.build(), checkAuthResult, 401);
+
+    if (checkAuthResult.isFailed())
+    {
+      out_.println("Can't do checkauth from this Pod.");
+      return;
+    }
+    
+    JsonNode checkAuthJson = checkAuthResult.getJsonNode();
+
+    if (checkAuthJson == null)
+    {
+      out_.println("Invalid checkAuth response");
+      return;
+    }
+    
+    JsonNode km = checkAuthJson.get("keymanagerUrl");
+
+    if (km == null)
+    {
+      out_.println("Invalid checkAuth response");
+    }
+    else
+    {
+      keyManagerUrl_ = km.asText();
+    
+      out_.println("keyManagerUrl is " + keyManagerUrl_);
+    }
+    
+    builder = getJCurl();
     
     cookieAuth(builder);
     
@@ -638,7 +675,7 @@ public class ProbePod
     doProbe(getJCurl().build(), probe);
   }
   
-  private void doProbe(JCurl jcurl, Probe probe)
+  private void doProbe(JCurl jcurl, Probe probe, int ...expectedStatus)
   {
     try
     {
@@ -646,7 +683,28 @@ public class ProbePod
       
       HttpURLConnection connection = jcurl.connect(probe.getProbeUrl());
 
-      if (probe.setHttpStatus(connection.getResponseCode()) != 200)
+      boolean ok = false;
+      int status = connection.getResponseCode();
+      
+      probe.setHttpStatus(status);
+      
+      if(expectedStatus.length == 0)
+      {
+        ok = status == 200;
+      }
+      else
+      {
+        for(int exp : expectedStatus)
+        {
+          if(status == exp)
+          {
+            ok = true;
+            break;
+          }
+        }
+      }
+      
+      if (!ok)
       {
         out_.println("Failed with HTTP status " + probe.getHttpStatus());
         return;
