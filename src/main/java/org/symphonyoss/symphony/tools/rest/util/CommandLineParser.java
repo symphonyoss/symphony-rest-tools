@@ -1,7 +1,7 @@
 /*
  *
  *
- * Copyright 2017 The Symphony Software Foundation
+ * Copyright 2017 Symphony Communication Services, LLC.
  *
  * Licensed to The Symphony Software Foundation (SSF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -44,7 +44,7 @@ public class CommandLineParser
     argSetter_ = argSetter;
   }
   
-  public <T> CommandLineParser  addFlag(ISetter<String> setter, String ...names)
+  public CommandLineParser  addFlag(ISetter<String> setter, String ...names)
   {
     Flag flag = new Flag(setter);
     
@@ -54,7 +54,7 @@ public class CommandLineParser
     return this;
   }
   
-  public <T> CommandLineParser  addFlag(Flag flag, String ...names)
+  public CommandLineParser  addFlag(Flag flag, String ...names)
   {
     for(String name : names)
       flagMap_.put(name, flag);
@@ -75,7 +75,7 @@ public class CommandLineParser
 
         if(flag == null)
         {
-          throw new RuntimeException("Unrecognized flag \"" + argv + "\"");
+          throw new CommandLineParserFault("Unrecognized flag \"" + argv + "\"");
         }
         
         for(ISetter<String> setter : flag.getSetterList())
@@ -83,14 +83,14 @@ public class CommandLineParser
           if(argc_ < argv.length)
             setter.set(argv[argc_++]);
           else
-            throw new RuntimeException("Insufficient values for flag \"" + argv + "\"");
+            throw new CommandLineParserFault("Insufficient values for flag \"" + argv + "\"");
         }
       }
       else
       {
         if(argSetter_ == null)
         {
-          throw new RuntimeException("Invalid argument \"" + argv + "\"");
+          throw new CommandLineParserFault("Invalid argument \"" + argv + "\"");
         }
         
         argSetter_.set(arg);

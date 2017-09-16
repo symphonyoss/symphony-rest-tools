@@ -1,7 +1,7 @@
 /*
  *
  *
- * Copyright 2017 The Symphony Software Foundation
+ * Copyright 2017 Symphony Communication Services, LLC.
  *
  * Licensed to The Symphony Software Foundation (SSF) under one
  * or more contributor license agreements.  See the NOTICE file

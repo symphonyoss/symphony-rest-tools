@@ -1,7 +1,7 @@
 /*
  *
  *
- * Copyright 2017 The Symphony Software Foundation
+ * Copyright 2017 Symphony Communication Services, LLC.
  *
  * Licensed to The Symphony Software Foundation (SSF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,7 @@
 
 package org.symphonyoss.symphony.tools.rest.util;
 
-public class CommandLineParserFault extends RuntimeException
+public class CommandLineParserFault extends ProgramFault
 {
   private static final long serialVersionUID = 1L;
 

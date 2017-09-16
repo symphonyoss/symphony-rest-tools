@@ -21,10 +21,33 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.typeutils;
+package org.symphonyoss.symphony.tools.rest.util;
 
-@FunctionalInterface
-public interface ITypeConverter<S,T>
+public class ProgramFault extends RuntimeException
 {
-  T convert(S source);
+  private static final long serialVersionUID = 1L;
+
+  public ProgramFault()
+  {
+  }
+
+  public ProgramFault(String message)
+  {
+    super(message);
+  }
+
+  public ProgramFault(Throwable cause)
+  {
+    super(cause);
+  }
+
+  public ProgramFault(String message, Throwable cause)
+  {
+    super(message, cause);
+  }
+
+  public ProgramFault(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+  {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

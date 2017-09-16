@@ -1,21 +1,9 @@
-JCurl
-Copyright 2017 The Symphony Software Foundation
-
-This product includes software developed at The Symphony Software Foundation (http://symphony.foundation).
+Symphony REST Tools
+Copyright 2017 Symphony Communication Services, LLC.
+http://symphony.com/
 
 ========================================================================
 Apache License, Version 2.0
 ========================================================================
 
-The following components are provided under the Apache License 2.0. See project link for details.
-
-     JCurl - https://github.com/symphonyoss/JCurl
-     jsr305 - https://code.google.com/p/jsr-305/
-
-========================================================================
-Eclipse Public License 1.0
-========================================================================
-
-The following components are provided under the Eclipse Public License 1.0. See project link for details.
-
-     Junit (junit.junit:4.12) - http://junit.org/junit4
+This software is provided under the Apache License 2.0.

@@ -21,10 +21,18 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.typeutils;
+package org.symphonyoss.symphony.tools.rest.util.home;
 
-@FunctionalInterface
-public interface ITypeConverter<S,T>
+import java.io.File;
+
+public interface ISrtHome
 {
-  T convert(S source);
+  static final String SRT_HOME = "SRT_HOME";
+  
+  File  getHome();
+
+  File getConfigDir(String name);
+
+  void saveSessionToken(String hostName, String tokenName, String token);
+
 }
