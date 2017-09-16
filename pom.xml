@@ -1,22 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-
-	<parent>
-		<groupId>org.symphonyoss</groupId>
-		<artifactId>symphonyoss</artifactId>
-		<version>6</version>
-	</parent>
-	
-	<artifactId>symphony-rest-tools</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
-	<name>Symphony REST tools</name>
-	<description>Low level tools for use with the Symphony public REST API</description>
-	<url>https://github.com/bruceskingle/symphony-rest-tools</url>
-	<!--
+<!--
 ~
-~ Copyright 2017 The Symphony Software Foundation
+~ Copyright 2017 Symphony Communication Services, LLC.
 ~
 ~ Licensed to The Symphony Software Foundation (SSF) under one
 ~ or more contributor license agreements.  See the NOTICE file
@@ -36,6 +23,20 @@
 ~ under the License.
 -->
 
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.symphonyoss</groupId>
+		<artifactId>symphonyoss</artifactId>
+		<version>6</version>
+	</parent>
+	
+	<artifactId>symphony-rest-tools</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<name>Symphony REST tools</name>
+	<description>Low level tools for use with the Symphony public REST API</description>
+	<url>https://github.com/symphonyoss/symphony-rest-tools</url>
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -44,9 +45,9 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git://github.com/bruceskingle/symphony-rest-tools.git</connection>
-		<developerConnection>scm:git:git@github.com:bruceskingle/symphony-rest-tools.git</developerConnection>
-		<url>https://github.com/bruceskingle/symphony-rest-tools</url>
+		<connection>scm:git:git://github.com/symphonyoss/symphony-rest-tools.git</connection>
+		<developerConnection>scm:git:git@github.com:symphonyoss/symphony-rest-tools.git</developerConnection>
+		<url>https://github.com/symphonyoss/symphony-rest-tools</url>
 	</scm>
 	
 	<developers>
