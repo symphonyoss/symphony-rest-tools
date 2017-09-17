@@ -78,7 +78,7 @@ public class ProbePod
   private static final String   SESSION_TOKEN         = "sessionToken";
   private static final String   KEYMANAGER_TOKEN      = "keyManagerToken";
 
-  private Console               console_              = new Console(System.in, System.out, System.err);
+  private Console               console_;
   private String                name_;
   private String                domain_;
   private int                   connectTimeoutMillis_ = 2000;
@@ -106,13 +106,11 @@ public class ProbePod
 
   public static void main(String[] argv) throws IOException
   {
-    new ProbePod().run(argv);
+    new ProbePod(argv).run();
   }
 
-  private void run(String[] argv) throws IOException
+  public ProbePod(String[] argv)
   {
-    try
-    {
       SrtCommandLineHome srtHome = new SrtCommandLineHome((v) -> 
         {
           if (name_ == null)
@@ -128,7 +126,26 @@ public class ProbePod
     
       srtHome_ = srtHome;
       srtHome.process(argv);
+  }
   
+  public ProbePod(String name, ISrtHome srtHome)
+  {
+    name_ = name;
+    srtHome_ = srtHome;
+  }
+
+  public void setConsole(Console console)
+  {
+    console_ = console;
+  }
+
+  public void run() throws IOException
+  {
+    if (console_ == null)
+      console_ = new Console(System.in, System.out, System.err);
+    
+    try
+    {
       if (name_ == null)
       {
         name_ = console_.promptString("Hostname");
@@ -150,7 +167,7 @@ public class ProbePod
       console_.println("domain=" + domain_);
       console_.println();
       
-      File      configDir = srtHome.getConfigDir(name_ + domain_);
+      File      configDir = srtHome_.getConfigDir(name_ + domain_);
       File      configStoreFile  = new File(configDir, "symphony.properties");
       boolean   doProbe = true;
   
@@ -386,6 +403,7 @@ public class ProbePod
             console_.error("Failed to save trust store");
             console_.printStackTrace(e);
           }
+          console_.error("Finished.");
         }
       }
     }

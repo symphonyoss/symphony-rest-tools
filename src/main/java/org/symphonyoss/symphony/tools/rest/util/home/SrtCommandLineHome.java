@@ -24,26 +24,15 @@
 package org.symphonyoss.symphony.tools.rest.util.home;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.EnumSet;
 
 import org.symphonyoss.symphony.tools.rest.util.CommandLineParser;
-import org.symphonyoss.symphony.tools.rest.util.CommandLineParserFault;
 import org.symphonyoss.symphony.tools.rest.util.Flag;
-import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
 public class SrtCommandLineHome extends CommandLineParser implements ISrtHome
 {
-  private File    home_;
-  private String  setBy_;
-  private File    configDir_;
-  private File    sessionDir_;
+  private String  home_;
+  private SrtHome srtHome_;
 
   public SrtCommandLineHome()
   {
@@ -58,88 +47,20 @@ public class SrtCommandLineHome extends CommandLineParser implements ISrtHome
 
   private void init()
   {
-    addFlag((v) -> setHome(v, "Command Line Flag"), SRT_HOME);
+    addFlag((v) -> home_ =v, SRT_HOME);
   }
 
   @Override
   public void process(String[] argv)
   {
     super.process(argv);
-    
-    if(home_ == null)
-    {
-      setHome(System.getProperty(SRT_HOME), "System Property");
-    }
-    
-    if(home_ == null)
-    {
-      setHome(System.getenv(SRT_HOME), "Environment Variable");
-    }
-    
-    if (home_ == null)
-    {
-      home_ = new File(new File(System.getProperty("user.home")), ".srt");
-      setBy_ = "Default";
-
-      if (!home_.exists())
-      {
-        try
-        {
-          Path dir = home_.toPath();
-
-          Files.createDirectory(dir);
-          Files.setPosixFilePermissions(dir, 
-              EnumSet.of( PosixFilePermission.OWNER_READ,
-                          PosixFilePermission.OWNER_WRITE,
-                          PosixFilePermission.OWNER_EXECUTE));
-          
-          System.out.println("Default home area \"" +
-              home_.getAbsolutePath() + "\" created.");
-        }
-        catch (IOException e)
-        {
-          throw new CommandLineParserFault("Cannot create default home area \"" +
-              home_.getAbsolutePath() + "\"", e);
-        }
-      }
-    }
-    
-    System.out.println(SRT_HOME + " set by " + setBy_);
-    
-    if (!home_.exists())
-      throw new CommandLineParserFault(SRT_HOME + " \"" +
-          home_.getAbsolutePath() + "\" set by " + setBy_ + " does not exist.");
-    
-    configDir_ = new File(home_, "config");
-    configDir_.mkdirs();
-    
-    sessionDir_ = new File(home_, "session");
-    sessionDir_.mkdirs();
-  }
-
-  private void setHome(String homeStr, String setBy)
-  {
-    if(homeStr != null)
-    {
-      homeStr = homeStr.trim();
-      
-      if(!homeStr.isEmpty())
-      {
-        home_ = new File(homeStr);
-        setBy_ = setBy;
-      }
-    }
+    srtHome_ = new SrtHome(home_, "Command Line Flag");
   }
 
   @Override
   public File getHome()
   {
-    return home_;
-  }
-
-  public String getSetBy()
-  {
-    return setBy_;
+    return srtHome_.getHome();
   }
 
   @Override
@@ -159,26 +80,14 @@ public class SrtCommandLineHome extends CommandLineParser implements ISrtHome
   @Override
   public File getConfigDir(String name)
   {
-    return new File(configDir_, name);
+    return srtHome_.getConfigDir(name);
   }
 
   @Override
   public void saveSessionToken(String hostName, String tokenName, String token)
   {
-    File dir = new File(sessionDir_, hostName);
-    
-    dir.mkdirs();
-    
-    File file = new File(dir, tokenName);
-    
-    try(FileOutputStream fos = new FileOutputStream(file);
-        PrintWriter p = new PrintWriter(fos);)
-    {
-      p.println(token);
-    }
-    catch (IOException e)
-    {
-      throw new ProgramFault("Unable to save session token " + file.getAbsolutePath(), e);
-    }
+    srtHome_.saveSessionToken(hostName, tokenName, token);
   }
+
+  
 }

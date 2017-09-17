@@ -44,6 +44,13 @@ public class Console
     err_ = new PrintWriter(err);
   }
   
+  public Console(BufferedReader in, PrintWriter out, PrintWriter err)
+  {
+    in_ = in;
+    out_ = out;
+    err_ = err;
+  }
+
   public String  promptString(String prompt)
   {
     out_.print(prompt);
