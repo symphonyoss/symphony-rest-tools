@@ -45,10 +45,7 @@ public class SrtHome implements ISrtHome
   public SrtHome(String homeStr, String setBy)
   {
     setHome(homeStr, setBy);
-  }
-  
-  public void init()
-  {
+
     if(home_ == null)
     {
       setHome(System.getProperty(SRT_HOME), "System Property");
