@@ -26,7 +26,7 @@ package org.symphonyoss.symphony.tools.rest.model;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class UrlEndpoint extends SimpleModelObject implements IModelObject, IUrlEndpoint
+public class UrlEndpoint extends VirtualModelObject implements IUrlEndpoint
 {
   private URL url_;
 

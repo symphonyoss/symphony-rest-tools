@@ -32,6 +32,8 @@ import javax.annotation.concurrent.Immutable;
 public class AgentConfig extends Config implements IAgentConfig
 {
   private static final String AGENT_URL = "agent.url";
+
+  public static final String TYPE_NAME = "Agent";
   
   /* package */ String                agentApiUrl_;
 
@@ -75,6 +77,6 @@ public class AgentConfig extends Config implements IAgentConfig
   @Override
   public String getTypeName()
   {
-    return "Agent";
+    return TYPE_NAME;
   }
 }

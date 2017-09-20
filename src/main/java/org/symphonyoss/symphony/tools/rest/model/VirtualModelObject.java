@@ -23,19 +23,19 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-public class SimpleModelObject implements IModelObject
+public class VirtualModelObject implements IVirtualModelObject
 {
   private final IModelObject parent_;
   private final String       typeName_;
   private final String       name_;
   private final String       errorText_;
 
-  public SimpleModelObject(IModelObject parent, String typeName, String name)
+  public VirtualModelObject(IModelObject parent, String typeName, String name)
   {
     this(parent, typeName, name, null);
   }
   
-  public SimpleModelObject(IModelObject parent, String typeName, String name, String errorText)
+  public VirtualModelObject(IModelObject parent, String typeName, String name, String errorText)
   {
     parent_ = parent;
     typeName_ = typeName;

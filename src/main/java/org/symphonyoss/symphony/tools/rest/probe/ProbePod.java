@@ -44,7 +44,7 @@ import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
 import org.symphonyoss.symphony.jcurl.JCurl.HttpMethod;
 import org.symphonyoss.symphony.tools.rest.model.AgentConfigBuilder;
-import org.symphonyoss.symphony.tools.rest.model.Pod;
+import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.PodConfigBuilder;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
@@ -152,7 +152,7 @@ public class ProbePod
       
       podConfig_.setHostName(name_ + domain_);
       
-      Pod pod = srtHome_.getPodManager().getPod(podConfig_.getName());
+      IPod pod = srtHome_.getPodManager().getPod(podConfig_.getName());
       boolean   doProbe = true;
   
       if(pod != null)
@@ -199,7 +199,7 @@ public class ProbePod
           {
             console_.println("No podInfo, try to look for an in-cloud key manager...");
             
-            podConfig_.setKeyManagerUrl(podConfig_.getPodUrl() + "/relay");
+            podConfig_.setKeyManagerUrl(new URL(podConfig_.getPodUrl() + "/relay"));
           }
           
           if(podConfig_.getKeyManagerUrl() == null)
@@ -320,8 +320,10 @@ public class ProbePod
         
         if(updateConfig)
         {
-          srtHome_.getPodManager().createOrUpdatePod(podConfig_.build());
+          pod = srtHome_.getPodManager().createOrUpdatePod(podConfig_.build());
 
+          if(agentConfig_.getAgentApiUrl() != null)
+            pod.createOrUpdateAgent(agentConfig_);
           console_.error("Finished.");
         }
       }
@@ -341,9 +343,9 @@ public class ProbePod
     }
   }
 
-  private String getUrl(ScanResponse scanResponse, String token)
+  private URL getUrl(ScanResponse scanResponse, String token)
   {
-    String url = null;
+    URL url = null;
     
     if(scanResponse.getValidProbe() != null)
     {
@@ -379,7 +381,7 @@ public class ProbePod
     return url;
   }
 
-  private void probePod(int port)
+  private void probePod(int port) throws MalformedURLException
   {
     Probe probe = new Probe(name_, "", domain_, port,
         "/");
@@ -532,7 +534,7 @@ public class ProbePod
     }
     else
     {
-      podConfig_.setKeyManagerUrl(km.asText());
+      podConfig_.setKeyManagerUrl(new URL(km.asText()));
     
       console_.println("keyManagerUrl is " + podConfig_.getKeyManagerUrl());
     }
@@ -570,11 +572,11 @@ public class ProbePod
     }
     
     podId_ = podInfoJsonData.get("podId").asInt();
-    podConfig_.setKeyManagerUrl(podInfoJsonData.get("keyManagerUrl").asText());
+    podConfig_.setKeyManagerUrl(new URL(podInfoJsonData.get("keyManagerUrl").asText()));
 
   }
 
-  private @Nonnull ScanResponse probeAuth(String title, String basePath, String name, String domain)
+  private @Nonnull ScanResponse probeAuth(String title, String basePath, String name, String domain) throws MalformedURLException
   {
     ScanResponse  response = new ScanResponse(title);
     
@@ -606,7 +608,7 @@ public class ProbePod
     return response;
   }
   
-  private @Nonnull ScanResponse probeAgent(String name, String domain)
+  private @Nonnull ScanResponse probeAgent(String name, String domain) throws MalformedURLException
   {
     ScanResponse  response = new ScanResponse("Agent API");
     
@@ -626,7 +628,7 @@ public class ProbePod
     return response;
   }
   
-  private void probeAgent(Probe probe)
+  private void probeAgent(Probe probe) throws MalformedURLException
   {
     Builder builder = getJCurl()
         .method(HttpMethod.POST)
@@ -876,11 +878,11 @@ public class ProbePod
     return s;
   }
 
-  private boolean probeNonSSL(int port)
+  private boolean probeNonSSL(int port) throws MalformedURLException
   {
     JCurl jcurl = getJCurl().build();
 
-    String url = "http://" + name_ + domain_ + ":" + port;
+    URL url = new URL("http://" + name_ + domain_ + ":" + port);
 
     try
     {

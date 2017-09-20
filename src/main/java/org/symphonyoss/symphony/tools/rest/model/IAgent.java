@@ -23,15 +23,7 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.PrintWriter;
-
-/**
- * 
- * @author bruce.skingle
- *
- */
-public interface IModelObject extends IVirtualModelObject
+public interface IAgent extends IModelObject, IUrlEndpoint
 {
-  IConfig getConfig();
-  void    print(PrintWriter out);
+
 }

@@ -27,24 +27,38 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+
+import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import org.symphonyoss.symphony.tools.rest.util.home.PodManager;
 
 public class Pod extends ModelObject implements IPod, IUrlEndpoint
 {
-  private static final String POD_HEALTHY = "pod.healthy";
-  private static final String POD_ID = "pod.id";
+
+  public static final String  TYPE_KEY_MANAGER  = "KeyManager";
+  public static final String  TYPE_SESSION_AUTH = "SessionAuth";
+  public static final String  TYPE_KEY_AUTH     = "KeyAuth";
   
-  private PodConfig             config_;
-  private boolean               podHealthy_;
-  private int                   podId_;
-  private URL                   url_;
+  private static final String POD_HEALTHY       = "pod.healthy";
+  private static final String POD_ID            = "pod.id";
+  private static final String AGENT_DIR_NAME    = "agent";
+
+  private final PodManager    manager_;
+  private PodConfig           config_;
+  private Map<String, Agent>  agentMap_      = new HashMap<>();
+  private boolean             podHealthy_;
+  private int                 podId_;
+  private URL                 url_;
   
-  public Pod(PodConfig config) throws NoSuchObjectException
+  public Pod(PodManager manager, PodConfig config) throws NoSuchObjectException
   {
     super(null, config);
     
+    manager_ = manager;
     config_ = config;
-    if(url_ != null)
+    if(config_.getPodUrl() != null)
     {
       try
       {
@@ -56,20 +70,31 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
       }
     }
     
-    addUrlEndpoint("KeyManager", config_.getKeyManagerUrl());
-    addUrlEndpoint("SessionAuth", config_.getSessionAuthUrl());
-    addUrlEndpoint("KeyAuth", config_.getKeyAuthUrl());
+    addUrlEndpoint(TYPE_KEY_MANAGER, config_.getKeyManagerUrl());
+    addUrlEndpoint(TYPE_SESSION_AUTH, config_.getSessionAuthUrl());
+    addUrlEndpoint(TYPE_KEY_AUTH, config_.getKeyAuthUrl());
   }
   
   
 
-  public static Pod newInstance(File configDir) throws NoSuchObjectException
+  public static Pod newInstance(PodManager manager, File configDir) throws NoSuchObjectException
   {
     PodConfig config = new PodConfig();
     
     config.load(configDir);
     
-    return new Pod(config);
+    Pod pod = new Pod(manager, config);
+    
+    File agentsDir = new File(configDir, AGENT_DIR_NAME);
+    
+    if(agentsDir.isDirectory())
+    {
+      for(File agentConfigDir : agentsDir.listFiles())
+      {
+        Agent.newInstance(pod, agentConfigDir);
+      }
+    }
+    return pod;
   }
 
   @Override
@@ -103,5 +128,41 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
   public URL getUrl()
   {
     return url_;
+  }
+
+
+  @Override
+  public IAgent createOrUpdateAgent(IAgentConfig agentConfig)
+  {
+    File configDir = manager_.getConfigPath(config_.getName(),
+        AGENT_DIR_NAME, agentConfig.getName());
+    
+    agentConfig.store(configDir);
+    
+    Agent newAgent;
+    
+    try
+    {
+      newAgent = Agent.newInstance(this, configDir);
+    }
+    catch(NoSuchObjectException e)
+    {
+      throw new ProgramFault("Failed to read new agent which we just created - this can't happen", e);
+    }
+    
+    Agent oldAgent;
+    synchronized (agentMap_)
+    {
+      oldAgent = agentMap_.put(agentConfig.getName(), newAgent);
+    }
+    
+    if(oldAgent != null)
+    {
+      oldAgent.modelUpdated(newAgent);
+    }
+    
+    manager_.modelObjectChanged(this);
+    
+    return newAgent;
   }
 }

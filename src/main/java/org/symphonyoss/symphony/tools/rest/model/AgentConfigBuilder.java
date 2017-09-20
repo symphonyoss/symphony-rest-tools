@@ -23,6 +23,8 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import java.net.URL;
+
 public class AgentConfigBuilder extends ConfigBuilder<AgentConfig> implements IAgentConfig
 {
   public AgentConfigBuilder()
@@ -35,9 +37,12 @@ public class AgentConfigBuilder extends ConfigBuilder<AgentConfig> implements IA
     super(other);
   }
 
-  public AgentConfigBuilder setAgentApiUrl(String agentApiUrl)
+  public AgentConfigBuilder setAgentApiUrl(URL agentApiUrl)
   {
-    config_.agentApiUrl_ = agentApiUrl;
+    config_.agentApiUrl_ = agentApiUrl.toString();
+    config_.hostName_ = agentApiUrl.getHost() +
+        (agentApiUrl.getPort() == -1 ? "" : ":" + agentApiUrl.getPort());
+    
     return this;
   }
   

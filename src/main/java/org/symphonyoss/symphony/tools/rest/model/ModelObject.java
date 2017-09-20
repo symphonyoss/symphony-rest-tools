@@ -30,17 +30,17 @@ import java.util.List;
 
 public abstract class ModelObject extends ModelObjectOrConfig implements IModelObject
 {
-  private static final String STATE_PROPS   = "state.properties";
+  private static final String       STATE_PROPS   = "state.properties";
 
-  private final IModelObject  parent_;
-  private final Config        config_;
+  private final IVirtualModelObject parent_;
+  private final Config              config_;
 
-  private List<IModelObject>  childSet_     = new ArrayList<>();
-  private IModelObject[]      children_     = new IModelObject[0];
-  private StringBuilder       errorBuilder_ = new StringBuilder();
-  private String              errorText_    = null;
+  private List<IVirtualModelObject> childSet_     = new ArrayList<>();
+  private IVirtualModelObject[]     children_     = new IVirtualModelObject[0];
+  private StringBuilder             errorBuilder_ = new StringBuilder();
+  private String                    errorText_    = null;
 
-  public ModelObject(IModelObject parent, Config config)
+  public ModelObject(IVirtualModelObject parent, Config config)
   {
     parent_ = parent;
     config_ = config;
@@ -51,11 +51,13 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
       addError(errorText);
   }
 
+  @Override
   public IConfig getConfig()
   {
     return config_;
   }
   
+  @Override
   public void print(PrintWriter out)
   {
     getConfig().printFields(out);
@@ -83,14 +85,14 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
     return config_.getTypeName();
   }
 
-  public void addChild(IModelObject child)
+  public void addChild(IVirtualModelObject child)
   {
     synchronized (childSet_)
     {
       childSet_.add(child);
       synchronized (children_)
       {
-        children_ = childSet_.toArray(new IModelObject[childSet_.size()]);
+        children_ = childSet_.toArray(new IVirtualModelObject[childSet_.size()]);
       }
     }
   }
@@ -105,7 +107,7 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   }
 
   @Override
-  public IModelObject[] getChildren()
+  public IVirtualModelObject[] getChildren()
   {
     synchronized (children_)
     {
@@ -114,7 +116,7 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   }
 
   @Override
-  public IModelObject getParent()
+  public IVirtualModelObject getParent()
   {
     return parent_;
   }
@@ -127,7 +129,7 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   public void addSimpleChild(String typeName, String name)
   {
     if(name != null)
-      addChild(new SimpleModelObject(this, typeName, name));
+      addChild(new VirtualModelObject(this, typeName, name));
   }
   
   /**

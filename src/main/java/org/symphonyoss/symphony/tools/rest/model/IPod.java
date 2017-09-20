@@ -26,4 +26,6 @@ package org.symphonyoss.symphony.tools.rest.model;
 public interface IPod extends IModelObject
 {
 
+  IAgent createOrUpdateAgent(IAgentConfig agentConfig);
+
 }

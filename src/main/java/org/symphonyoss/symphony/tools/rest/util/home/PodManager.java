@@ -32,6 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.symphonyoss.symphony.tools.rest.model.IModelListener;
 import org.symphonyoss.symphony.tools.rest.model.IModelObject;
+import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.model.Pod;
@@ -49,11 +50,11 @@ public class PodManager extends ModelObjectManager implements IPodManager
   }
   
   @Override
-  public Set<Pod> getAll()
+  public Set<IPod> getAll()
   {
     loadAll();
     
-    return new HashSet<Pod>(podMap_.values());
+    return new HashSet<IPod>(podMap_.values());
   }
 
   private void loadAll()
@@ -70,7 +71,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
           {
             try
             {
-              podMap_.put(file.getName(), Pod.newInstance(file));
+              podMap_.put(file.getName(), Pod.newInstance(this, file));
               updated = true;
             }
             catch(NoSuchObjectException e)
@@ -100,7 +101,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
         
         try
         {
-          pod = Pod.newInstance(configDir);
+          pod = Pod.newInstance(this, configDir);
         }
         catch(NoSuchObjectException e)
         {
@@ -115,7 +116,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
   }
 
   @Override
-  public Pod createOrUpdatePod(IPodConfig podConfig)
+  public IPod createOrUpdatePod(IPodConfig podConfig)
   {
     File configDir = getConfigPath(podConfig.getName());
     
@@ -125,7 +126,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
     
     try
     {
-      newPod = Pod.newInstance(configDir);
+      newPod = Pod.newInstance(this, configDir);
     }
     catch(NoSuchObjectException e)
     {
@@ -143,12 +144,23 @@ public class PodManager extends ModelObjectManager implements IPodManager
       oldPod.modelUpdated(newPod);
     }
     
-    for(IModelListener listener : listeners_)
-      listener.modelChanged();
+    modelChanged();
     
     return newPod;
   }
   
+  public void modelChanged()
+  {
+    for(IModelListener listener : listeners_)
+      listener.modelChanged();
+  }
+  
+  public void modelObjectChanged(IModelObject modelObject)
+  {
+    for(IModelListener listener : listeners_)
+      listener.modelObjectChanged(modelObject);
+  }
+
   @Override
   public IModelObject[] getElements()
   {

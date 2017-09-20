@@ -23,6 +23,9 @@
 
 package org.symphonyoss.symphony.tools.rest.probe;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 
@@ -34,9 +37,9 @@ public class Probe
   private final String   basePath_;
 
   private final String   hostName_;
-  private final String   baseUrl_;
+  private final URL      baseUrl_;
 
-  private String         probeUrl_;
+  private URL            probeUrl_;
   private String         expectedContentType_;
 
   private int            httpStatus_;
@@ -47,20 +50,20 @@ public class Probe
   private boolean        valid_;
     
   public Probe(String name, String suffix, String domain, int port,
-      String basePath)
+      String basePath) throws MalformedURLException
   {
     port_ = port;
     basePath_ = basePath;
     
     hostName_ = name + suffix + domain;
-    baseUrl_ = "https://" + hostName_ + 
-        (port == 443 ? "" : ":" + port_) + basePath_;
+    baseUrl_ = new URL("https://" + hostName_ + 
+        (port == 443 ? "" : ":" + port_) + basePath_);
     probeUrl_ = baseUrl_;
   }
   
-  public Probe setProbePath(String probePath, String expectedContentType)
+  public Probe setProbePath(String probePath, String expectedContentType) throws MalformedURLException
   {
-    probeUrl_ = baseUrl_ + probePath;
+    probeUrl_ = new URL(baseUrl_ + probePath);
     expectedContentType_ = expectedContentType;
     
     failed_ = true;
@@ -94,12 +97,12 @@ public class Probe
     return hostName_;
   }
 
-  public String getBaseUrl()
+  public URL getBaseUrl()
   {
     return baseUrl_;
   }
 
-  public String getProbeUrl()
+  public URL getProbeUrl()
   {
     return probeUrl_;
   }

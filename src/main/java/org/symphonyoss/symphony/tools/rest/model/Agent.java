@@ -24,21 +24,46 @@
 package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-public class Agent extends ModelObject
+public class Agent extends ModelObject implements IAgent
 {
-  public Agent(Pod pod, File configDir) throws NoSuchObjectException
+  private final Pod pod_;
+  private AgentConfig config_;
+  private URL url_;
+
+  public Agent(Pod pod, AgentConfig config) throws NoSuchObjectException
   {
-    super(pod, loadConfig(configDir));
+    super(pod, config);
+    pod_ = pod;
+    config_ = config;
+    
+    try
+    {
+      url_ = new URL(config_.getAgentApiUrl());
+    }
+    catch (MalformedURLException e)
+    {
+      addError("Invalid URL \"" + config_.getAgentApiUrl() + "\"");
+    }
+    
+    pod_.addChild(this);
   }
 
-  private static AgentConfig loadConfig(File configDir) throws NoSuchObjectException
+  public static Agent newInstance(Pod pod, File configDir) throws NoSuchObjectException
   {
     AgentConfig config = new AgentConfig();
     
     config.load(configDir);
     
-    return config;
+    return new Agent(pod, config);
+  }
+
+  @Override
+  public URL getUrl()
+  {
+    return url_;
   }
 
   @Override
@@ -58,7 +83,15 @@ public class Agent extends ModelObject
   @Override
   public IModelObject getParent()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return pod_;
+  }
+  
+  /**
+   * This object has been replaced with the given one.
+   * 
+   * @param newPod
+   */
+  public void modelUpdated(Agent newPod)
+  {
   }
 }

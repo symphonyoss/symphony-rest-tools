@@ -26,5 +26,5 @@ package org.symphonyoss.symphony.tools.rest.model;
 public interface IModelListener
 {
   void modelChanged();
-  void modelObjectChanged(IModelObject modelObject);
+  void modelObjectChanged(IVirtualModelObject modelObject);
 }

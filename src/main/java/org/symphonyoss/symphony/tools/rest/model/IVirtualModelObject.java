@@ -23,15 +23,31 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.PrintWriter;
-
 /**
+ * Includes an analog of org.eclipse.jface.viewers.ITreeContentProvider which
+ * allows us to provide models from "pom-first land" for Eclipse based
+ * UI consumption (the Eclipse UI plugins always have to be in 
+ * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
+ * from in here.
  * 
  * @author bruce.skingle
  *
  */
-public interface IModelObject extends IVirtualModelObject
+public interface IVirtualModelObject
 {
-  IConfig getConfig();
-  void    print(PrintWriter out);
+  boolean                hasChildren();
+  IVirtualModelObject[]  getChildren();
+  
+  /**
+   * Returns the parent for the given element, or <code>null</code>
+   * indicating that it is a top level node.
+   *
+   * @return the parent element, or <code>null</code> if it
+   *   has none or if the parent cannot be computed
+   */
+  IVirtualModelObject   getParent();
+  
+  String                getTypeName();
+  String                getName();
+  String                getErrorText();
 }

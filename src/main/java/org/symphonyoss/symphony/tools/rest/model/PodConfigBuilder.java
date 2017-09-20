@@ -23,6 +23,7 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
@@ -44,9 +45,9 @@ implements IPodConfig
     return new PodConfig(config_);
   }
 
-  public PodConfigBuilder setKeyManagerUrl(String keyManagerUrl)
+  public PodConfigBuilder setKeyManagerUrl(URL keyManagerUrl)
   {
-    config_.keyManagerUrl_ = keyManagerUrl;
+    config_.keyManagerUrl_ = keyManagerUrl == null ? null : keyManagerUrl.toString();
     return this;
   }
 
@@ -56,9 +57,9 @@ implements IPodConfig
     return this;
   }
 
-  public PodConfigBuilder setWebUrl(String webUrl)
+  public PodConfigBuilder setWebUrl(URL webUrl)
   {
-    config_.webUrl_ = webUrl;
+    config_.webUrl_ = webUrl == null ? null : webUrl.toString();
     return this;
   }
 
@@ -68,21 +69,21 @@ implements IPodConfig
     return this;
   }
 
-  public PodConfigBuilder setPodApiUrl(String podApiUrl)
+  public PodConfigBuilder setPodApiUrl(URL podApiUrl)
   {
-    config_.podApiUrl_ = podApiUrl;
+    config_.podApiUrl_ = podApiUrl == null ? null : podApiUrl.toString();
     return this;
   }
 
-  public PodConfigBuilder setSessionAuthUrl(String sessionAuthUrl)
+  public PodConfigBuilder setSessionAuthUrl(URL sessionAuthUrl)
   {
-    config_.sessionAuthUrl_ = sessionAuthUrl;
+    config_.sessionAuthUrl_ = sessionAuthUrl == null ? null : sessionAuthUrl.toString();
     return this;
   }
 
-  public PodConfigBuilder setKeyAuthUrl(String keyAuthUrl)
+  public PodConfigBuilder setKeyAuthUrl(URL keyAuthUrl)
   {
-    config_.keyAuthUrl_ = keyAuthUrl;
+    config_.keyAuthUrl_ = keyAuthUrl == null ? null : keyAuthUrl.toString();
     return this;
   }
 
