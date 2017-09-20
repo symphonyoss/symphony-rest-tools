@@ -29,6 +29,10 @@ public interface IPodConfig extends ISslServerConfig
 
   String getPodUrl();
 
+  String getWebUrl();
+  
+  String getWebTitle();
+  
   String getPodApiUrl();
 
   String getSessionAuthUrl();

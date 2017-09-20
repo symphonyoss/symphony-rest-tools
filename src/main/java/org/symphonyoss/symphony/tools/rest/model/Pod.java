@@ -44,13 +44,16 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
     super(null, config);
     
     config_ = config;
-    try
+    if(url_ != null)
     {
-      url_ = new URL(config_.getPodUrl());
-    }
-    catch (MalformedURLException e)
-    {
-      addError("Invalid URL");
+      try
+      {
+        url_ = new URL(config_.getPodUrl());
+      }
+      catch (MalformedURLException e)
+      {
+        addError("Invalid URL");
+      }
     }
     
     addUrlEndpoint("KeyManager", config_.getKeyManagerUrl());

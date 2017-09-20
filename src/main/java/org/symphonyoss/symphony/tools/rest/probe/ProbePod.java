@@ -182,114 +182,130 @@ public class ProbePod
             break;
         }
         
-        if(podConfig_.getKeyManagerUrl() == null)
-        {
-          console_.println("No podInfo, try to look for an in-cloud key manager...");
-          
-          podConfig_.setKeyManagerUrl(podConfig_.getPodUrl() + "/relay");
-        }
-        
-        if(podConfig_.getKeyManagerUrl() == null)
-        {
-          // We found a pod but can't get podInfo - fatal error
-          return;
-        }
-            
-        try
-        {
-          URL kmUrl = new URL(podConfig_.getKeyManagerUrl());
-          String keyManagerDomain;
-          String keyManagerName = kmUrl.getHost();
-          
-          i = keyManagerName.indexOf('.');
-    
-          if (i == -1)
-            keyManagerDomain = ".symphony.com";
-          else
-          {
-            keyManagerDomain = keyManagerName.substring(i);
-            keyManagerName = keyManagerName.substring(0, i);
-          }
-    
-          console_.println("keyManagerName=" + keyManagerName);
-          console_.println("keyManagerDomain=" + keyManagerDomain);
-          
-          
-          console_.println();
-          console_.println("Probing for API Keyauth");
-          console_.println("=======================");
-          
-          keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
-          
-          if(keyAuthResponse_ != null)
-          {
-            podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
-            
-            String token = getTag(keyAuthResponse_, TOKEN);
-            
-            if(token != null)
-              srtHome_.saveSessionToken(name_ + domain_, KEYMANAGER_TOKEN, token);
-          }
-    
-          // Need to find a reliable health check indicator of keymanager in
-          // all deployments, for now assume that as the pod told is this
-          // is the KM that it is.
-          
-    //      Builder builder = getJCurl();
-    //      builder = cookieAuth(builder);
-    //      
-    //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
-    //      
-    //      if(response.isFailed())
-    //        return;
-          console_.println("Found key manager at " + podConfig_.getKeyManagerUrl());
-          
-          console_.println();
-          console_.println("Probing for API Agent");
-          console_.println("=====================");
-          
-          agentResponse_ = probeAgent(name_, domain_);
-          
-          agentConfig_.setAgentApiUrl(getUrl(agentResponse_, null));
-        }
-        catch (MalformedURLException e)
-        {
-          console_.println("Invalid keyManagerUrl \"" + podConfig_.getKeyManagerUrl() + "\" (" +
-              e.getMessage() + ")");
-          return;
-        }
-    
-        console_.println();
-        console_.println("Probe Successful");
-        console_.println("================");
-        
-        String  format = "%-20s=%s\n";
-        
-        console_.printf(format, "Pod URL", podConfig_.getPodUrl());
-        console_.printf(format, "Pod ID", podId_);
-        console_.printf(format, "Key Manager URL", podConfig_.getKeyManagerUrl());
-        console_.printf(format, "Session Auth URL", podConfig_.getSessionAuthUrl());
-        console_.printf(format, "Key Auth URL", podConfig_.getKeyAuthUrl());
-        console_.printf(format, "Pod API URL", podConfig_.getPodApiUrl());
-        console_.printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
-        
-        if(keystore_ != null)
+        if(podConfig_.getPodUrl() == null)
         {
           console_.println();
-          console_.printf(format, "Client cert", keystore_);
+          console_.println("Probe Reveals a Website but no Pod");
+          console_.println("==================================");
           
-          if(sessionInfoResult_.isFailed())
-          {
-            console_.println("This cert was not accepted for authentication");
-          }
-          else
-          {
-            console_.println("We authenticated as");
-            for(String field : SessionInfoFields)
-              console_.printf(format, "userInfo." + field, sessionInfoResult_.getJcurlResponse().getTag(field));
-          }
+          String  format = "%-20s=%s\n";
+          
+          console_.printf(format, "Web URL", podConfig_.getWebUrl());
+          console_.println();
         }
-        console_.println();
+        else
+        {
+          if(podConfig_.getKeyManagerUrl() == null)
+          {
+            console_.println("No podInfo, try to look for an in-cloud key manager...");
+            
+            podConfig_.setKeyManagerUrl(podConfig_.getPodUrl() + "/relay");
+          }
+          
+          if(podConfig_.getKeyManagerUrl() == null)
+          {
+            // We found a pod but can't get podInfo - fatal error
+            return;
+          }
+              
+          try
+          {
+            URL kmUrl = new URL(podConfig_.getKeyManagerUrl());
+            String keyManagerDomain;
+            String keyManagerName = kmUrl.getHost();
+            
+            i = keyManagerName.indexOf('.');
+      
+            if (i == -1)
+              keyManagerDomain = ".symphony.com";
+            else
+            {
+              keyManagerDomain = keyManagerName.substring(i);
+              keyManagerName = keyManagerName.substring(0, i);
+            }
+      
+            console_.println("keyManagerName=" + keyManagerName);
+            console_.println("keyManagerDomain=" + keyManagerDomain);
+            
+            
+            console_.println();
+            console_.println("Probing for API Keyauth");
+            console_.println("=======================");
+            
+            keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
+            
+            if(keyAuthResponse_ != null)
+            {
+              podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
+              
+              String token = getTag(keyAuthResponse_, TOKEN);
+              
+              if(token != null)
+                srtHome_.saveSessionToken(name_ + domain_, KEYMANAGER_TOKEN, token);
+            }
+      
+            // Need to find a reliable health check indicator of keymanager in
+            // all deployments, for now assume that as the pod told is this
+            // is the KM that it is.
+            
+      //      Builder builder = getJCurl();
+      //      builder = cookieAuth(builder);
+      //      
+      //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
+      //      
+      //      if(response.isFailed())
+      //        return;
+            console_.println("Found key manager at " + podConfig_.getKeyManagerUrl());
+            
+            console_.println();
+            console_.println("Probing for API Agent");
+            console_.println("=====================");
+            
+            agentResponse_ = probeAgent(name_, domain_);
+            
+            agentConfig_.setAgentApiUrl(getUrl(agentResponse_, null));
+          }
+          catch (MalformedURLException e)
+          {
+            console_.println("Invalid keyManagerUrl \"" + podConfig_.getKeyManagerUrl() + "\" (" +
+                e.getMessage() + ")");
+            return;
+          }
+      
+          console_.println();
+          console_.println("Probe Successful");
+          console_.println("================");
+          
+          String  format = "%-20s=%s\n";
+          
+          console_.printf(format, "Web URL", podConfig_.getWebUrl());
+          console_.printf(format, "Pod URL", podConfig_.getPodUrl());
+          console_.printf(format, "Pod ID", podId_);
+          console_.printf(format, "Key Manager URL", podConfig_.getKeyManagerUrl());
+          console_.printf(format, "Session Auth URL", podConfig_.getSessionAuthUrl());
+          console_.printf(format, "Key Auth URL", podConfig_.getKeyAuthUrl());
+          console_.printf(format, "Pod API URL", podConfig_.getPodApiUrl());
+          console_.printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
+          
+          if(keystore_ != null)
+          {
+            console_.println();
+            console_.printf(format, "Client cert", keystore_);
+            
+            if(sessionInfoResult_.isFailed())
+            {
+              console_.println("This cert was not accepted for authentication");
+            }
+            else
+            {
+              console_.println("We authenticated as");
+              for(String field : SessionInfoFields)
+                console_.printf(format, "userInfo." + field, sessionInfoResult_.getJcurlResponse().getTag(field));
+            }
+          }
+          console_.println();
+        }
+        
         console_.println("Root server certs:");
         for (X509Certificate cert : podConfig_.getTrustCerts())
           console_.println(cert.getSubjectX500Principal().getName());
@@ -379,6 +395,11 @@ public class ProbePod
 
       return;
     }
+    else if(podConfig_.getWebUrl() == null)
+    {
+      podConfig_.setWebUrl(probe.getProbeUrl());
+    }
+    
 
     probe = new Probe(name_, domain_, "", port,
         "/").setProbePath("/client/index.html", MIME_HTML);
@@ -867,8 +888,13 @@ public class ProbePod
 
       console_.println("response from " + url + " = " + connection.getResponseCode());
 
-      return connection.getResponseCode() == 200;
-
+      if(connection.getResponseCode() == 200)
+      {
+        podConfig_.setWebUrl(url);
+        
+        return true;
+      }
+      return false;
     }
     catch (IOException e)
     {

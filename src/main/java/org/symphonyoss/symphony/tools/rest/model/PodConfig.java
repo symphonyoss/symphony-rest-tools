@@ -32,8 +32,11 @@ import javax.annotation.concurrent.Immutable;
 public class PodConfig extends SslServerConfig implements IPodConfig
 {
   public static final String TYPE_NAME = "Pod";
+  public static final String WEB_TYPE_NAME = "WebServer";
 
   private static final String        POD_URL          = "pod.url";
+  private static final String        WEB_URL          = "web.url";
+  private static final String        WEB_TITLE        = "web.title";
   private static final String        KEY_MANAGER_URL  = "keymanager.url";
   private static final String        SESSION_AUTH_URL = "sessionauth.url";
   private static final String        KEY_AUTH_URL     = "keyauth.url";
@@ -41,6 +44,8 @@ public class PodConfig extends SslServerConfig implements IPodConfig
   
   /* package */ String               keyManagerUrl_;
   /* package */ String               podUrl_;
+  /* package */ String               webUrl_;
+  /* package */ String               webTitle_;
   /* package */ String               podApiUrl_;
   /* package */ String               sessionAuthUrl_;
   /* package */ String               keyAuthUrl_;
@@ -55,6 +60,8 @@ public class PodConfig extends SslServerConfig implements IPodConfig
     
     keyManagerUrl_      = other.keyManagerUrl_;
     podUrl_             = other.podUrl_;
+    webUrl_             = other.webUrl_;
+    webTitle_           = other.webTitle_;
     podApiUrl_          = other.podApiUrl_;
     sessionAuthUrl_     = other.sessionAuthUrl_;
     keyAuthUrl_         = other.keyAuthUrl_;
@@ -66,6 +73,8 @@ public class PodConfig extends SslServerConfig implements IPodConfig
     super.loadFromProperties(props);
     
     podUrl_         = props.getProperty(POD_URL);
+    webUrl_         = props.getProperty(WEB_URL);
+    webTitle_       = props.getProperty(WEB_TITLE);
     keyManagerUrl_  = props.getProperty(KEY_MANAGER_URL);
     sessionAuthUrl_ = props.getProperty(SESSION_AUTH_URL);
     keyAuthUrl_     = props.getProperty(KEY_AUTH_URL);
@@ -78,6 +87,8 @@ public class PodConfig extends SslServerConfig implements IPodConfig
     super.setProperties(prop);
     
     setIfNotNull(prop, POD_URL, podUrl_);
+    setIfNotNull(prop, WEB_URL, webUrl_);
+    setIfNotNull(prop, WEB_TITLE, webTitle_);
     setIfNotNull(prop, KEY_MANAGER_URL, keyManagerUrl_);
     setIfNotNull(prop, SESSION_AUTH_URL, sessionAuthUrl_);
     setIfNotNull(prop, KEY_AUTH_URL, keyAuthUrl_);
@@ -88,6 +99,8 @@ public class PodConfig extends SslServerConfig implements IPodConfig
   public void printFields(PrintWriter out)
   {
     out.printf(F, POD_URL, podUrl_);
+    out.printf(F, WEB_URL, webUrl_);
+    out.printf(F, WEB_TITLE, webTitle_);
     out.printf(F, KEY_MANAGER_URL, keyManagerUrl_);
     out.printf(F, SESSION_AUTH_URL, sessionAuthUrl_);
     out.printf(F, KEY_AUTH_URL, keyAuthUrl_);
@@ -104,6 +117,18 @@ public class PodConfig extends SslServerConfig implements IPodConfig
   public String getPodUrl()
   {
     return podUrl_;
+  }
+
+  @Override
+  public String getWebUrl()
+  {
+    return webUrl_;
+  }
+
+  @Override
+  public String getWebTitle()
+  {
+    return webTitle_;
   }
 
   @Override
@@ -127,6 +152,9 @@ public class PodConfig extends SslServerConfig implements IPodConfig
   @Override
   public String getTypeName()
   {
-    return TYPE_NAME;
+    if(podUrl_ != null)
+      return TYPE_NAME;
+    else
+      return WEB_TYPE_NAME;
   }
 }

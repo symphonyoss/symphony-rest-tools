@@ -56,6 +56,18 @@ implements IPodConfig
     return this;
   }
 
+  public PodConfigBuilder setWebUrl(String webUrl)
+  {
+    config_.webUrl_ = webUrl;
+    return this;
+  }
+
+  public PodConfigBuilder setWebTitle(String webTitle)
+  {
+    config_.webTitle_ = webTitle;
+    return this;
+  }
+
   public PodConfigBuilder setPodApiUrl(String podApiUrl)
   {
     config_.podApiUrl_ = podApiUrl;
@@ -84,6 +96,18 @@ implements IPodConfig
   public String getPodUrl()
   {
     return config_.getPodUrl();
+  }
+
+  @Override
+  public String getWebUrl()
+  {
+    return config_.getWebUrl();
+  }
+
+  @Override
+  public String getWebTitle()
+  {
+    return config_.getWebTitle();
   }
 
   @Override

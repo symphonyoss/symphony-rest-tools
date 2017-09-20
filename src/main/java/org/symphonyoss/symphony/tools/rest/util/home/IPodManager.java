@@ -25,10 +25,11 @@ package org.symphonyoss.symphony.tools.rest.util.home;
 
 import java.util.Set;
 
+import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
 import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
 import org.symphonyoss.symphony.tools.rest.model.Pod;
 
-public interface IPodManager
+public interface IPodManager extends IModelObjectProvider
 {
 
   Pod getPod(String hostName);

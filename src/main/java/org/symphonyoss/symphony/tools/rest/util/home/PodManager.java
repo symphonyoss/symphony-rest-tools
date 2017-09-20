@@ -28,7 +28,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.symphonyoss.symphony.tools.rest.model.IModelListener;
+import org.symphonyoss.symphony.tools.rest.model.IModelObject;
 import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.model.Pod;
@@ -36,66 +39,83 @@ import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 public class PodManager extends ModelObjectManager implements IPodManager
 {
-    
-  private Map<String, Pod>  podMap_ = new HashMap<>();
-  private boolean           allLoaded_;
-  
+  private Map<String, Pod>                     podMap_    = new HashMap<>();
+  private boolean                              allLoaded_;
+  private CopyOnWriteArrayList<IModelListener> listeners_ = new CopyOnWriteArrayList<>();
+
   public PodManager(File configDir)
   {
     super(configDir);
   }
   
   @Override
-  public synchronized Set<Pod> getAll()
+  public Set<Pod> getAll()
   {
-    if(!allLoaded_)
-    {
-      for(File file : getConfigDir().listFiles())
-      {
-        if(podMap_.get(file.getName()) == null)
-        {
-          try
-          {
-            podMap_.put(file.getName(), Pod.newInstance(file));
-          }
-          catch(NoSuchObjectException e)
-          {
-            throw new ProgramFault("Failed to read pod config", e);
-          }
-        }
-      }
-
-    }
+    loadAll();
     
     return new HashSet<Pod>(podMap_.values());
   }
 
-  @Override
-  public synchronized Pod getPod(String hostName)
+  private void loadAll()
   {
-    if(!podMap_.containsKey(hostName))
+    if(!allLoaded_)
     {
-      File configDir = getConfigPath(hostName);
-     
-      Pod pod;
+      boolean updated = false;
       
-      try
+      synchronized(podMap_)
       {
-        pod = Pod.newInstance(configDir);
+        for(File file : getConfigDir().listFiles())
+        {
+          if(podMap_.get(file.getName()) == null)
+          {
+            try
+            {
+              podMap_.put(file.getName(), Pod.newInstance(file));
+              updated = true;
+            }
+            catch(NoSuchObjectException e)
+            {
+              throw new ProgramFault("Failed to read pod config", e);
+            }
+          }
+        }
       }
-      catch(NoSuchObjectException e)
+
+      if(updated)
+        for(IModelListener listener : listeners_)
+          listener.modelChanged();
+    }
+  }
+
+  @Override
+  public Pod getPod(String hostName)
+  {
+    synchronized(podMap_)
+    {
+      if(!podMap_.containsKey(hostName))
       {
-        pod = null;
+        File configDir = getConfigPath(hostName);
+       
+        Pod pod;
+        
+        try
+        {
+          pod = Pod.newInstance(configDir);
+        }
+        catch(NoSuchObjectException e)
+        {
+          pod = null;
+        }
+        
+        podMap_.put(hostName, pod);
       }
-      
-      podMap_.put(hostName, pod);
     }
     
     return podMap_.get(hostName);
   }
 
   @Override
-  public synchronized Pod createOrUpdatePod(IPodConfig podConfig)
+  public Pod createOrUpdatePod(IPodConfig podConfig)
   {
     File configDir = getConfigPath(podConfig.getName());
     
@@ -112,13 +132,42 @@ public class PodManager extends ModelObjectManager implements IPodManager
       throw new ProgramFault("Failed to read new pod which we just created - this can't happen", e);
     }
     
-    Pod oldPod = podMap_.put(podConfig.getName(), newPod);
+    Pod oldPod;
+    synchronized (podMap_)
+    {
+      oldPod = podMap_.put(podConfig.getName(), newPod);
+    }
     
     if(oldPod != null)
     {
       oldPod.modelUpdated(newPod);
     }
     
+    for(IModelListener listener : listeners_)
+      listener.modelChanged();
+    
     return newPod;
+  }
+  
+  @Override
+  public IModelObject[] getElements()
+  {
+    synchronized (podMap_)
+    {
+      return podMap_.values().toArray(new IModelObject[podMap_.size()]);
+    }
+  }
+
+  @Override
+  public void addListener(IModelListener listener)
+  {
+    listeners_.add(listener);
+    loadAll();
+  }
+
+  @Override
+  public void removeListener(IModelListener listener)
+  {
+    listeners_.remove(listener);
   }
 }

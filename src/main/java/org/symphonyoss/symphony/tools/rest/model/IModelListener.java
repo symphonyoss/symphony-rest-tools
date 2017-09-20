@@ -23,19 +23,8 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-/**
- * Includes an analog of org.eclipse.jface.viewers.IStructuredContentProvider which
- * allows us to provide models from "pom-first land" for Eclipse based
- * UI consumption (the Eclipse UI plugins always have to be in 
- * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
- * from in here.
- * 
- * @author bruce.skingle
- *
- */
-public interface IModelObjectProvider
+public interface IModelListener
 {
-  IModelObject[] getElements();
-  void addListener(IModelListener listener);
-  void removeListener(IModelListener listener);
+  void modelChanged();
+  void modelObjectChanged(IModelObject modelObject);
 }
