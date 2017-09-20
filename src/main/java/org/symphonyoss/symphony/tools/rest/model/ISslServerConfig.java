@@ -21,21 +21,17 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
+import java.security.cert.X509Certificate;
+import java.util.Set;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+public interface ISslServerConfig extends IConfig
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
+  String getTrustStorePassword();
 
-  File getConfigDir(String name);
+  File getTrustStoreFile();
 
-  void saveSessionToken(String hostName, String tokenName, String token);
-
-  IPodManager getPodManager();
+  Set<X509Certificate> getTrustCerts();
 }

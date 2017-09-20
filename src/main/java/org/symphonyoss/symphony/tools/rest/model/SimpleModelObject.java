@@ -21,49 +21,62 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
-import org.symphonyoss.symphony.tools.rest.util.CommandLineParser;
-import org.symphonyoss.symphony.tools.rest.util.Console;
-import org.symphonyoss.symphony.tools.rest.util.Flag;
-import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
-
-public class SrtCommandLineHome extends CommandLineParser
+public class SimpleModelObject implements IModelObject
 {
-  private String  home_;
+  private final IModelObject parent_;
+  private final String       typeName_;
+  private final String       name_;
+  private final String       errorText_;
 
-  public SrtCommandLineHome()
+  public SimpleModelObject(IModelObject parent, String typeName, String name)
   {
-    init();
+    this(parent, typeName, name, null);
   }
-
-  public SrtCommandLineHome(ISetter<String> argSetter)
+  
+  public SimpleModelObject(IModelObject parent, String typeName, String name, String errorText)
   {
-    super(argSetter);
-    init();
-  }
-
-  private void init()
-  {
-    addFlag((v) -> home_ =v, ISrtHome.SRT_HOME);
-  }
-
-  public ISrtHome createSrtHome(Console console)
-  {
-    return new SrtHome(console, home_, "Command Line Flag");
+    parent_ = parent;
+    typeName_ = typeName;
+    name_ = name;
+    errorText_ = errorText;
   }
 
   @Override
-  public SrtCommandLineHome addFlag(ISetter<String> setter, String... names)
+  public boolean hasChildren()
   {
-    super.addFlag(setter, names);
-    return this;
+    return false;
   }
 
   @Override
-  public SrtCommandLineHome addFlag(Flag flag, String... names)
+  public IModelObject[] getChildren()
   {
-    super.addFlag(flag, names);
-    return this;
+    return null;
   }
+
+  @Override
+  public IModelObject getParent()
+  {
+    return parent_;
+  }
+
+  @Override
+  public String getTypeName()
+  {
+    return typeName_;
+  }
+
+  @Override
+  public String getName()
+  {
+    return name_;
+  }
+
+  @Override
+  public String getErrorText()
+  {
+    return errorText_;
+  }
+
 }

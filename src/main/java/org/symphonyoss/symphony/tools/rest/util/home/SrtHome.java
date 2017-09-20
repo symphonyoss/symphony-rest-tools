@@ -31,60 +31,38 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;
+import java.util.Set;
 
+import org.symphonyoss.symphony.tools.rest.model.IModelObject;
+import org.symphonyoss.symphony.tools.rest.model.Pod;
 import org.symphonyoss.symphony.tools.rest.util.CommandLineParserFault;
+import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 public class SrtHome implements ISrtHome
 {
-  private File    home_;
-  private String  setBy_;
-  private File    configDir_;
-  private File    sessionDir_;
+  private final File       home_;
+  private final String     setBy_;
+  private final File       configDir_;
+  private final File       sessionDir_;
+  private final Console    console_;
+  private final IPodManager podManager_;
 
-  public SrtHome(String homeStr, String setBy)
+  public SrtHome(Console console)
   {
-    setHome(homeStr, setBy);
-
-    if(home_ == null)
-    {
-      setHome(System.getProperty(SRT_HOME), "System Property");
-    }
+    this(console, null, null);
+  }
+  
+  public SrtHome(Console console, String homeStr, String setBy)
+  {
+    console_ = console;
     
-    if(home_ == null)
-    {
-      setHome(System.getenv(SRT_HOME), "Environment Variable");
-    }
+    Builder builder = new Builder(homeStr, setBy);
     
-    if (home_ == null)
-    {
-      home_ = new File(new File(System.getProperty("user.home")), ".srt");
-      setBy_ = "Default";
-
-      if (!home_.exists())
-      {
-        try
-        {
-          Path dir = home_.toPath();
-
-          Files.createDirectory(dir);
-          Files.setPosixFilePermissions(dir, 
-              EnumSet.of( PosixFilePermission.OWNER_READ,
-                          PosixFilePermission.OWNER_WRITE,
-                          PosixFilePermission.OWNER_EXECUTE));
-          
-          System.out.println("Default home area \"" +
-              home_.getAbsolutePath() + "\" created.");
-        }
-        catch (IOException e)
-        {
-          throw new CommandLineParserFault("Cannot create default home area \"" +
-              home_.getAbsolutePath() + "\"", e);
-        }
-      }
-    }
+    home_ = builder.builderHome_;
+    setBy_ = builder.setBy_;
     
-    System.out.println(SRT_HOME + " set by " + setBy_);
+    console_.println(SRT_HOME + " set by " + setBy_);
     
     if (!home_.exists())
       throw new CommandLineParserFault(SRT_HOME + " \"" +
@@ -95,18 +73,69 @@ public class SrtHome implements ISrtHome
     
     sessionDir_ = new File(home_, "session");
     sessionDir_.mkdirs();
+    
+    podManager_ = new PodManager(configDir_);
   }
-
-  private void setHome(String homeStr, String setBy)
+  
+  private class Builder
   {
-    if(homeStr != null)
+    private File    builderHome_;
+    private String  setBy_;
+    
+    public Builder(String homeStr, String setBy)
     {
-      homeStr = homeStr.trim();
-      
-      if(!homeStr.isEmpty())
+      setHome(homeStr, setBy);
+  
+      if(builderHome_ == null)
       {
-        home_ = new File(homeStr);
-        setBy_ = setBy;
+        setHome(System.getProperty(SRT_HOME), "System Property");
+      }
+      
+      if(builderHome_ == null)
+      {
+        setHome(System.getenv(SRT_HOME), "Environment Variable");
+      }
+      
+      if (builderHome_ == null)
+      {
+        builderHome_ = new File(new File(System.getProperty("user.home")), ".srt");
+        setBy_ = "Default";
+  
+        if (!builderHome_.exists())
+        {
+          try
+          {
+            Path dir = builderHome_.toPath();
+  
+            Files.createDirectory(dir);
+            Files.setPosixFilePermissions(dir, 
+                EnumSet.of( PosixFilePermission.OWNER_READ,
+                            PosixFilePermission.OWNER_WRITE,
+                            PosixFilePermission.OWNER_EXECUTE));
+            
+            console_.println("Default home area \"" +
+                builderHome_.getAbsolutePath() + "\" created.");
+          }
+          catch (IOException e)
+          {
+            throw new CommandLineParserFault("Cannot create default home area \"" +
+                builderHome_.getAbsolutePath() + "\"", e);
+          }
+        }
+      }
+    }
+  
+    private void setHome(String homeStr, String setBy)
+    {
+      if(homeStr != null)
+      {
+        homeStr = homeStr.trim();
+        
+        if(!homeStr.isEmpty())
+        {
+          builderHome_ = new File(homeStr);
+          setBy_ = setBy;
+        }
       }
     }
   }
@@ -147,4 +176,19 @@ public class SrtHome implements ISrtHome
       throw new ProgramFault("Unable to save session token " + file.getAbsolutePath(), e);
     }
   }
+
+  @Override
+  public IPodManager getPodManager()
+  {
+    return podManager_;
+  }
+
+  @Override
+  public IModelObject[] getElements()
+  {
+    Set<Pod> pods = podManager_.getAll();
+    
+    return pods.toArray(new IModelObject[pods.size()]);
+  }
+
 }

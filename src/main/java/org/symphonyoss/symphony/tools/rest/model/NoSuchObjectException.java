@@ -21,21 +21,34 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
-
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+public class NoSuchObjectException extends Exception
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
+  private static final long serialVersionUID = 1L;
 
-  File getConfigDir(String name);
+  public NoSuchObjectException()
+  {
+  }
 
-  void saveSessionToken(String hostName, String tokenName, String token);
+  public NoSuchObjectException(String message)
+  {
+    super(message);
+  }
 
-  IPodManager getPodManager();
+  public NoSuchObjectException(Throwable cause)
+  {
+    super(cause);
+  }
+
+  public NoSuchObjectException(String message, Throwable cause)
+  {
+    super(message, cause);
+  }
+
+  public NoSuchObjectException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+  {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
+
 }

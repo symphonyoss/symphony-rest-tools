@@ -21,21 +21,29 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
-
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+public class AgentConfigBuilder extends ConfigBuilder<AgentConfig> implements IAgentConfig
 {
-  static final String SRT_HOME = "SRT_HOME";
+  public AgentConfigBuilder()
+  {
+    super(new AgentConfig());
+  }
+
+  public AgentConfigBuilder(AgentConfig other)
+  {
+    super(other);
+  }
+
+  public AgentConfigBuilder setAgentApiUrl(String agentApiUrl)
+  {
+    config_.agentApiUrl_ = agentApiUrl;
+    return this;
+  }
   
-  File  getHome();
-
-  File getConfigDir(String name);
-
-  void saveSessionToken(String hostName, String tokenName, String token);
-
-  IPodManager getPodManager();
+  @Override
+  public String getAgentApiUrl()
+  {
+    return config_.agentApiUrl_;
+  }
 }

@@ -21,21 +21,19 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
-
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+/**
+ * Includes an analog of org.eclipse.jface.viewers.IStructuredContentProvider which
+ * allows us to provide models from "pom-first land" for Eclipse based
+ * UI consumption (the Eclipse UI plugins always have to be in 
+ * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
+ * from in here.
+ * 
+ * @author bruce.skingle
+ *
+ */
+public interface IModelObjectProvider
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
-
-  File getConfigDir(String name);
-
-  void saveSessionToken(String hostName, String tokenName, String token);
-
-  IPodManager getPodManager();
+  IModelObject[] getElements();
 }

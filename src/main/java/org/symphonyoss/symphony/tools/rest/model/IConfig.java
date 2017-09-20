@@ -21,21 +21,21 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
+import java.io.PrintWriter;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+public interface IConfig
 {
-  static final String SRT_HOME = "SRT_HOME";
+  static final String PROPERTY_FILE_NAME = "config";
+
+  String getName();
+  String getTypeName();
   
-  File  getHome();
+  void printFields(PrintWriter out);
 
-  File getConfigDir(String name);
+  void store(File configDir);
+  String getErrorText();
 
-  void saveSessionToken(String hostName, String tokenName, String token);
-
-  IPodManager getPodManager();
 }

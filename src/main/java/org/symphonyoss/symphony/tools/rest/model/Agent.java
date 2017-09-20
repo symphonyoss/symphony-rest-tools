@@ -21,21 +21,44 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+public class Agent extends ModelObject
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
+  public Agent(Pod pod, File configDir) throws NoSuchObjectException
+  {
+    super(pod, loadConfig(configDir));
+  }
 
-  File getConfigDir(String name);
+  private static AgentConfig loadConfig(File configDir) throws NoSuchObjectException
+  {
+    AgentConfig config = new AgentConfig();
+    
+    config.load(configDir);
+    
+    return config;
+  }
 
-  void saveSessionToken(String hostName, String tokenName, String token);
+  @Override
+  public boolean hasChildren()
+  {
+    // TODO Auto-generated method stub
+    return false;
+  }
 
-  IPodManager getPodManager();
+  @Override
+  public IModelObject[] getChildren()
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public IModelObject getParent()
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

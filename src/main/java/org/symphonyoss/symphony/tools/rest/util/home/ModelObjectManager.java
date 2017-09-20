@@ -25,17 +25,27 @@ package org.symphonyoss.symphony.tools.rest.util.home;
 
 import java.io.File;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-
-public interface ISrtHome extends IModelObjectProvider
+public class ModelObjectManager
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
+  private final File    configDir_;
 
-  File getConfigDir(String name);
+  public ModelObjectManager(File configDir)
+  {
+    configDir_ = configDir;
+  }
 
-  void saveSessionToken(String hostName, String tokenName, String token);
+  public File getConfigPath(String ...names)
+  {
+    File dir = configDir_;
+    
+    for(String name : names)
+      dir = new File(dir, name);
+    
+    return dir;
+  }
 
-  IPodManager getPodManager();
+  public File getConfigDir()
+  {
+    return configDir_;
+  }
 }

@@ -23,19 +23,18 @@
 
 package org.symphonyoss.symphony.tools.rest.util.home;
 
-import java.io.File;
+import java.util.Set;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
+import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
+import org.symphonyoss.symphony.tools.rest.model.Pod;
 
-public interface ISrtHome extends IModelObjectProvider
+public interface IPodManager
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
 
-  File getConfigDir(String name);
+  Pod getPod(String hostName);
 
-  void saveSessionToken(String hostName, String tokenName, String token);
+  Pod createOrUpdatePod(IPodConfig podConfig);
 
-  IPodManager getPodManager();
+  Set<Pod> getAll();
+
 }

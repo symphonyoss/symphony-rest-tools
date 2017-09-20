@@ -31,8 +31,8 @@ import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 public class CommandLineParser
 {
   private Map<String, Flag> flagMap_ = new HashMap<>();
-  private ISetter<String>              argSetter_;
-  private int                          argc_;
+  private ISetter<String>   argSetter_;
+  private int               argc_;
   
   public CommandLineParser()
   {
