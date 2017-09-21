@@ -43,303 +43,243 @@ import javax.net.ssl.SSLHandshakeException;
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
 import org.symphonyoss.symphony.jcurl.JCurl.HttpMethod;
+import org.symphonyoss.symphony.tools.rest.SrtCommand;
 import org.symphonyoss.symphony.tools.rest.model.AgentConfigBuilder;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.PodConfigBuilder;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
-import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class ProbePod
+public class ProbePod extends SrtCommand
 {
-  private static final String   MIME_HTML             = "text/html";
-  private static final String   MIME_JSON             = "application/json";
-  private static final int[]    POD_PORTS             = new int[] { 443, 8443 };
-  private static final int[]    AUTH_PORTS            = new int[] { 8444, 8445, 8446 };
-  private static final int[]    AgentPorts            = new int[] { 443, 8444, 8445, 8446 };
-  private static final String[] SUFFIXES              = new String[] { "-api", "" };
-  private static final String   TOKEN                 = "token";
-  private static final String   DisplayName           = "displayName";
-  private static final String   Id                    = "id";
-  private static final String   Company               = "company";
-  private static final String[] SessionInfoFields     = new String[] { DisplayName, Id, Company };
-  private static final String   SESSION_TOKEN         = "sessionToken";
-  private static final String   KEYMANAGER_TOKEN      = "keyManagerToken";
+  private static final String   PROGRAM_NAME = "ProbePod";
 
-  private final Console         console_;
-  private String                name_;
-  private String                domain_;
-  private int                   connectTimeoutMillis_ = 2000;
-  private int                   readTimeoutMillis_    = 0;
+  private static final int[]    POD_PORTS    = new int[] { 443, 8443 };
+  private static final int[]    AUTH_PORTS   = new int[] { 8444, 8445, 8446 };
+  private static final int[]    AgentPorts   = new int[] { 443, 8444, 8445, 8446 };
+  private static final String[] SUFFIXES     = new String[] { "-api", "" };
+    
   private boolean               podHealthy_;
   private int                   podId_;
-  
-  private String                keystore_;
-  private String                storepass_            = "changeit";
-  private String                storetype_            = "pkcs12";
+
   private ScanResponse          sessionAuthResponse_;
   private ScanResponse          keyAuthResponse_;
 
   private Probe                 sessionInfoResult_;
   private ScanResponse          agentResponse_;
-    
-  private ISrtHome              srtHome_;
-  private PodConfigBuilder      podConfig_            = new PodConfigBuilder();
-  private AgentConfigBuilder    agentConfig_          = new AgentConfigBuilder();
-  private Set<X509Certificate>  serverCerts_          = new HashSet<>();
+
+  private PodConfigBuilder      podConfig_   = new PodConfigBuilder();
+  private AgentConfigBuilder    agentConfig_ = new AgentConfigBuilder();
+  private Set<X509Certificate>  serverCerts_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
   {
-    new ProbePod(new Console(System.in, System.out, System.err), argv).run();
+    new ProbePod(argv).run();
+  }
+
+  public ProbePod(Console console, String name, ISrtHome srtHome)
+  {
+    super(PROGRAM_NAME, console, name, srtHome);
   }
 
   public ProbePod(Console console, String[] argv)
   {
-    console_ = console;
-    
-    SrtCommandLineHome parser = new SrtCommandLineHome((v) -> 
-      {
-        if (name_ == null)
-          name_ = v;
-        else
-          System.err.println("Unknown parameter \"" + v + "\" ignored.");
-  
-      })
-      .addFlag((v) -> keystore_ = v, "keystore")
-      .addFlag((v) -> storepass_ = v, "storepass")
-      .addFlag((v) -> storetype_ = v, "storetype")
-      ;
-  
-    parser.process(argv);
-    
-    srtHome_ = parser.createSrtHome(console_);
-  }
-  
-  public ProbePod(Console console, String name, ISrtHome srtHome)
-  {
-    console_ = console;
-    name_ = name;
-    srtHome_ = srtHome;
+    super(PROGRAM_NAME, console, argv);
   }
 
-  public void run() throws IOException
+  public ProbePod(String[] argv)
   {
-    try
+    super(PROGRAM_NAME, argv);
+  }
+
+  @Override
+  protected String getDefaultName()
+  {
+    return promptForName();
+  }
+
+  @Override
+  public void execute()
+  {
+    podConfig_.setHostName(getFqdn());
+    
+    IPod pod = getSrtHome().getPodManager().getPod(podConfig_.getName());
+    boolean   doProbe = true;
+
+    if(pod != null)
     {
-      if (name_ == null)
-      {
-        name_ = console_.promptString("Hostname");
-        // error("A host name must be specified (.symphony.com is implied)");
-      }
-  
-  
-      int i = name_.indexOf('.');
-  
-      if (i == -1)
-        domain_ = ".symphony.com";
-      else
-      {
-        domain_ = name_.substring(i);
-        name_ = name_.substring(0, i);
-      }
-  
-      console_.println("name=" + name_);
-      console_.println("domain=" + domain_);
-      console_.println();
+      println("We have an existing config for this Pod:");
+      println("========================================");
       
-      podConfig_.setHostName(name_ + domain_);
+      pod.print(getConsole().getOut());
       
-      IPod pod = srtHome_.getPodManager().getPod(podConfig_.getName());
-      boolean   doProbe = true;
-  
-      if(pod != null)
+      doProbe = getConsole().promptBoolean("Continue with probe?");
+    }
+    
+    if(!doProbe)
+    {
+      getConsole().error("Aborted.");
+    }
+    else
+    {
+      println("Probing for Pod");
+      println("===============");
+      
+      for(int port : POD_PORTS)
       {
-        console_.println("We have an existing config for this Pod:");
-        console_.println("========================================");
+        probePod(port);
         
-        pod.print(console_.getOut());
-        
-        doProbe = console_.promptBoolean("Continue with probe?");
+        if(podConfig_.getPodUrl() != null)
+          break;
       }
       
-      if(!doProbe)
+      if(podConfig_.getPodUrl() == null)
       {
-        console_.error("Aborted.");
+        println();
+        println("Probe Reveals a Website but no Pod");
+        println("==================================");
+        
+        String  format = "%-20s=%s\n";
+        
+        getConsole().printf(format, "Web URL", podConfig_.getWebUrl());
+        println();
       }
       else
       {
-        console_.println("Probing for Pod");
-        console_.println("===============");
-        
-        for(int port : POD_PORTS)
+        if(podConfig_.getKeyManagerUrl() == null)
         {
-          probePod(port);
+          println("No podInfo, try to look for an in-cloud key manager...");
           
-          if(podConfig_.getPodUrl() != null)
-            break;
+          podConfig_.setKeyManagerUrl(createURL(podConfig_.getPodUrl() + "/relay"));
         }
         
-        if(podConfig_.getPodUrl() == null)
+        if(podConfig_.getKeyManagerUrl() == null)
         {
-          console_.println();
-          console_.println("Probe Reveals a Website but no Pod");
-          console_.println("==================================");
-          
-          String  format = "%-20s=%s\n";
-          
-          console_.printf(format, "Web URL", podConfig_.getWebUrl());
-          console_.println();
+          // We found a pod but can't get podInfo - fatal error
+          return;
         }
-        else
+            
+        try
         {
-          if(podConfig_.getKeyManagerUrl() == null)
-          {
-            console_.println("No podInfo, try to look for an in-cloud key manager...");
-            
-            podConfig_.setKeyManagerUrl(new URL(podConfig_.getPodUrl() + "/relay"));
-          }
+          URL kmUrl = new URL(podConfig_.getKeyManagerUrl());
+          String keyManagerDomain;
+          String keyManagerName = kmUrl.getHost();
           
-          if(podConfig_.getKeyManagerUrl() == null)
-          {
-            // We found a pod but can't get podInfo - fatal error
-            return;
-          }
-              
-          try
-          {
-            URL kmUrl = new URL(podConfig_.getKeyManagerUrl());
-            String keyManagerDomain;
-            String keyManagerName = kmUrl.getHost();
-            
-            i = keyManagerName.indexOf('.');
-      
-            if (i == -1)
-              keyManagerDomain = ".symphony.com";
-            else
-            {
-              keyManagerDomain = keyManagerName.substring(i);
-              keyManagerName = keyManagerName.substring(0, i);
-            }
-      
-            console_.println("keyManagerName=" + keyManagerName);
-            console_.println("keyManagerDomain=" + keyManagerDomain);
-            
-            
-            console_.println();
-            console_.println("Probing for API Keyauth");
-            console_.println("=======================");
-            
-            keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
-            
-            if(keyAuthResponse_ != null)
-            {
-              podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
-              
-              String token = getTag(keyAuthResponse_, TOKEN);
-              
-              if(token != null)
-                srtHome_.saveSessionToken(name_ + domain_, KEYMANAGER_TOKEN, token);
-            }
-      
-            // Need to find a reliable health check indicator of keymanager in
-            // all deployments, for now assume that as the pod told is this
-            // is the KM that it is.
-            
-      //      Builder builder = getJCurl();
-      //      builder = cookieAuth(builder);
-      //      
-      //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
-      //      
-      //      if(response.isFailed())
-      //        return;
-            console_.println("Found key manager at " + podConfig_.getKeyManagerUrl());
-            
-            console_.println();
-            console_.println("Probing for API Agent");
-            console_.println("=====================");
-            
-            agentResponse_ = probeAgent(name_, domain_);
-            
-            agentConfig_.setAgentApiUrl(getUrl(agentResponse_, null));
-          }
-          catch (MalformedURLException e)
-          {
-            console_.println("Invalid keyManagerUrl \"" + podConfig_.getKeyManagerUrl() + "\" (" +
-                e.getMessage() + ")");
-            return;
-          }
-      
-          console_.println();
-          console_.println("Probe Successful");
-          console_.println("================");
-          
-          String  format = "%-20s=%s\n";
-          
-          console_.printf(format, "Web URL", podConfig_.getWebUrl());
-          console_.printf(format, "Pod URL", podConfig_.getPodUrl());
-          console_.printf(format, "Pod ID", podId_);
-          console_.printf(format, "Key Manager URL", podConfig_.getKeyManagerUrl());
-          console_.printf(format, "Session Auth URL", podConfig_.getSessionAuthUrl());
-          console_.printf(format, "Key Auth URL", podConfig_.getKeyAuthUrl());
-          console_.printf(format, "Pod API URL", podConfig_.getPodApiUrl());
-          console_.printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
-          
-          if(keystore_ != null)
-          {
-            console_.println();
-            console_.printf(format, "Client cert", keystore_);
-            
-            if(sessionInfoResult_.isFailed())
-            {
-              console_.println("This cert was not accepted for authentication");
-            }
-            else
-            {
-              console_.println("We authenticated as");
-              for(String field : SessionInfoFields)
-                console_.printf(format, "userInfo." + field, sessionInfoResult_.getJcurlResponse().getTag(field));
-            }
-          }
-          console_.println();
-        }
-        
-        console_.println("Root server certs:");
-        for (X509Certificate cert : podConfig_.getTrustCerts())
-          console_.println(cert.getSubjectX500Principal().getName());
+          int i = keyManagerName.indexOf('.');
     
-        console_.println();
-        console_.println("End server certs:");
-        for (X509Certificate cert : serverCerts_)
-          console_.println(cert.getSubjectX500Principal().getName());
-        
-        boolean updateConfig = pod == null ? true : console_.promptBoolean("Overwrite the saved config?");;
-        
-        
-        if(updateConfig)
-        {
-          pod = srtHome_.getPodManager().createOrUpdatePod(podConfig_.build());
-
-          if(agentConfig_.getAgentApiUrl() != null)
-            pod.createOrUpdateAgent(agentConfig_);
-          console_.error("Finished.");
+          if (i == -1)
+            keyManagerDomain = DEFAULT_DOMAIN;
+          else
+          {
+            keyManagerDomain = keyManagerName.substring(i);
+            keyManagerName = keyManagerName.substring(0, i);
+          }
+    
+          println("keyManagerName=" + keyManagerName);
+          println("keyManagerDomain=" + keyManagerDomain);
+          
+          
+          println();
+          println("Probing for API Keyauth");
+          println("=======================");
+          
+          keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
+          
+          if(keyAuthResponse_ != null)
+          {
+            podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
+            
+            String token = getTag(keyAuthResponse_, TOKEN);
+            
+            if(token != null)
+              getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
+          }
+    
+          // Need to find a reliable health check indicator of keymanager in
+          // all deployments, for now assume that as the pod told is this
+          // is the KM that it is.
+          
+    //      Builder builder = getJCurl();
+    //      builder = cookieAuth(builder);
+    //      
+    //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
+    //      
+    //      if(response.isFailed())
+    //        return;
+          println("Found key manager at " + podConfig_.getKeyManagerUrl());
+          
+          println();
+          println("Probing for API Agent");
+          println("=====================");
+          
+          agentResponse_ = probeAgent(getName(), getDomain());
+          
+          agentConfig_.setAgentApiUrl(getUrl(agentResponse_, null));
         }
+        catch (MalformedURLException e)
+        {
+          println("Invalid keyManagerUrl \"" + podConfig_.getKeyManagerUrl() + "\" (" +
+              e.getMessage() + ")");
+          return;
+        }
+    
+        println();
+        println("Probe Successful");
+        println("================");
+        
+        String  format = "%-20s=%s\n";
+        
+        printf(format, "Web URL", podConfig_.getWebUrl());
+        printf(format, "Pod URL", podConfig_.getPodUrl());
+        printf(format, "Pod ID", podId_);
+        printf(format, "Key Manager URL", podConfig_.getKeyManagerUrl());
+        printf(format, "Session Auth URL", podConfig_.getSessionAuthUrl());
+        printf(format, "Key Auth URL", podConfig_.getKeyAuthUrl());
+        printf(format, "Pod API URL", podConfig_.getPodApiUrl());
+        printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
+        
+        if(getKeystore() != null)
+        {
+          println();
+          printf(format, "Client cert", getKeystore());
+          
+          if(sessionInfoResult_.isFailed())
+          {
+            println("This cert was not accepted for authentication");
+          }
+          else
+          {
+            println("We authenticated as");
+            for(String field : SESSION_INFO_FIELDS)
+              printf(format, "userInfo." + field, sessionInfoResult_.getJcurlResponse().getTag(field));
+          }
+        }
+        println();
       }
-    }
-    catch(ProgramFault e)
-    {
-      console_.error("PROGRAM FAULT");
-      e.printStackTrace(console_.getErr());
-    }
-    catch(Throwable e)
-    {
-      e.printStackTrace(console_.getErr());
-    }
-    finally
-    {
-      console_.close();
+      
+      println("Root server certs:");
+      for (X509Certificate cert : podConfig_.getTrustCerts())
+        println(cert.getSubjectX500Principal().getName());
+  
+      println();
+      println("End server certs:");
+      for (X509Certificate cert : serverCerts_)
+        println(cert.getSubjectX500Principal().getName());
+      
+      boolean updateConfig = pod == null ? true : getConsole().promptBoolean("Overwrite the saved config?");;
+      
+      
+      if(updateConfig)
+      {
+        pod = getSrtHome().getPodManager().createOrUpdatePod(podConfig_.build());
+
+        if(agentConfig_.getAgentApiUrl() != null)
+          pod.createOrUpdateAgent(agentConfig_);
+        getConsole().error("Finished.");
+      }
     }
   }
 
@@ -352,11 +292,11 @@ public class ProbePod
       url = scanResponse.getValidProbe().getBaseUrl();
       
       if(token == null)
-        console_.println("Found " + scanResponse.getName() + " endpoint at " + url);
+        println("Found " + scanResponse.getName() + " endpoint at " + url);
       else if(getTag(scanResponse, token) != null)
-        console_.println("Found " + scanResponse.getName() + " endpoint at " + url + " and we authenticated!");
+        println("Found " + scanResponse.getName() + " endpoint at " + url + " and we authenticated!");
       else
-        console_.println("Found " + scanResponse.getName() + " endpoint at " + url + " but we failed to authenticate.");
+        println("Found " + scanResponse.getName() + " endpoint at " + url + " but we failed to authenticate.");
     }
     else
     {
@@ -365,25 +305,25 @@ public class ProbePod
       if(certAuthProbes.size() == 1)
       {
         url = certAuthProbes.get(0).getBaseUrl();
-        console_.println("Found probable " + scanResponse.getName() + " endpoint at " + url);
+        println("Found probable " + scanResponse.getName() + " endpoint at " + url);
 
       }
       else if(certAuthProbes.size() > 1)
       {
         for(Probe p : certAuthProbes)
-          console_.println("Found possible " + scanResponse.getName() + " endpoint at " + p.getBaseUrl());
+          println("Found possible " + scanResponse.getName() + " endpoint at " + p.getBaseUrl());
       }
       else
       {
-        console_.println("Failed to find any " + scanResponse.getName() + " endpoint");
+        println("Failed to find any " + scanResponse.getName() + " endpoint");
       }
     }
     return url;
   }
 
-  private void probePod(int port) throws MalformedURLException
+  private void probePod(int port)
   {
-    Probe probe = new Probe(name_, "", domain_, port,
+    Probe probe = new Probe(getName(), "", getDomain(), port,
         "/");
     
     doProbe(probe);
@@ -391,9 +331,9 @@ public class ProbePod
     if (probe.isFailed())
     {
       if (probeNonSSL(port))
-        console_.println("This is a non-SSL website");
+        println("This is a non-SSL website");
       else
-        console_.println("This is not a website");
+        println("This is not a website");
 
       return;
     }
@@ -403,25 +343,25 @@ public class ProbePod
     }
     
 
-    probe = new Probe(name_, domain_, "", port,
-        "/").setProbePath("/client/index.html", MIME_HTML);
+    probe = new Probe(getName(), getDomain(), "", port,
+        "/").setProbePath(POD_CLIENT_PATH, MIME_HTML);
     
     doProbe(probe);
     
     if (probe.isFailed())
     {
-      console_.println("This is a website but not a Symphony Pod");
+      println("This is a website but not a Symphony Pod");
       return;
     }
 
-    Probe healthCheckResult = new Probe(name_, domain_, "", port,
-        "/").setProbePath("/webcontroller/HealthCheck", MIME_JSON);
+    Probe healthCheckResult = new Probe(getName(), "", getDomain(), port,
+        "/").setProbePath(POD_HEALTHCHECK_PATH, MIME_JSON);
     
     doProbe(healthCheckResult);
 
     if (healthCheckResult.isFailed())
     {
-      console_.println("This looks quite like a Symphony Pod, but it isn't");
+      println("This looks quite like a Symphony Pod, but it isn't");
       return;
     }
 
@@ -429,75 +369,75 @@ public class ProbePod
 
     if (healthJson == null)
     {
-      console_.println("This looks a lot like a Symphony Pod, but it isn't");
+      println("This looks a lot like a Symphony Pod, but it isn't");
       return;
     }
 
     if (!healthJson.isObject())
     {
-      console_.println("This looks like a Symphony Pod, but the healthcheck returns something other than an object");
-      console_.println(healthJson);
+      println("This looks like a Symphony Pod, but the healthcheck returns something other than an object");
+      println(healthJson);
       return;
     }
     
-    podConfig_.setPodUrl("https://" + name_ + domain_ + (port == 443 ? "" : ":" + port));
+    podConfig_.setPodUrl("https://" + getFqdn() + (port == 443 ? "" : ":" + port));
     podHealthy_ = true;
     healthJson.fields().forEachRemaining((field) ->
     {
       if (!field.getValue().asBoolean())
       {
-        console_.println(field.getKey() + " is UNHEALTHY");
+        println(field.getKey() + " is UNHEALTHY");
         podHealthy_ = false;
       }
     });
 
     if (podHealthy_)
-      console_.println("We found a Symphony Pod!");
+      println("We found a Symphony Pod!");
     else
-      console_.println("We found a Symphony Pod, but it's not feeling well");
+      println("We found a Symphony Pod, but it's not feeling well");
 
-    console_.println();
-    console_.println("Probing for API Sessionauth");
-    console_.println("===========================");
+    println();
+    println("Probing for API Sessionauth");
+    println("===========================");
     
-    sessionAuthResponse_ = probeAuth("Session Auth", "/sessionauth", name_, domain_);
+    sessionAuthResponse_ = probeAuth("Session Auth", "/sessionauth", getName(), getDomain());
     
     if(sessionAuthResponse_ != null)
     {
       String token = getTag(sessionAuthResponse_, TOKEN);
       
       if(token != null)
-        srtHome_.saveSessionToken(name_ + domain_, SESSION_TOKEN, token);
+        getSrtHome().saveSessionToken(getFqdn(), SESSION_TOKEN, token);
       
       podConfig_.setSessionAuthUrl(getUrl(sessionAuthResponse_, TOKEN));
       
       Builder builder = getJCurl();
       
-      for(String field : SessionInfoFields)
+      for(String field : SESSION_INFO_FIELDS)
         builder.extract(field, field);
       
       cookieAuth(builder);
       
-      sessionInfoResult_ = new Probe(name_, domain_, "", port,
+      sessionInfoResult_ = new Probe(getName(), getDomain(), "", port,
           "/pod").setProbePath("/v2/sessioninfo", MIME_JSON);
       
       doProbe(builder.build(), sessionInfoResult_);
       
-      console_.println("JSON=" + sessionInfoResult_.getJsonNode());
+      println("JSON=" + sessionInfoResult_.getJsonNode());
       
       if(sessionInfoResult_.isFailed())
       {
-        console_.println("Failed to connect to POD API");
+        println("Failed to connect to POD API");
         podConfig_.setPodApiUrl(sessionInfoResult_.getBaseUrl());
       }
       else
       {
         podConfig_.setPodApiUrl(sessionInfoResult_.getBaseUrl());
         
-        console_.println("found pod API endpoint at " + podConfig_.getPodApiUrl());
+        println("found pod API endpoint at " + podConfig_.getPodApiUrl());
         
-        for(String field : SessionInfoFields)
-          console_.printf("%-20s=%s\n", field, sessionInfoResult_.getJcurlResponse().getTag(field));
+        for(String field : SESSION_INFO_FIELDS)
+          printf("%-20s=%s\n", field, sessionInfoResult_.getJcurlResponse().getTag(field));
       }
     }
     
@@ -507,14 +447,14 @@ public class ProbePod
     
     cookieAuth(builder);
     
-    Probe checkAuthResult = new Probe(name_, domain_, "", port,
-        "/").setProbePath("login/checkauth?type=user", MIME_JSON);
+    Probe checkAuthResult = new Probe(getName(), getDomain(), "", port,
+        "/").setProbePath("/login/checkauth?type=user", MIME_JSON);
     
     doProbe(builder.build(), checkAuthResult, 200, 401);
 
     if (checkAuthResult.isFailed())
     {
-      console_.println("Can't do checkauth from this Pod.");
+      println("Can't do checkauth from this Pod.");
       return;
     }
     
@@ -522,7 +462,7 @@ public class ProbePod
 
     if (checkAuthJson == null)
     {
-      console_.println("Invalid checkAuth response");
+      println("Invalid checkAuth response");
       return;
     }
     
@@ -530,27 +470,27 @@ public class ProbePod
 
     if (km == null)
     {
-      console_.println("Invalid checkAuth response");
+      println("Invalid checkAuth response");
     }
     else
     {
-      podConfig_.setKeyManagerUrl(new URL(km.asText()));
+      podConfig_.setKeyManagerUrl(createURL(km.asText()));
     
-      console_.println("keyManagerUrl is " + podConfig_.getKeyManagerUrl());
+      println("keyManagerUrl is " + podConfig_.getKeyManagerUrl());
     }
     
     builder = getJCurl();
     
     cookieAuth(builder);
     
-    Probe podInfoResult = new Probe(name_, domain_, "", port,
+    Probe podInfoResult = new Probe(getName(), getDomain(), "", port,
         "/").setProbePath("/webcontroller/public/podInfo", MIME_JSON);
     
     doProbe(builder.build(), podInfoResult);
 
     if (podInfoResult.isFailed())
     {
-      console_.println("Can't get podInfo from this Pod.");
+      println("Can't get podInfo from this Pod.");
       return;
     }
 
@@ -558,7 +498,7 @@ public class ProbePod
 
     if (podInfoJson == null)
     {
-      console_.println("Invalid podInfo response");
+      println("Invalid podInfo response");
       return;
     }
     
@@ -566,17 +506,19 @@ public class ProbePod
 
     if (podInfoJsonData == null || !podInfoJsonData.isObject())
     {
-      console_.println("This looks like a Symphony Pod, but the podInfo returns something unexpected");
-      console_.println(podInfoJson);
+      println("This looks like a Symphony Pod, but the podInfo returns something unexpected");
+      println(podInfoJson);
       return;
     }
     
     podId_ = podInfoJsonData.get("podId").asInt();
-    podConfig_.setKeyManagerUrl(new URL(podInfoJsonData.get("keyManagerUrl").asText()));
+    podConfig_.setKeyManagerUrl(createURL(podInfoJsonData.get("keyManagerUrl").asText()));
 
   }
 
-  private @Nonnull ScanResponse probeAuth(String title, String basePath, String name, String domain) throws MalformedURLException
+  
+
+  private @Nonnull ScanResponse probeAuth(String title, String basePath, String name, String domain)
   {
     ScanResponse  response = new ScanResponse(title);
     
@@ -608,7 +550,7 @@ public class ProbePod
     return response;
   }
   
-  private @Nonnull ScanResponse probeAgent(String name, String domain) throws MalformedURLException
+  private @Nonnull ScanResponse probeAgent(String name, String domain)
   {
     ScanResponse  response = new ScanResponse("Agent API");
     
@@ -628,7 +570,7 @@ public class ProbePod
     return response;
   }
   
-  private void probeAgent(Probe probe) throws MalformedURLException
+  private void probeAgent(Probe probe)
   {
     Builder builder = getJCurl()
         .method(HttpMethod.POST)
@@ -654,7 +596,7 @@ public class ProbePod
 //    
 //    if(probe.isFailed())
 //    {
-//      console_.println("This looks like a pre-1.47 Agent.");
+//      println("This looks like a pre-1.47 Agent.");
 //      
 //      probe.setValid(true);
 //    }
@@ -664,14 +606,14 @@ public class ProbePod
 //
 //      if (agentHealthJson == null)
 //      {
-//        console_.println("This looks a lot like an Agent, but it isn't");
+//        println("This looks a lot like an Agent, but it isn't");
 //        return;
 //      }
 //  
 //      if (!agentHealthJson.isObject())
 //      {
-//        console_.println("This looks like an Agent, but the healthcheck returns something other than an object");
-//        console_.println(agentHealthJson);
+//        println("This looks like an Agent, but the healthcheck returns something other than an object");
+//        println(agentHealthJson);
 //        return;
 //      }
 //    
@@ -683,17 +625,17 @@ public class ProbePod
 //        {
 //          case "podVersion":
 //          case "agentVersion":
-//            console_.println(field.getKey() + " is " + field.getValue().asText());
+//            println(field.getKey() + " is " + field.getValue().asText());
 //            break;
 //            
 //          default:
 //            if (field.getValue().asBoolean())
 //            {
-//              console_.println(field.getKey() + " is OK");
+//              println(field.getKey() + " is OK");
 //            }
 //            else
 //            {
-//              console_.println(field.getKey() + " is UNHEALTHY");
+//              println(field.getKey() + " is UNHEALTHY");
 //              probe.setUnhealthy(true);
 //            }
 //        }
@@ -710,7 +652,7 @@ public class ProbePod
   {
     try
     {
-      console_.println("Probing " + probe.getProbeUrl() + "...");
+      println("Probing " + probe.getProbeUrl() + "...");
       
       HttpURLConnection connection = jcurl.connect(probe.getProbeUrl());
 
@@ -737,7 +679,7 @@ public class ProbePod
       
       if (!ok)
       {
-        console_.println("Failed with HTTP status " + probe.getHttpStatus());
+        println("Failed with HTTP status " + probe.getHttpStatus());
         return;
       }
 
@@ -748,11 +690,11 @@ public class ProbePod
       X509Certificate cert = (X509Certificate) certs[certs.length - 1];
       podConfig_.addRootCert(cert);
 
-      console_.println("Root server cert " + cert.getSubjectX500Principal().getName());
+      println("Root server cert " + cert.getSubjectX500Principal().getName());
       
       cert = (X509Certificate) certs[0];
       
-      console_.println("End server cert " + cert.getSubjectX500Principal().getName());
+      println("End server cert " + cert.getSubjectX500Principal().getName());
       serverCerts_.add(cert);
 
       if (!probe.isResponseTypeValid())
@@ -767,18 +709,18 @@ public class ProbePod
       if (msg.contains("bad_certificate") || msg.contains("certificate_unknown"))
       {
         probe.setFailedCertAuth(true);
-        console_.println("Certificate auth required for " + probe.getHostNameAndPort());
+        println("Certificate auth required for " + probe.getHostNameAndPort());
       }
       else
-        console_.println("SSL problem to " + probe.getHostNameAndPort());
+        println("SSL problem to " + probe.getHostNameAndPort());
     }
     catch (UnknownHostException e)
     {
-      console_.println(probe.getHostName() + " is not a valid host name");
+      println(probe.getHostName() + " is not a valid host name");
     }
     catch (SocketTimeoutException | ConnectException e)
     {
-      console_.println("Cannot connect to " + probe.getHostNameAndPort());
+      println("Cannot connect to " + probe.getHostNameAndPort());
     }
     catch (CertificateParsingException | IOException e)
     {
@@ -786,33 +728,11 @@ public class ProbePod
     }
     finally
     {
-      console_.flush();
+      getConsole().flush();
     }
   }
 
-  private Builder getJCurl()
-  {
-    Builder builder = JCurl.builder()
-        .trustAllHostnames(true)
-        .trustAllCertificates(true)
-        .header("User-Agent", "ProbePod / 0.1.0 https://github.com/bruceskingle/symphony-rest-tools");
-
-    if (connectTimeoutMillis_ > 0)
-      builder.connectTimeout(connectTimeoutMillis_);
-
-    if (readTimeoutMillis_ > 0)
-      builder.readTimeout(readTimeoutMillis_);
-
-    if(keystore_ != null)
-    {
-      builder.keystore(keystore_);
-      builder.storepass(storepass_);
-    
-      if(storetype_ != null)
-        builder.storetype(storetype_);
-    }
-    return builder;
-  }
+  
   
   private Builder headerAuth(Builder builder)
   {
@@ -878,17 +798,17 @@ public class ProbePod
     return s;
   }
 
-  private boolean probeNonSSL(int port) throws MalformedURLException
+  private boolean probeNonSSL(int port)
   {
     JCurl jcurl = getJCurl().build();
-
-    URL url = new URL("http://" + name_ + domain_ + ":" + port);
-
+    
     try
     {
+      URL url = new URL("http://" + getFqdn() + ":" + port);
+      
       HttpURLConnection connection = jcurl.connect(url);
 
-      console_.println("response from " + url + " = " + connection.getResponseCode());
+      println("response from " + url + " = " + connection.getResponseCode());
 
       if(connection.getResponseCode() == 200)
       {
@@ -897,6 +817,10 @@ public class ProbePod
         return true;
       }
       return false;
+    }
+    catch(MalformedURLException e)
+    {
+      throw new ProgramFault(e);
     }
     catch (IOException e)
     {

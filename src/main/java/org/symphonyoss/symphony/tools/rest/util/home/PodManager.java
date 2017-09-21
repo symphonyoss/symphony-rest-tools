@@ -49,6 +49,56 @@ public class PodManager extends ModelObjectManager implements IPodManager
     super(configDir);
   }
   
+  
+  @Override
+  public int getSize()
+  {
+    synchronized(podMap_)
+    {
+      if(allLoaded_)
+        return podMap_.size();
+    }
+    
+    String[] names = getConfigDir().list();
+    
+    if(names == null)
+      return 0;
+    
+    return names.length;
+  }
+
+
+  @Override
+  public String getDefaultPodName() throws NoSuchObjectException
+  {
+    synchronized(podMap_)
+    {
+      if(allLoaded_)
+      {
+        Set<String> keySet = podMap_.keySet();
+        
+        if(keySet.size() == 0)
+          throw new NoSuchObjectException("No pod configurations exist");
+        
+        if(keySet.size() == 1)
+          return keySet.iterator().next();
+        
+        return null;
+      }
+    }
+    
+    String[] names = getConfigDir().list();
+    
+    if(names.length == 0)
+      throw new NoSuchObjectException("No pod configurations exist");
+    
+    if(names.length == 1)
+      return names[0];
+    
+    return null;
+  }
+
+
   @Override
   public Set<IPod> getAll()
   {

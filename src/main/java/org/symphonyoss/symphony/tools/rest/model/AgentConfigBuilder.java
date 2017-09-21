@@ -39,9 +39,17 @@ public class AgentConfigBuilder extends ConfigBuilder<AgentConfig> implements IA
 
   public AgentConfigBuilder setAgentApiUrl(URL agentApiUrl)
   {
-    config_.agentApiUrl_ = agentApiUrl.toString();
-    config_.hostName_ = agentApiUrl.getHost() +
+    if(agentApiUrl == null)
+    {
+      config_.agentApiUrl_ = null;
+      config_.hostName_ = null;
+    }
+    else
+    {
+      config_.agentApiUrl_ = agentApiUrl.toString();
+      config_.hostName_ = agentApiUrl.getHost() +
         (agentApiUrl.getPort() == -1 ? "" : ":" + agentApiUrl.getPort());
+    }
     
     return this;
   }

@@ -23,15 +23,16 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-public interface IPod extends IModelObject, IComponent, IComponentContainer
+public interface IComponent
 {
-
-  IAgent createOrUpdateAgent(IAgentConfig agentConfig);
-
-  IPodConfig getPodConfig();
-
-  Integer getPodId();
-
+  static final String GENERIC_COMPONENT = "Component";
+  static final String UNKNOWN_STATUS = "Unknown";
   
+  void setComponentStatus(Boolean status, String statusMessage);
 
+  String getComponentStatusMessage();
+
+  Boolean getComponentStatus();
+  
+  void resetStatus();
 }

@@ -33,7 +33,7 @@ package org.symphonyoss.symphony.tools.rest.model;
  * @author bruce.skingle
  *
  */
-public interface IVirtualModelObject
+public interface IVirtualModelObject extends IComponent
 {
   boolean                hasChildren();
   IVirtualModelObject[]  getChildren();

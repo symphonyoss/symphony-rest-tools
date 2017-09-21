@@ -28,6 +28,7 @@ import java.util.Set;
 import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
+import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 
 public interface IPodManager extends IModelObjectProvider
 {
@@ -37,5 +38,18 @@ public interface IPodManager extends IModelObjectProvider
   IPod createOrUpdatePod(IPodConfig podConfig);
 
   Set<IPod> getAll();
+
+  int getSize();
+
+  /**
+   * Return the default configuration name. If there are no Pods then
+   * an exception is thrown, if there is no default and more than one
+   * valid configuration then returns null.
+   * 
+   * @return The name of the default Pod configuration.
+   * 
+   * @throws NoSuchObjectException If there are no valid configurations.
+   */
+  String getDefaultPodName() throws NoSuchObjectException;
 
 }

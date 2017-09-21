@@ -37,42 +37,52 @@ import org.symphonyoss.symphony.tools.rest.util.home.PodManager;
 public class Pod extends ModelObject implements IPod, IUrlEndpoint
 {
 
-  public static final String  TYPE_KEY_MANAGER  = "KeyManager";
-  public static final String  TYPE_SESSION_AUTH = "SessionAuth";
-  public static final String  TYPE_KEY_AUTH     = "KeyAuth";
-  
-  private static final String POD_HEALTHY       = "pod.healthy";
-  private static final String POD_ID            = "pod.id";
-  private static final String AGENT_DIR_NAME    = "agent";
+  public static final String      TYPE_KEY_MANAGER  = "KeyManager";
+  public static final String      TYPE_SESSION_AUTH = "SessionAuth";
+  public static final String      TYPE_KEY_AUTH     = "KeyAuth";
 
-  private final PodManager    manager_;
-  private PodConfig           config_;
-  private Map<String, Agent>  agentMap_      = new HashMap<>();
-  private boolean             podHealthy_;
-  private int                 podId_;
-  private URL                 url_;
+  private static final String     POD_ID            = "pod.id";
+  private static final String     AGENT_DIR_NAME    = "agent";
+
+  private final PodManager        manager_;
+  private PodConfig               podConfig_;
+  private Map<String, Agent>      agentMap_         = new HashMap<>();
+  private Map<String, IComponent> componentMap_     = new HashMap<>();
+  private Integer                 podId_;
+  private URL                     url_;
   
   public Pod(PodManager manager, PodConfig config) throws NoSuchObjectException
   {
     super(null, config);
     
     manager_ = manager;
-    config_ = config;
-    if(config_.getPodUrl() != null)
+    podConfig_ = config;
+    if(podConfig_.getPodUrl() != null)
     {
       try
       {
-        url_ = new URL(config_.getPodUrl());
+        url_ = new URL(podConfig_.getPodUrl());
       }
       catch (MalformedURLException e)
       {
-        addError("Invalid URL");
+        addError("Invalid Pod URL");
+      }
+    }
+    else if(podConfig_.getWebUrl() != null)
+    {
+      try
+      {
+        url_ = new URL(podConfig_.getWebUrl());
+      }
+      catch (MalformedURLException e)
+      {
+        addError("Invalid Web URL");
       }
     }
     
-    addUrlEndpoint(TYPE_KEY_MANAGER, config_.getKeyManagerUrl());
-    addUrlEndpoint(TYPE_SESSION_AUTH, config_.getSessionAuthUrl());
-    addUrlEndpoint(TYPE_KEY_AUTH, config_.getKeyAuthUrl());
+    addUrlEndpoint(TYPE_KEY_MANAGER, podConfig_.getKeyManagerUrl());
+    addUrlEndpoint(TYPE_SESSION_AUTH, podConfig_.getSessionAuthUrl());
+    addUrlEndpoint(TYPE_KEY_AUTH, podConfig_.getKeyAuthUrl());
   }
   
   
@@ -102,7 +112,6 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
   {
     super.printFields(out);
     
-    out.printf(F, POD_HEALTHY,   podHealthy_);
     out.printf(F, POD_ID,        podId_);
   }
 
@@ -111,7 +120,6 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
   {
     super.setProperties(props);
     
-    setIfNotNull(props, POD_HEALTHY,   podHealthy_);
     setIfNotNull(props, POD_ID,        podId_);
   }
 
@@ -123,18 +131,35 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
   public void modelUpdated(Pod newPod)
   {
   }
-  
+
   @Override
   public URL getUrl()
   {
     return url_;
   }
 
+  @Override
+  public IPodConfig getPodConfig()
+  {
+    return podConfig_;
+  }
+
+  @Override
+  public Integer getPodId()
+  {
+    return podId_;
+  }
+
+  
+  public void setPodId(Integer podId)
+  {
+    podId_ = podId;
+  }
 
   @Override
   public IAgent createOrUpdateAgent(IAgentConfig agentConfig)
   {
-    File configDir = manager_.getConfigPath(config_.getName(),
+    File configDir = manager_.getConfigPath(podConfig_.getName(),
         AGENT_DIR_NAME, agentConfig.getName());
     
     agentConfig.store(configDir);
@@ -164,5 +189,45 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
     manager_.modelObjectChanged(this);
     
     return newAgent;
+  }
+  
+  @Override
+  public void resetStatus()
+  {
+    super.resetStatus();
+    
+    synchronized (componentMap_)
+    {
+      for(IComponent component : componentMap_.values())
+        component.resetStatus();
+    }
+  }
+
+  @Override
+  public IComponent getComponent(String name)
+  {
+    while(name.startsWith("_"))
+      name = name.substring(1);
+    
+    while(name.endsWith("_"))
+      name = name.substring(0, name.length() - 1);
+    
+    synchronized (componentMap_)
+    {
+      IComponent component = componentMap_.get(name);
+      
+      if(component == null)
+      {
+        VirtualModelObject vmo = new VirtualModelObject(this, GENERIC_COMPONENT, name);
+        
+        componentMap_.put(name, vmo);
+        
+        addChild(vmo);
+        
+        return vmo;
+      }
+      
+      return component;
+    }
   }
 }

@@ -30,6 +30,9 @@ public class VirtualModelObject implements IVirtualModelObject
   private final String       name_;
   private final String       errorText_;
 
+  private Boolean            status_;
+  private String             statusMessage_;
+
   public VirtualModelObject(IModelObject parent, String typeName, String name)
   {
     this(parent, typeName, name, null);
@@ -79,4 +82,29 @@ public class VirtualModelObject implements IVirtualModelObject
     return errorText_;
   }
 
+  @Override
+  public String getComponentStatusMessage()
+  {
+    return statusMessage_;
+  }
+
+  @Override
+  public Boolean getComponentStatus()
+  {
+    return status_;
+  }
+  
+  @Override
+  public void setComponentStatus(Boolean healthy, String diagnostic)
+  {
+    status_ = healthy;
+    statusMessage_ = diagnostic;
+  }
+  
+  @Override
+  public void resetStatus()
+  {
+    status_ = null;
+    statusMessage_ = UNKNOWN_STATUS;
+  }
 }

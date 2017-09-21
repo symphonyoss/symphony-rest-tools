@@ -28,6 +28,7 @@ import java.net.URL;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
+import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -50,20 +51,39 @@ public class Probe
   private boolean        valid_;
     
   public Probe(String name, String suffix, String domain, int port,
-      String basePath) throws MalformedURLException
+      String basePath)
   {
-    port_ = port;
-    basePath_ = basePath;
-    
-    hostName_ = name + suffix + domain;
-    baseUrl_ = new URL("https://" + hostName_ + 
-        (port == 443 ? "" : ":" + port_) + basePath_);
-    probeUrl_ = baseUrl_;
+    try
+    {
+      port_ = port;
+      basePath_ = basePath;
+      
+      hostName_ = name + suffix + domain;
+      baseUrl_ = new URL("https://" + hostName_ + 
+          (port == 443 ? "" : ":" + port_) + basePath_);
+      probeUrl_ = baseUrl_;
+    }
+    catch(MalformedURLException e)
+    {
+      throw new ProgramFault(e);
+    }
   }
   
-  public Probe setProbePath(String probePath, String expectedContentType) throws MalformedURLException
+  public Probe setProbePath(String probePath, String expectedContentType)
   {
-    probeUrl_ = new URL(baseUrl_ + probePath);
+    String base = baseUrl_.toString();
+    
+    while(base.endsWith("/"))
+      base = base.substring(0, base.length() - 1);
+    
+    try
+    {
+      probeUrl_ = new URL(base + probePath);
+    }
+    catch (MalformedURLException e)
+    {
+      throw new ProgramFault(e);
+    }
     expectedContentType_ = expectedContentType;
     
     failed_ = true;

@@ -23,15 +23,20 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public abstract class ModelObject extends ModelObjectOrConfig implements IModelObject
 {
   private static final String       STATE_PROPS   = "state.properties";
 
+  private static final String     POD_HEALTHY       = "component.healthy";
+  private static final String     COMPONENT_DIAGNOSTIC       = "component.diagnostic";
+  
   private final IVirtualModelObject parent_;
   private final Config              config_;
 
@@ -39,7 +44,9 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   private IVirtualModelObject[]     children_     = new IVirtualModelObject[0];
   private StringBuilder             errorBuilder_ = new StringBuilder();
   private String                    errorText_    = null;
-
+  private Boolean                   status_;
+  private String                    statusMessage_;
+  
   public ModelObject(IVirtualModelObject parent, Config config)
   {
     parent_ = parent;
@@ -66,6 +73,17 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
 
   protected void printFields(PrintWriter out)
   {
+    out.printf(F, POD_HEALTHY,   status_);
+    out.printf(F, COMPONENT_DIAGNOSTIC,   statusMessage_);
+  }
+  
+  @Override
+  public void setProperties(Properties props)
+  {
+    super.setProperties(props);
+    
+    setIfNotNull(props, POD_HEALTHY,          status_);
+    setIfNotNull(props, COMPONENT_DIAGNOSTIC, statusMessage_);
   }
   
   public void store(File configDir)
@@ -159,5 +177,31 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   public String getErrorText()
   {
     return errorText_;
+  }
+
+  @Override
+  public String getComponentStatusMessage()
+  {
+    return statusMessage_;
+  }
+
+  @Override
+  public Boolean getComponentStatus()
+  {
+    return status_;
+  }
+  
+  @Override
+  public void setComponentStatus(Boolean healthy, String diagnostic)
+  {
+    status_ = healthy;
+    statusMessage_ = diagnostic;
+  }
+  
+  @Override
+  public void resetStatus()
+  {
+    status_ = null;
+    statusMessage_ = UNKNOWN_STATUS;
   }
 }
