@@ -7,8 +7,7 @@ Bundle-Vendor: Packaged by Symphony Communication Services, LLC.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .,
  lib/jcurl-0.9.6.jar,
- lib/jsr305-3.0.2.jar,
- lib/org.symphonyoss.symphony.tools.rest-0.1.1-SNAPSHOT.jar
+ lib/jsr305-3.0.2.jar
 Export-Package: com.fasterxml.jackson.annotation,
  com.fasterxml.jackson.core,
  com.fasterxml.jackson.core.base,
@@ -42,10 +41,4 @@ Export-Package: com.fasterxml.jackson.annotation,
  javax.annotation,
  javax.annotation.concurrent,
  javax.annotation.meta,
- org.symphonyoss.symphony.jcurl,
- org.symphonyoss.symphony.tools.rest,
- org.symphonyoss.symphony.tools.rest.model,
- org.symphonyoss.symphony.tools.rest.probe,
- org.symphonyoss.symphony.tools.rest.util,
- org.symphonyoss.symphony.tools.rest.util.home,
- org.symphonyoss.symphony.tools.rest.util.typeutils
+ org.symphonyoss.symphony.jcurl

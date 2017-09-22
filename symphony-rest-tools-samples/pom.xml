@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.symphonyoss</groupId>
+    <groupId>org.symphonyoss.symphony.tools.rest</groupId>
     <artifactId>symphony-rest-tools</artifactId>
     <version>0.1.1-SNAPSHOT</version>
   </parent>
@@ -12,13 +12,32 @@
     <dist.root>${project.build.directory}/${dist.name}</dist.root>
     <dist.path>${dist.root}/${dist.base}</dist.path>
 
-		<tycho.version>1.0.0</tycho.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<eclipse-repo.url>http://download.eclipse.org/releases/oxygen</eclipse-repo.url>
 	</properties>
 	
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- The package assembly chmods scripts 555 so we need to delete them 
+							before we do the dependency plugin otherwise it fails with a permission denied 
+							error -->
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<delete dir="${project.build.directory}/${project.artifactId}-${project.version}-bin" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

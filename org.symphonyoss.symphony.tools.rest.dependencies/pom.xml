@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.symphonyoss</groupId>
+    <groupId>org.symphonyoss.symphony.tools.rest</groupId>
     <artifactId>symphony-rest-tools</artifactId>
     <version>0.1.1-SNAPSHOT</version>
   </parent>
@@ -15,10 +15,36 @@
 	    <version>${project.version}</version>
   	</dependency>
 	</dependencies>
-	
-	<build>
-    <plugins>
-      <plugin>
+
+<build>
+		<plugins>
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<delete dir="lib" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -30,12 +56,13 @@
 						</goals>
 						<configuration>
 							<failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
+							<excludeGroupIds>${project.groupId}</excludeGroupIds>
 							<outputDirectory>lib</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-    </plugins>
+		</plugins>
 
     <pluginManagement>
     	<plugins>
