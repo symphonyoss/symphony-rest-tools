@@ -36,6 +36,15 @@
 	<name>Symphony REST tools</name>
 	<description>Low level tools for use with the Symphony public REST API</description>
 	<url>https://github.com/symphonyoss/symphony-rest-tools</url>
+	<packaging>pom</packaging>
+	
+	<modules>
+		<module>org.symphonyoss.symphony.tools.rest</module>
+		<module>symphony-rest-tools-samples</module>
+		<module>
+			org.symphonyoss.symphony.tools.rest.dependencies
+		</module>
+	</modules>
 
 	<licenses>
 		<license>
@@ -79,10 +88,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		
-		<dist.name>${project.artifactId}-${project.version}</dist.name>
-    <dist.root>${project.build.directory}/${dist.name}</dist.root>
-    <dist.path>${dist.root}/${dist.base}</dist.path>
+
+		<tycho.version>1.0.0</tycho.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<eclipse-repo.url>http://download.eclipse.org/releases/oxygen</eclipse-repo.url>
 	</properties>
 
 	<repositories>
@@ -97,62 +106,55 @@
 			</snapshots>
 		</repository>
 	</repositories>
+	
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<!-- Gather all the jars needed for the examples to run. -->
-						<id>dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<extensions>true</extensions>
 			</plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        
-        <executions>
-        		<execution>
-						<goals>
-							<goal>attached</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<archive>
-								<manifest>
-									<mainClass>org.symphonyoss.client.SymphonyClient</mainClass>
-								</manifest>
-							</archive>
-							<descriptorRefs>
-								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>
-						</configuration>
-					</execution>
-          <execution>
-            <id>assemble</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-		          <descriptors>
-		            <descriptor>src/main/assembly/assemble.xml</descriptor>
-		          </descriptors>
-		        </configuration>
-          </execution>
-        </executions>
-      </plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho.version}</version>
+				<configuration>
+					<environments>
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86</arch>
+						</environment>
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86_64</arch>
+						</environment>
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86</arch>
+						</environment>
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86_64</arch>
+						</environment>
+						<environment>
+							<os>macosx</os>
+							<ws>cocoa</ws>
+							<arch>x86_64</arch>
+						</environment>
+					</environments>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+	
+	
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.symphonyoss.symphony</groupId>
@@ -166,4 +168,5 @@
 		</dependency>
 	</dependencies>
 
+	
 </project>
