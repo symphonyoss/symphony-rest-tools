@@ -11,3 +11,7 @@ Export-Package: org.symphonyoss.symphony.tools.rest,
  org.symphonyoss.symphony.tools.rest.util,
  org.symphonyoss.symphony.tools.rest.util.home,
  org.symphonyoss.symphony.tools.rest.util.typeutils
+Import-Package: com.fasterxml.jackson.databind,
+ javax.annotation,
+ javax.annotation.concurrent,
+ org.symphonyoss.symphony.jcurl
