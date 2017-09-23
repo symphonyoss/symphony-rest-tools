@@ -34,6 +34,7 @@ import org.symphonyoss.symphony.tools.rest.model.IModelListener;
 import org.symphonyoss.symphony.tools.rest.model.IModelObject;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
+import org.symphonyoss.symphony.tools.rest.model.IVirtualModelObject;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.model.Pod;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
@@ -199,16 +200,25 @@ public class PodManager extends ModelObjectManager implements IPodManager
     return newPod;
   }
   
+  @Override
   public void modelChanged()
   {
     for(IModelListener listener : listeners_)
       listener.modelChanged();
   }
   
-  public void modelObjectChanged(IModelObject modelObject)
+  @Override
+  public void modelObjectChanged(IVirtualModelObject modelObject)
   {
     for(IModelListener listener : listeners_)
       listener.modelObjectChanged(modelObject);
+  }
+  
+  @Override
+  public void modelObjectStructureChanged(IModelObject modelObject)
+  {
+    for(IModelListener listener : listeners_)
+      listener.modelObjectStructureChanged(modelObject);
   }
 
   @Override

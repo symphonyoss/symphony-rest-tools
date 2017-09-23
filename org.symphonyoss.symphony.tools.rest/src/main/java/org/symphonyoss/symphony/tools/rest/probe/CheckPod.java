@@ -27,12 +27,17 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.CertificateParsingException;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
+import org.symphonyoss.symphony.tools.rest.model.IComponent;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
+import org.symphonyoss.symphony.tools.rest.model.IVirtualModelObject;
+import org.symphonyoss.symphony.tools.rest.model.VirtualModelObject;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
@@ -40,9 +45,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class CheckPod extends SrtCommand
 {
-  private static final String   PROGRAM_NAME = "CheckPod";
+  private static final String      PROGRAM_NAME                = "CheckPod";
 
-  private IPod pod_;
+  private IPod                     pod_;
+  private boolean                  structureChange_;
+  private Set<IVirtualModelObject> changedComponents_          = new HashSet<>();
+//  private Set<IVirtualModelObject> structureChangedComponents_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
   {
@@ -138,7 +146,34 @@ public class CheckPod extends SrtCommand
         
         printf("%30s %s\n", name, healthy);
         
-        pod_.getComponent(name).setComponentStatus(healthy, "");
+        pod_.getComponent(name, 
+            (parent, componentName) -> 
+            {
+              VirtualModelObject component = new VirtualModelObject(pod_, IComponent.GENERIC_COMPONENT, componentName);
+              
+              structureChange_ = true;
+              return component;
+            },
+            (existingComponent) -> changedComponents_.add(existingComponent)
+        ).setComponentStatus(healthy, "");
+      }
+      
+      if(structureChange_)
+      {
+        pod_.getManager().modelObjectStructureChanged(pod_);
+      }
+      else
+      {
+//        for(IVirtualModelObject component : structureChangedComponents_)
+//        {
+//          changedComponents_.remove(component);
+//          pod_.getManager().modelObjectStructureChanged(component);
+//        }
+        
+        for(IVirtualModelObject component : changedComponents_)
+        {
+          pod_.getManager().modelObjectChanged(component);
+        }
       }
     }
     catch(IOException | CertificateParsingException e)

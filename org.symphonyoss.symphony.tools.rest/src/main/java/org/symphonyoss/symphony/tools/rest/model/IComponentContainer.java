@@ -23,8 +23,32 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import javax.annotation.Nullable;
+
+import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
+
 public interface IComponentContainer
 {
+  /**
+   * Get the child component with the given name. If no such component exists
+   * then it is created as a generic VirtualModelObject.
+   * 
+   * @param   name    Name of the required component.
+   * @return  The required component.
+   */
   IComponent getComponent(String name);
-  
+
+  /**
+   * Get the child component with the given name. If no such component exists
+   * then it is created.
+   * 
+   * @param   name        Name of the required component.
+   * @param   constructor An IModelObjectConstructor to create a new child component if necessary
+   * @param   setExisting A setter which is called with the existing component if it is not constructed.
+   * 
+   * @return  The required component.
+   */
+  IComponent getComponent(String name,
+      IModelObjectConstructor<? extends IVirtualModelObject> constructor,
+      @Nullable ISetter<IVirtualModelObject> setExisting);
 }

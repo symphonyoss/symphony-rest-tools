@@ -21,11 +21,10 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.model;
+package org.symphonyoss.symphony.tools.rest.util;
 
-public interface IModelListener
+@FunctionalInterface
+public interface IVisitor<T>
 {
-  void modelChanged();
-  void modelObjectChanged(IVirtualModelObject modelObject);
-  void modelObjectStructureChanged(IVirtualModelObject modelObject);
+  void visit(T visitee);
 }

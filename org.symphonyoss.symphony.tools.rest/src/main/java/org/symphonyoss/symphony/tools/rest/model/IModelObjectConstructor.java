@@ -23,9 +23,8 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-public interface IModelListener
+@FunctionalInterface
+public interface IModelObjectConstructor<T extends IVirtualModelObject>
 {
-  void modelChanged();
-  void modelObjectChanged(IVirtualModelObject modelObject);
-  void modelObjectStructureChanged(IVirtualModelObject modelObject);
+  T newInstance(IModelObject parent, String name);
 }

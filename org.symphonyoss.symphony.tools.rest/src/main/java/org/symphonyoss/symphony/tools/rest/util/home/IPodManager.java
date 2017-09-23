@@ -25,9 +25,11 @@ package org.symphonyoss.symphony.tools.rest.util.home;
 
 import java.util.Set;
 
+import org.symphonyoss.symphony.tools.rest.model.IModelObject;
 import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
+import org.symphonyoss.symphony.tools.rest.model.IVirtualModelObject;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 
 public interface IPodManager extends IModelObjectProvider
@@ -51,5 +53,11 @@ public interface IPodManager extends IModelObjectProvider
    * @throws NoSuchObjectException If there are no valid configurations.
    */
   String getDefaultPodName() throws NoSuchObjectException;
+
+  void modelChanged();
+
+  void modelObjectChanged(IVirtualModelObject modelObject);
+
+  void modelObjectStructureChanged(IModelObject modelObject);
 
 }

@@ -23,6 +23,8 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
+
 public interface IPod extends IModelObject, IComponent, IComponentContainer
 {
 
@@ -31,6 +33,8 @@ public interface IPod extends IModelObject, IComponent, IComponentContainer
   IPodConfig getPodConfig();
 
   Integer getPodId();
+
+  IPodManager getManager();
 
   
 

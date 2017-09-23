@@ -32,9 +32,10 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
 import org.symphonyoss.symphony.tools.rest.util.home.PodManager;
 
-public class Pod extends ModelObject implements IPod, IUrlEndpoint
+public class Pod extends ModelObjectContainer implements IPod, IUrlEndpoint
 {
 
   public static final String      TYPE_KEY_MANAGER  = "KeyManager";
@@ -47,7 +48,6 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
   private final PodManager        manager_;
   private PodConfig               podConfig_;
   private Map<String, Agent>      agentMap_         = new HashMap<>();
-  private Map<String, IComponent> componentMap_     = new HashMap<>();
   private Integer                 podId_;
   private URL                     url_;
   
@@ -106,6 +106,14 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
     }
     return pod;
   }
+
+  @Override
+  public IPodManager getManager()
+  {
+    return manager_;
+  }
+
+
 
   @Override
   protected void printFields(PrintWriter out)
@@ -186,7 +194,7 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
       oldAgent.modelUpdated(newAgent);
     }
     
-    manager_.modelObjectChanged(this);
+    manager_.modelObjectStructureChanged(this);
     
     return newAgent;
   }
@@ -196,38 +204,12 @@ public class Pod extends ModelObject implements IPod, IUrlEndpoint
   {
     super.resetStatus();
     
-    synchronized (componentMap_)
+    visitAllComponents((component) -> 
     {
-      for(IComponent component : componentMap_.values())
-        component.resetStatus();
-    }
-  }
-
-  @Override
-  public IComponent getComponent(String name)
-  {
-    while(name.startsWith("_"))
-      name = name.substring(1);
+      component.resetStatus();
+      manager_.modelObjectChanged(component);
+    });
     
-    while(name.endsWith("_"))
-      name = name.substring(0, name.length() - 1);
-    
-    synchronized (componentMap_)
-    {
-      IComponent component = componentMap_.get(name);
-      
-      if(component == null)
-      {
-        VirtualModelObject vmo = new VirtualModelObject(this, GENERIC_COMPONENT, name);
-        
-        componentMap_.put(name, vmo);
-        
-        addChild(vmo);
-        
-        return vmo;
-      }
-      
-      return component;
-    }
+    manager_.modelObjectChanged(this);
   }
 }
