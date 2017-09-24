@@ -31,25 +31,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
 import org.symphonyoss.symphony.tools.rest.util.home.PodManager;
 
-public class Pod extends ModelObjectContainer implements IPod, IUrlEndpoint
+public class Pod extends ModelObjectContainer implements IPod
 {
 
-  public static final String      TYPE_KEY_MANAGER  = "KeyManager";
-  public static final String      TYPE_SESSION_AUTH = "SessionAuth";
-  public static final String      TYPE_KEY_AUTH     = "KeyAuth";
+  public static final String     TYPE_KEY_MANAGER  = "KeyManager";
+  public static final String     TYPE_SESSION_AUTH = "SessionAuth";
+  public static final String     TYPE_KEY_AUTH     = "KeyAuth";
 
-  private static final String     POD_ID            = "pod.id";
-  private static final String     AGENT_DIR_NAME    = "agent";
+  private static final String    POD_ID            = "pod.id";
+  private static final String    AGENT_DIR_NAME    = "agent";
 
-  private final PodManager        manager_;
-  private PodConfig               podConfig_;
-  private Map<String, Agent>      agentMap_         = new HashMap<>();
-  private Integer                 podId_;
-  private URL                     url_;
+  private final PodManager       manager_;
+  private PodConfig              podConfig_;
+  private Map<String, Agent>     agentMap_         = new HashMap<>();
+  private Map<String, Principal> principalMap_     = new HashMap<>();
+  private Integer                podId_;
+  private URL                    url_;
   
   public Pod(PodManager manager, PodConfig config) throws NoSuchObjectException
   {
@@ -194,9 +196,31 @@ public class Pod extends ModelObjectContainer implements IPod, IUrlEndpoint
       oldAgent.modelUpdated(newAgent);
     }
     
+
+    replaceChild(oldAgent, newAgent);
     manager_.modelObjectStructureChanged(this);
     
     return newAgent;
+  }
+  
+  @Override
+  public Principal addPrincipal(Console console, String skey, String kmsession)
+  {
+    Principal newPrincipal = Principal.newInstance(console, this, skey, kmsession);
+    
+    Principal oldPrincipal;
+    synchronized (principalMap_)
+    {
+      oldPrincipal = principalMap_.put(newPrincipal.getConfig().getName(), newPrincipal);
+    }
+    
+    if(oldPrincipal != null)
+      oldPrincipal.modelUpdated(newPrincipal);
+    
+    replaceChild(oldPrincipal, newPrincipal);
+    manager_.modelObjectStructureChanged(this);
+    
+    return newPrincipal;
   }
   
   @Override

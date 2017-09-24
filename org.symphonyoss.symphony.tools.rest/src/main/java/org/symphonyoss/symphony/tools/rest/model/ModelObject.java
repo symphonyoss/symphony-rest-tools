@@ -115,6 +115,19 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
     }
   }
   
+  public void replaceChild(IVirtualModelObject oldChild, IVirtualModelObject newChild)
+  {
+    synchronized (childSet_)
+    {
+      childSet_.remove(oldChild);
+      childSet_.add(newChild);
+      synchronized (children_)
+      {
+        children_ = childSet_.toArray(new IVirtualModelObject[childSet_.size()]);
+      }
+    }
+  }
+  
   @Override
   public boolean hasChildren()
   {
@@ -203,5 +216,16 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   {
     status_ = null;
     statusMessage_ = UNKNOWN_STATUS;
+  }
+  
+
+  
+  /**
+   * This object has been replaced with the given one.
+   * 
+   * @param newPod
+   */
+  public void modelUpdated(ModelObject newPod)
+  {
   }
 }

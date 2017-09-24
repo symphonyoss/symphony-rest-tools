@@ -23,22 +23,39 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import org.symphonyoss.symphony.tools.rest.util.Console;
-import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
-
-public interface IPod extends IModelObject, IComponent, IComponentContainer, IUrlEndpoint
+public class PrincipalConfigBuilder extends ConfigBuilder<PrincipalConfig>
 {
 
-  IAgent createOrUpdateAgent(IAgentConfig agentConfig);
+  public PrincipalConfigBuilder()
+  {
+    super(new PrincipalConfig());
+  }
 
-  IPodConfig getPodConfig();
-
-  Integer getPodId();
-
-  IPodManager getManager();
-
-  Principal addPrincipal(Console console, String skey, String kmsession);
-
+  public PrincipalConfigBuilder(PrincipalConfig other)
+  {
+    super(new PrincipalConfig(other));
+  }
   
+  public IPrincipalConfig  build()
+  {
+    return new PrincipalConfig(config_);
+  }
+  
+  public PrincipalConfigBuilder setUserName(String userName)
+  {
+    config_.userName_ = userName;
+    return this;
+  }
 
+  public PrincipalConfigBuilder setUserId(long userId)
+  {
+    config_.userId_ = userId;
+    return this;
+  }
+
+  public PrincipalConfigBuilder setCertificate(String certificate)
+  {
+    config_.certificate_ = certificate;
+    return this;
+  }
 }

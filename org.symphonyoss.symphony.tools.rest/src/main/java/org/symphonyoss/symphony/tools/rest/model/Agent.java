@@ -47,8 +47,6 @@ public class Agent extends ModelObject implements IAgent
     {
       addError("Invalid URL \"" + config_.getAgentApiUrl() + "\"");
     }
-    
-    pod_.addChild(this);
   }
 
   public static Agent newInstance(Pod pod, File configDir) throws NoSuchObjectException
@@ -84,14 +82,5 @@ public class Agent extends ModelObject implements IAgent
   public IModelObject getParent()
   {
     return pod_;
-  }
-  
-  /**
-   * This object has been replaced with the given one.
-   * 
-   * @param newPod
-   */
-  public void modelUpdated(Agent newPod)
-  {
   }
 }

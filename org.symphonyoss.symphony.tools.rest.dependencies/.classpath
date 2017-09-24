@@ -7,7 +7,7 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src/"/>
-	<classpathentry exported="true" kind="lib" path="lib/jcurl-0.9.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jcurl-0.9.6.jar" sourcepath="/jcurl/src/main/java"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr305-3.0.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

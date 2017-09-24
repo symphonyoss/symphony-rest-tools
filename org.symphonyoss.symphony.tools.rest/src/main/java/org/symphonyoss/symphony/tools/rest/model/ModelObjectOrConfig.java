@@ -34,6 +34,8 @@ import java.util.Properties;
 
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public abstract class ModelObjectOrConfig extends ModelObjectOrConfigOrBuilder
 {
   protected static final String F = "%-30s %s\n";
@@ -44,6 +46,12 @@ public abstract class ModelObjectOrConfig extends ModelObjectOrConfigOrBuilder
   }
   
   protected void loadFromProperties(Properties props)
+  {
+  }
+  
+
+  
+  protected void load(JsonNode jsonNode)
   {
   }
   
@@ -58,6 +66,22 @@ public abstract class ModelObjectOrConfig extends ModelObjectOrConfigOrBuilder
     }
   }
   
+  protected long  getLongProperty(Properties props, String name)
+  {
+    String s = props.getProperty(name);
+    
+    if(s == null)
+      return 0;
+    
+    try
+    {
+      return Integer.parseInt(s);
+    }
+    catch(NumberFormatException e)
+    {
+      return 0;
+    }
+  }
   
   
   @Override

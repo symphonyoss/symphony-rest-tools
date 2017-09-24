@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Properties;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public abstract class Config extends ModelObjectOrConfig implements IConfig
 {
   private static final String        HOST_NAME        = "host.name";
@@ -43,6 +45,13 @@ public abstract class Config extends ModelObjectOrConfig implements IConfig
   protected Config(Config other)
   {
     hostName_           = other.hostName_;
+  }
+  
+
+  
+  @Override
+  public void load(JsonNode jsonNode)
+  {
   }
   
   @Override

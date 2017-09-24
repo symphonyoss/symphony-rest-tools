@@ -30,6 +30,8 @@ public class Srt
   public static final String   MIME_HTML             = "text/html";
   public static final String   MIME_JSON             = "application/json";
   public static final String   SESSION_TOKEN         = "sessionToken";
+  public static final String   SKEY                  = "skey";
+  public static final String   KMSESSION             = "kmsession";
   public static final String   KEYMANAGER_TOKEN      = "keyManagerToken";
   public static final String   DEFAULT_KEYSTORE_TYPE = "pkcs12";
 

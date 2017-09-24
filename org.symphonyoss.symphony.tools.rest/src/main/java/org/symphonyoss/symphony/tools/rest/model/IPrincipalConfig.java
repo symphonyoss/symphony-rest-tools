@@ -23,22 +23,13 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import org.symphonyoss.symphony.tools.rest.util.Console;
-import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
-
-public interface IPod extends IModelObject, IComponent, IComponentContainer, IUrlEndpoint
+public interface IPrincipalConfig
 {
 
-  IAgent createOrUpdateAgent(IAgentConfig agentConfig);
+  String getUserName();
 
-  IPodConfig getPodConfig();
+  long getUserId();
 
-  Integer getPodId();
-
-  IPodManager getManager();
-
-  Principal addPrincipal(Console console, String skey, String kmsession);
-
-  
+  String getCertificate();
 
 }
