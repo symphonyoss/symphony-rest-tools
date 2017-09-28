@@ -21,21 +21,17 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.model;
+package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
-import java.io.File;
-import java.io.PrintWriter;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface IConfig
+public interface IComponent
 {
-  static final String PROPERTY_FILE_NAME = "config";
-
-  String getName();
-  String getTypeName();
+  static final String GENERIC_COMPONENT = "Component";
+  static final String UNKNOWN_STATUS = "Unknown";
   
-  void printFields(PrintWriter out);
+  @Nonnull String getComponentStatusMessage();
 
-  void store(File configDir);
-  String getErrorText();
-
+  @Nullable ComponentStatus getComponentStatus();
 }

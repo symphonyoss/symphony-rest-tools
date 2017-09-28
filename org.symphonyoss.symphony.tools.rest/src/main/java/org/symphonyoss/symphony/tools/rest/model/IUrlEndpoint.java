@@ -25,7 +25,7 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 import java.net.URL;
 
-public interface IUrlEndpoint extends IVirtualModelObject
+public interface IUrlEndpoint extends IModelObject
 {
   URL getUrl();
 }

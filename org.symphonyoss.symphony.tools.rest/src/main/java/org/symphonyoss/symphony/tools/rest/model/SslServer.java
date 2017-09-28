@@ -29,85 +29,105 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
-import javax.annotation.concurrent.Immutable;
-
+import org.symphonyoss.symphony.tools.rest.util.CertificateUtils;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
-@Immutable
-public class SslServerConfig extends Config implements ISslServerConfig
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class SslServer extends ModelObjectContainer implements ISslServerConfig
 {
+//  private static final String   TRUSTED_SERVER_CERTS                = "trustedServerCerts";
+  
   private static final String   PKCS12                = "pkcs12";
-  private static final String DOT_TRUSTSTORE = ".truststore";
 
-  private static final String TRUSTSTORE_FILE     = "truststore.file";
-  private static final String TRUSTSTORE_PASSWORD = "truststore.password";
+  private final Set<X509Certificate> trustCerts_       = new HashSet<>();
 
-  /* package */ String        trustStorePassword_ = "changeit";
-  /* package */ File          trustStoreFile_;
-  /* package */ Set<X509Certificate> trustCerts_       = new HashSet<>();
-
-
-  public SslServerConfig()
-  {}
   
-  public SslServerConfig(SslServerConfig other)
+  public SslServer(IModelObject parent, String typeName, JsonNode config) throws InvalidConfigException
   {
-    super(other);
+    super(parent, typeName, config);
     
-    trustStorePassword_ = other.trustStorePassword_;
-    trustStoreFile_     = other.trustStoreFile_;
-    trustCerts_.addAll(other.trustCerts_);
-  }
-
-  @Override
-  protected void loadFromProperties(Properties props)
-  {
-    super.loadFromProperties(props);
-    
-    trustStoreFile_ = new File(props.getProperty(TRUSTSTORE_FILE));
-    trustStorePassword_ = props.getProperty(TRUSTSTORE_PASSWORD);
-  }
-
-  @Override
-  public void setProperties(Properties  prop)
-  {
-    super.setProperties(prop);
-    
-    setIfNotNull(prop, TRUSTSTORE_FILE, trustStoreFile_.getAbsolutePath());
-    setIfNotNull(prop, TRUSTSTORE_PASSWORD, trustStorePassword_);
+//    JsonNode certsNode = config.get(TRUSTED_SERVER_CERTS);
+//    
+//    if(certsNode != null)
+//    {
+//      try
+//      {
+//        for(X509Certificate cert : CertificateUtils.decode(certsNode.asText()))
+//        {
+//          trustCerts_.add(cert);
+//        }
+//      }
+//      catch (IOException e)
+//      {
+//        throw new InvalidConfigException(e);
+//      }
+//    }
   }
   
-  @Override
-  public void printFields(PrintWriter out)
+  public static class Builder extends ModelObject.Builder
   {
-    out.printf(F, TRUSTSTORE_FILE, trustStoreFile_.getAbsolutePath());
-    out.printf(F, TRUSTSTORE_PASSWORD, trustStorePassword_);
+    private Set<X509Certificate> trustCerts_ = new HashSet<>();
+    
+    @Override
+    public Builder setName(String name)
+    {
+      super.setName(name);
+      return this;
+    }
+
+    public Builder addTrustCerts(Collection<X509Certificate> trustCerts)
+    {
+      trustCerts_.addAll(trustCerts);
+      
+//      jsonNode_.put(TRUSTED_SERVER_CERTS, CertificateUtils.encode(trustCerts_));
+      return this;
+    }
+    
+    public Builder addTrustCert(X509Certificate trustCert)
+    {
+      trustCerts_.add(trustCert);
+      
+//      jsonNode_.put(TRUSTED_SERVER_CERTS, CertificateUtils.encode(trustCerts_));
+      return this;
+    }
+
+    public Set<X509Certificate> getTrustCerts()
+    {
+      return trustCerts_;
+    }
+    
+//    public SslServerConfig build(IModelObject parent) throws InvalidConfigException
+//    {
+//      return new SslServerConfig(parent, jsonNode_);
+//    }
   }
+  
+//  public static Builder  newBuilder()
+//  {
+//    return new Builder();
+//  }
 
   @Override
-  public String getTrustStorePassword()
+  public void storeConfig(ObjectNode config, boolean includeMutable)
   {
-    return trustStorePassword_;
+    super.storeConfig(config, includeMutable);
+    
+//    if(!trustCerts_.isEmpty())
+//      config.put(TRUSTED_SERVER_CERTS, CertificateUtils.encode(trustCerts_));
   }
-
-  @Override
-  public File getTrustStoreFile()
-  {
-    return trustStoreFile_;
-  }
-
 
   @Override
   public Set<X509Certificate>  getTrustCerts()
@@ -115,16 +135,12 @@ public class SslServerConfig extends Config implements ISslServerConfig
     return new HashSet<X509Certificate>(trustCerts_);
   }
 
-  @Override
-  public void load(File configDir, String fileName) throws NoSuchObjectException
+  public void importTrustStore(File trustStoreFile, String trustStorePassword)
   {
-    super.load(configDir, fileName);
-    
     try
     {
       KeyStore  trustStore      = KeyStore.getInstance(PKCS12);
-      File      trustStoreFile  = new File(configDir, fileName + DOT_TRUSTSTORE);
-      char[]    password        = trustStorePassword_.toCharArray();
+      char[]    password        = trustStorePassword.toCharArray();
       
       try(InputStream stream = new FileInputStream(trustStoreFile))
       {
@@ -149,16 +165,13 @@ public class SslServerConfig extends Config implements ISslServerConfig
     }
   }
   
-  @Override
-  protected void doStore(File configDir, String fileName)
+  public void exportTrustStore(File trustStoreFile, String trustStorePassword)
   {
-    trustStoreFile_  = new File(configDir, fileName + DOT_TRUSTSTORE);
-    
     try
     {
       KeyStore  trustStore      = KeyStore.getInstance(PKCS12);
       
-      char[]    password        = trustStorePassword_.toCharArray();
+      char[]    password        = trustStorePassword.toCharArray();
       int       certIndex       = 1;
       
       trustStore.load(null, null);
@@ -166,7 +179,7 @@ public class SslServerConfig extends Config implements ISslServerConfig
       for (X509Certificate cert : trustCerts_)
         trustStore.setCertificateEntry(String.valueOf(certIndex++), cert);
       
-      try(OutputStream stream = new FileOutputStream(trustStoreFile_))
+      try(OutputStream stream = new FileOutputStream(trustStoreFile))
       {
         trustStore.store(stream, password);
       }
@@ -175,13 +188,5 @@ public class SslServerConfig extends Config implements ISslServerConfig
     {
       throw new ProgramFault(e);
     }
-    
-    super.doStore(configDir, fileName);
-  }
-
-  @Override
-  public String getTypeName()
-  {
-    return "SSL Server";
   }
 }

@@ -34,10 +34,11 @@ import java.util.Set;
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
-import org.symphonyoss.symphony.tools.rest.model.IComponent;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.IVirtualModelObject;
-import org.symphonyoss.symphony.tools.rest.model.VirtualModelObject;
+import org.symphonyoss.symphony.tools.rest.model.IModelObject;
+import org.symphonyoss.symphony.tools.rest.model.ModelObject;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
@@ -49,8 +50,8 @@ public class CheckPod extends SrtCommand
 
   private IPod                     pod_;
   private boolean                  structureChange_;
-  private Set<IVirtualModelObject> changedComponents_          = new HashSet<>();
-//  private Set<IVirtualModelObject> structureChangedComponents_ = new HashSet<>();
+  private Set<IModelObject> changedComponents_          = new HashSet<>();
+//  private Set<IModelObject> structureChangedComponents_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
   {
@@ -106,7 +107,7 @@ public class CheckPod extends SrtCommand
       
       pod_.resetStatus();
       
-      URL url = createURL(pod_.getPodConfig().getPodUrl(),
+      URL url = createURL(pod_.getPodUrl(),
           POD_HEALTHCHECK_PATH);
       
       JCurl jCurl = getJCurl().build();
@@ -117,7 +118,7 @@ public class CheckPod extends SrtCommand
       if(connection.getResponseCode() != 200)
       {
         println("Healthcheck failed.");
-        pod_.setComponentStatus(false, "Error " + connection.getResponseCode());
+        pod_.setComponentStatus(ComponentStatus.Failed, "Error " + connection.getResponseCode());
         return;
       }
   
@@ -149,13 +150,13 @@ public class CheckPod extends SrtCommand
         pod_.getComponent(name, 
             (parent, componentName) -> 
             {
-              VirtualModelObject component = new VirtualModelObject(pod_, IComponent.GENERIC_COMPONENT, componentName);
+              ModelObject component = new ModelObject(pod_, IComponent.GENERIC_COMPONENT, componentName);
               
               structureChange_ = true;
               return component;
             },
             (existingComponent) -> changedComponents_.add(existingComponent)
-        ).setComponentStatus(healthy, "");
+        ).setComponentStatus(healthy ? ComponentStatus.OK : ComponentStatus.Failed, "");
       }
       
       if(structureChange_)
@@ -164,13 +165,13 @@ public class CheckPod extends SrtCommand
       }
       else
       {
-//        for(IVirtualModelObject component : structureChangedComponents_)
+//        for(IModelObject component : structureChangedComponents_)
 //        {
 //          changedComponents_.remove(component);
 //          pod_.getManager().modelObjectStructureChanged(component);
 //        }
         
-        for(IVirtualModelObject component : changedComponents_)
+        for(IModelObject component : changedComponents_)
         {
           pod_.getManager().modelObjectChanged(component);
         }

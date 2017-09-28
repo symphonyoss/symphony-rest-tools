@@ -25,5 +25,5 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 public interface IAgent extends IModelObject, IUrlEndpoint
 {
-
+  String getAgentApiUrl();
 }

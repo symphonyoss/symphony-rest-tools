@@ -21,12 +21,23 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.model;
+package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
-import java.io.File;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public abstract class ModelObjectOrConfigOrBuilder
+public class ComponentProxy extends Component implements IComponentProxy
 {
-  public abstract void load(File configDir, String fileName) throws NoSuchObjectException;
-  public abstract void store(File configDir, String fileName);
+  @Override
+  public void setComponentStatus(@Nullable ComponentStatus status, @Nonnull String statusMessage)
+  {
+    super.setComponentStatus(status, statusMessage);
+  }
+
+  @Override
+  public void resetStatus()
+  {
+    super.resetStatus();
+  }
+
 }

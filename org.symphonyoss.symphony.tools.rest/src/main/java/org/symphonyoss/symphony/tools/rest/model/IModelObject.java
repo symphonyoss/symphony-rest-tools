@@ -23,15 +23,48 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.annotation.Nullable;
+
+import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentProxy;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
+ * Includes an analog of org.eclipse.jface.viewers.ITreeContentProvider which
+ * allows us to provide models from "pom-first land" for Eclipse based
+ * UI consumption (the Eclipse UI plugins always have to be in 
+ * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
+ * from in here.
  * 
  * @author bruce.skingle
  *
  */
-public interface IModelObject extends IVirtualModelObject
+public interface IModelObject extends IComponentProxy
 {
-  IConfig getConfig();
-  void    print(PrintWriter out);
+  static final String CONFIG_FILE_NAME = "config";
+  static final String DOT_JSON         = ".json";
+  
+  boolean                 hasChildren();
+  IModelObject[]          getChildren();
+  
+  /**
+   * Returns the parent for the given element, or <code>null</code>
+   * indicating that it is a top level node.
+   *
+   * @return the parent element, or <code>null</code> if it
+   *   has none or if the parent cannot be computed
+   */
+  @Nullable IModelObject  getParent();
+  
+  String                  getTypeName();
+  String                  getName();
+  String                  getErrorText();
+  void                    print(PrintWriter out);
+  ObjectNode              toJson();
+  void store(File configDir, String fileName) throws IOException;
+  void store(File configDir) throws IOException;
 }

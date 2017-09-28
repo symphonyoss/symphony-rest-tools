@@ -21,18 +21,43 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.model;
+package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
-public interface IComponent
+import javax.annotation.Nullable;
+
+public class Component implements IComponent
 {
-  static final String GENERIC_COMPONENT = "Component";
-  static final String UNKNOWN_STATUS = "Unknown";
+  private ComponentStatus    status_;
+  private String             statusMessage_;
   
-  void setComponentStatus(Boolean status, String statusMessage);
+  public Component()
+  {
+  }
 
-  String getComponentStatusMessage();
+  @Override
+  public String getComponentStatusMessage()
+  {
+    return statusMessage_;
+  }
 
-  Boolean getComponentStatus();
-  
-  void resetStatus();
+  @Override
+  public @Nullable ComponentStatus getComponentStatus()
+  {
+   return status_;
+  }
+
+  protected void setComponentStatus(@Nullable ComponentStatus status, String statusMessage)
+  {
+    status_ = status;
+    statusMessage_ = statusMessage;
+  }
+
+  /**
+   * Reset the status of this and any child components to null.
+   */
+  protected void resetStatus()
+  {
+    status_ = null;
+    statusMessage_ = UNKNOWN_STATUS;
+  }
 }

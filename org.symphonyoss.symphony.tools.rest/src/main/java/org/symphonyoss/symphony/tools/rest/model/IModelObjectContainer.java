@@ -25,18 +25,19 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 import javax.annotation.Nullable;
 
+import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentProxy;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
-public interface IComponentContainer
+public interface IModelObjectContainer
 {
   /**
    * Get the child component with the given name. If no such component exists
-   * then it is created as a generic VirtualModelObject.
+   * then it is created as a generic ModelObject.
    * 
    * @param   name    Name of the required component.
    * @return  The required component.
    */
-  IComponent getComponent(String name);
+  IComponentProxy getComponent(String name);
 
   /**
    * Get the child component with the given name. If no such component exists
@@ -48,7 +49,7 @@ public interface IComponentContainer
    * 
    * @return  The required component.
    */
-  IComponent getComponent(String name,
-      IModelObjectConstructor<? extends IVirtualModelObject> constructor,
-      @Nullable ISetter<IVirtualModelObject> setExisting);
+  IComponentProxy getComponent(String name,
+      IModelObjectConstructor<? extends IModelObject> constructor,
+      @Nullable ISetter<IModelObject> setExisting);
 }

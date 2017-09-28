@@ -27,28 +27,108 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.security.cert.CertificateParsingException;
 
-import javax.swing.text.StyleContext.SmallAttributeSet;
-
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 import org.symphonyoss.symphony.tools.rest.Srt;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class Principal extends ModelObject
 {
+  public static final String  TYPE_NAME   = "Principal";
 
   private static final String SESSION_INFO = "/v2/sessioninfo";
   
-  private final IPod pod_;
+  private static final String USER_NAME   = "username";
+  private static final String USER_ID     = "id";
+  private static final String CERTIFICATE = "certificate";
+  private static final String SKEY = "skey";
+  private static final String KMSESSION = "kmsession";
 
+  // Immutable Config
+  private final String        certificate_;
+  
+  // Persistable State
+  private String        userName_;
+  private long          userId_;
   private String skey_;
   private String kmsession_;
   
-  public Principal(IPod pod, Config config)
+  // Members
+  private final Pod pod_;
+
+  
+  
+  public Principal(Pod pod, JsonNode config) throws InvalidConfigException
   {
-    super(pod, config);
+    super(pod, TYPE_NAME, config);
     pod_ = pod;
+    
+    userName_         = getOptionalTextNode(config, USER_NAME);
+    userId_           = getRequiredLongNode(config, USER_ID);
+    certificate_      = getOptionalTextNode(config, CERTIFICATE);
+    
+    skey_      = getOptionalTextNode(config, SKEY);
+    kmsession_ = getOptionalTextNode(config, KMSESSION);
   }
+  
+  public static class Builder extends ModelObject.Builder
+  {
+    @Override
+    public Builder setName(String name)
+    {
+      super.setName(name);
+      return this;
+    }
+
+    public Builder setUserName(String userName)
+    {
+      putIfNotNull(jsonNode_, USER_NAME, userName);
+      return this;
+    }
+
+    public Builder setUserId(long userId)
+    {
+      putIfNotNull(jsonNode_, USER_ID, userId);
+      
+      return this;
+    }
+
+    public Builder setCertificate(String certificate)
+    {
+      putIfNotNull(jsonNode_, CERTIFICATE, certificate);
+      return this;
+    }
+    
+    public Principal build(Pod pod) throws InvalidConfigException
+    {
+      return new Principal(pod, jsonNode_);
+    }
+  }
+  
+  public static Builder  newBuilder()
+  {
+    return new Builder();
+  }
+  
+  @Override
+  public void storeConfig(ObjectNode config, boolean includeMutable)
+  {
+    super.storeConfig(config, includeMutable);
+    
+    putIfNotNull(config, USER_NAME, userName_);
+    putIfNotNull(config, USER_ID, userId_);
+    putIfNotNull(config, CERTIFICATE, certificate_);
+    
+    if(includeMutable)
+    {
+      putIfNotNull(config, SKEY, skey_);
+      putIfNotNull(config, KMSESSION, kmsession_);
+    }
+  }
+  
 
   public void validate(String skey, String kmsession)
   {
@@ -59,7 +139,7 @@ public class Principal extends ModelObject
     
   }
 
-  public static Principal newInstance(Console console, IPod pod, String skey, String kmsession)
+  public void validate(Console console, IPod pod, String skey, String kmsession)
   {
     console.println("Validating session");
     
@@ -67,26 +147,20 @@ public class Principal extends ModelObject
         .header(Srt.SESSION_TOKEN, skey)
         .build();
     
-    PrincipalConfig config = new PrincipalConfig();
-    
     try
     {
-      HttpURLConnection con = jcurl.connect(pod.getPodConfig().getPodApiUrl() + SESSION_INFO);
+      HttpURLConnection con = jcurl.connect(pod.getPodApiUrl() + SESSION_INFO);
       
       Response response = jcurl.processResponse(con);
       
-      config.load(response.getJsonNode());
+      console.println(response.getJsonNode());
+//      principal.skey_ = skey;
+//      principal.kmsession_ = kmsession;
     }
     catch(IOException | CertificateParsingException e)
     {
-      config.addError("Unable to validate JSON: " + e);
+      addError("Unable to validate JSON: " + e);
     }
-    Principal principal = new Principal(pod, config);
-    
-    principal.skey_ = skey;
-    principal.kmsession_ = kmsession;
-    
-    return principal;
   }
 
 }

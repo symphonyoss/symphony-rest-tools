@@ -21,9 +21,17 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.model;
+package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
-public interface IAgentConfig extends IConfig
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public interface IComponentProxy extends IComponent
 {
-  String getAgentApiUrl();
+  void setComponentStatus(@Nullable ComponentStatus status, @Nonnull String statusMessage);
+
+  /**
+   * Reset the status of this and any child components to null.
+   */
+  void resetStatus();
 }

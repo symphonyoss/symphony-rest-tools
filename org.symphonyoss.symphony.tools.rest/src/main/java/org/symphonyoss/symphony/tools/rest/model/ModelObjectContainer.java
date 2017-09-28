@@ -6,7 +6,10 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -14,27 +17,56 @@ import javax.annotation.Nullable;
 import org.symphonyoss.symphony.tools.rest.util.IVisitor;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
-public class ModelObjectContainer extends ModelObject implements IComponentContainer
+import com.fasterxml.jackson.databind.JsonNode;
+
+public class ModelObjectContainer extends ModelObject implements IModelObjectContainer
 {
-  private Map<String, IVirtualModelObject> componentMap_     = new HashMap<>();
+  private List<IModelObject> childSet_     = new ArrayList<>();
+  private IModelObject[]     children_     = new IModelObject[0];
+  private Map<String, IModelObject> componentMap_     = new HashMap<>();
   
-  public ModelObjectContainer(IVirtualModelObject parent, Config config)
+  public ModelObjectContainer(IModelObject parent, String typeName, JsonNode config) throws InvalidConfigException
   {
-    super(parent, config);
+    super(parent, typeName, config);
   }
 
+  public void addChild(IModelObject child)
+  {
+    synchronized (childSet_)
+    {
+      childSet_.add(child);
+      synchronized (children_)
+      {
+        children_ = childSet_.toArray(new IModelObject[childSet_.size()]);
+      }
+    }
+  }
+  
+  public void replaceChild(IModelObject oldChild, IModelObject newChild)
+  {
+    synchronized (childSet_)
+    {
+      childSet_.remove(oldChild);
+      childSet_.add(newChild);
+      synchronized (children_)
+      {
+        children_ = childSet_.toArray(new IModelObject[childSet_.size()]);
+      }
+    }
+  }
+  
   @Override
-  public IVirtualModelObject getComponent(String name)
+  public IModelObject getComponent(String name)
   {
     return getComponent(name,
-        (parent, componentName) -> new VirtualModelObject(this, GENERIC_COMPONENT, componentName),
+        (parent, componentName) -> new ModelObject(this, GENERIC_COMPONENT, componentName),
         null);
   }
 
   @Override
-  public IVirtualModelObject getComponent(String name,
-      IModelObjectConstructor<? extends IVirtualModelObject> constructor,
-      @Nullable ISetter<IVirtualModelObject> setExisting)
+  public IModelObject getComponent(String name,
+      IModelObjectConstructor<? extends IModelObject> constructor,
+      @Nullable ISetter<IModelObject> setExisting)
   {
     while(name.startsWith("_"))
       name = name.substring(1);
@@ -44,11 +76,11 @@ public class ModelObjectContainer extends ModelObject implements IComponentConta
     
     synchronized (componentMap_)
     {
-      IVirtualModelObject component = componentMap_.get(name);
+      IModelObject component = componentMap_.get(name);
       
       if(component == null)
       {
-        IVirtualModelObject vmo = constructor.newInstance(this, name);
+        IModelObject vmo = constructor.newInstance(this, name);
         
         componentMap_.put(name, vmo);
         
@@ -62,12 +94,54 @@ public class ModelObjectContainer extends ModelObject implements IComponentConta
     }
   }
   
-  public void visitAllComponents(IVisitor<IVirtualModelObject> visitor)
+  public void visitAllComponents(IVisitor<IModelObject> visitor)
   {
     synchronized (componentMap_)
     {
-      for(IVirtualModelObject component : componentMap_.values())
+      for(IModelObject component : componentMap_.values())
         visitor.visit(component);
+    }
+  }
+  
+  @Override
+  public boolean hasChildren()
+  {
+    synchronized (children_)
+    {
+      return children_.length > 0;
+    }
+  }
+
+  @Override
+  public IModelObject[] getChildren()
+  {
+    synchronized (children_)
+    {
+      return children_;
+    }
+  }
+  
+  /**
+   * Adds a simple child ONLY IF THE NAME IS NON-NULL
+   * @param typeName  Type of the child
+   * @param name      Name of the child
+   */
+  public void addSimpleChild(String typeName, String name)
+  {
+    if(name != null)
+      addChild(new ModelObject(this, typeName, name));
+  }
+  
+  /**
+   * Adds a URL endpoint child ONLY IF THE NAME IS NON-NULL
+   * @param typeName  Type of the child
+   * @param name      Name of the child
+   */
+  public void addUrlEndpoint(String typeName, String name, URL url)
+  {
+    if(url != null)
+    {
+      addChild(new UrlEndpoint(this, typeName, name, url));
     }
   }
 }

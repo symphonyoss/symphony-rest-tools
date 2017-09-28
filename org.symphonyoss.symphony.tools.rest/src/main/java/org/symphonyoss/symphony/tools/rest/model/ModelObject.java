@@ -25,153 +25,163 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-public abstract class ModelObject extends ModelObjectOrConfig implements IModelObject
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentProxy;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
+import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class ModelObject extends ComponentProxy implements IModelObject
 {
-  private static final String       STATE_PROPS   = "state.properties";
-
-  private static final String     POD_HEALTHY       = "component.healthy";
-  private static final String     COMPONENT_DIAGNOSTIC       = "component.diagnostic";
   
-  private final IVirtualModelObject parent_;
-  private final Config              config_;
+  private static final String   FORMAT_1_REQUIRED_FIELD_MISSING = "Required field \"%s\" missing";
+  private static final String   FORMAT_1_INVALID_STATUS         = "Invalid component status \"%s\"";
+  public static final String    NAME                            = "name";
+  public static final String    COMPONENT_STATUS                = "componentStatus";
+  public static final String    COMPONENT_STATUS_MESSAGE        = "componentStatusMessage";
 
-  private List<IVirtualModelObject> childSet_     = new ArrayList<>();
-  private IVirtualModelObject[]     children_     = new IVirtualModelObject[0];
+  private final IModelObject parent_;
+  private final String              typeName_;
+  private final String              name_;
+  
   private StringBuilder             errorBuilder_ = new StringBuilder();
   private String                    errorText_    = null;
-  private Boolean                   status_;
-  private String                    statusMessage_;
   
-  public ModelObject(IVirtualModelObject parent, Config config)
+  /**
+   * Intended for virtual model objects which do no have persisted state.
+   * For real model objects the other constructor should be used.
+   * 
+   * @param parent
+   * @param typeName
+   * @param name
+   */
+  public ModelObject(IModelObject parent, String typeName, String name)
   {
     parent_ = parent;
-    config_ = config;
+    typeName_ = typeName;
+    name_ = name;
+  }
+
+  public ModelObject(IModelObject parent, String typeName, JsonNode config)  throws InvalidConfigException
+  {
+    this(parent, typeName, getRequiredTextNode(config, NAME));
     
-    String errorText = config_.getErrorText();
+    ComponentStatus status = null;
     
-    if(errorText != null)
-      addError(errorText);
+    String s = getOptionalTextNode(config, COMPONENT_STATUS);
+    
+    if(s != null)
+    {
+      try
+      {
+        status = ComponentStatus.valueOf(s);
+      }
+      catch(IllegalArgumentException e)
+      {
+        setComponentStatus(ComponentStatus.Failed, String.format(FORMAT_1_INVALID_STATUS, s));
+      }
+    }
+    
+    setComponentStatus(status, getOptionalTextNode(config, COMPONENT_STATUS_MESSAGE));
+  }
+  
+  public void storeConfig(ObjectNode jsonNode, boolean includeMutable)
+  {
+    // Sub-classes should call super.storeConfig(jsonNode, includeMutable) when overriding.
+    
+    jsonNode.put(NAME, name_);
+    
+    if(includeMutable)
+    {
+      putIfNotNull(jsonNode, COMPONENT_STATUS,          getComponentStatus());
+      putIfNotNull(jsonNode, COMPONENT_STATUS_MESSAGE,  getComponentStatusMessage());
+    }
+  }
+  
+  public static class Builder implements IBuilder
+  {
+    protected ObjectNode jsonNode_ = JsonNodeFactory.instance.objectNode();
+    
+    public JsonNode toJson()
+    {
+      return jsonNode_;
+    }
+    
+    @Override
+    public void store(File configDir, String fileName) throws IOException
+    {
+      ModelObject.store(configDir, fileName, jsonNode_);
+    }
+
+    @Override
+    public void store(File configDir) throws IOException
+    {
+      ModelObject.store(configDir, jsonNode_);
+    }
+    
+    public Builder setName(String name)
+    {
+      jsonNode_.put(NAME, name);
+      return this;
+    }
+    
+    public @Nullable String getName()
+    {
+      return getOptionalTextNode(jsonNode_, NAME);
+    }
   }
 
   @Override
-  public IConfig getConfig()
+  public boolean hasChildren()
   {
-    return config_;
-  }
-  
-  @Override
-  public void print(PrintWriter out)
-  {
-    getConfig().printFields(out);
-    printFields(out);
+    return false;
   }
 
-  protected void printFields(PrintWriter out)
-  {
-    out.printf(F, POD_HEALTHY,   status_);
-    out.printf(F, COMPONENT_DIAGNOSTIC,   statusMessage_);
-  }
-  
   @Override
-  public void setProperties(Properties props)
+  public IModelObject[] getChildren()
   {
-    super.setProperties(props);
-    
-    setIfNotNull(props, POD_HEALTHY,          status_);
-    setIfNotNull(props, COMPONENT_DIAGNOSTIC, statusMessage_);
+    return null;
   }
-  
-  public void store(File configDir)
+
+  @Override
+  public IModelObject getParent()
   {
-    store(configDir, STATE_PROPS);
+    return parent_;
+  }
+
+  @Override
+  public String getTypeName()
+  {
+    return typeName_;
   }
 
   @Override
   public String getName()
   {
-    return config_.getName();
+    return name_;
   }
   
   @Override
-  public String getTypeName()
+  public ObjectNode toJson()
   {
-    return config_.getTypeName();
-  }
-
-  public void addChild(IVirtualModelObject child)
-  {
-    synchronized (childSet_)
-    {
-      childSet_.add(child);
-      synchronized (children_)
-      {
-        children_ = childSet_.toArray(new IVirtualModelObject[childSet_.size()]);
-      }
-    }
-  }
-  
-  public void replaceChild(IVirtualModelObject oldChild, IVirtualModelObject newChild)
-  {
-    synchronized (childSet_)
-    {
-      childSet_.remove(oldChild);
-      childSet_.add(newChild);
-      synchronized (children_)
-      {
-        children_ = childSet_.toArray(new IVirtualModelObject[childSet_.size()]);
-      }
-    }
-  }
-  
-  @Override
-  public boolean hasChildren()
-  {
-    synchronized (children_)
-    {
-      return children_.length > 0;
-    }
-  }
-
-  @Override
-  public IVirtualModelObject[] getChildren()
-  {
-    synchronized (children_)
-    {
-      return children_;
-    }
-  }
-
-  @Override
-  public IVirtualModelObject getParent()
-  {
-    return parent_;
-  }
-  
-  /**
-   * Adds a simple child ONLY IF THE NAME IS NON-NULL
-   * @param typeName  Type of the child
-   * @param name      Name of the child
-   */
-  public void addSimpleChild(String typeName, String name)
-  {
-    if(name != null)
-      addChild(new VirtualModelObject(this, typeName, name));
-  }
-  
-  /**
-   * Adds a URL endpoint child ONLY IF THE NAME IS NON-NULL
-   * @param typeName  Type of the child
-   * @param name      Name of the child
-   */
-  public void addUrlEndpoint(String typeName, String url)
-  {
-    if(url != null)
-      addChild(UrlEndpoint.newInstance(this, typeName, url));
+    ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
+    
+    storeConfig(jsonNode, true);
+    
+    return jsonNode;
   }
   
   public void addError(String message)
@@ -191,34 +201,65 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
   {
     return errorText_;
   }
-
-  @Override
-  public String getComponentStatusMessage()
-  {
-    return statusMessage_;
-  }
-
-  @Override
-  public Boolean getComponentStatus()
-  {
-    return status_;
-  }
-  
-  @Override
-  public void setComponentStatus(Boolean healthy, String diagnostic)
-  {
-    status_ = healthy;
-    statusMessage_ = diagnostic;
-  }
-  
-  @Override
-  public void resetStatus()
-  {
-    status_ = null;
-    statusMessage_ = UNKNOWN_STATUS;
-  }
   
 
+  @Override
+  public void store(File configDir, String fileName) throws IOException
+  {
+    store(configDir, fileName, toJson());
+  }
+
+  @Override
+  public void store(File configDir) throws IOException
+  {
+    store(configDir, toJson());
+  }
+
+  public static void store(File configDir, ObjectNode json) throws IOException
+  {
+    store(configDir, CONFIG_FILE_NAME, json);
+  }
+  
+  public static void store(File configDir, String fileName, ObjectNode json) throws IOException
+  {
+    if(!configDir.isDirectory())
+    {
+      if(!configDir.mkdirs())
+      {
+        throw new IOException("Failed to create directory " + configDir.getAbsolutePath());
+      }
+    }
+    
+    File config = new File(configDir, fileName + DOT_JSON);
+    ObjectMapper mapper = new ObjectMapper();
+    
+    try
+    {
+      mapper.writerWithDefaultPrettyPrinter().writeValue(config, json);
+    }
+    catch (IOException e)
+    {
+      throw new IOException(e);
+    }
+  }
+ 
+  @Override
+  public void print(PrintWriter out)
+  {
+    JsonFactory jsonFactory = new JsonFactory();
+    jsonFactory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+    ObjectMapper mapper = new ObjectMapper(jsonFactory);
+    
+    try
+    {
+      mapper.writerWithDefaultPrettyPrinter().writeValue(out, toJson());
+      out.println();
+    }
+    catch (IOException e)
+    {
+      throw new ProgramFault(e);
+    }
+  }
   
   /**
    * This object has been replaced with the given one.
@@ -227,5 +268,85 @@ public abstract class ModelObject extends ModelObjectOrConfig implements IModelO
    */
   public void modelUpdated(ModelObject newPod)
   {
+  }
+
+  protected static void putIfNotNull(ObjectNode jsonNode, String name, Object value)
+  {
+    if(value != null)
+    {
+      String str = value.toString().trim();
+      
+      if(str.length()>0)
+        jsonNode.put(name, str);
+    }
+  }
+  
+  protected static JsonNode getRequiredNode(JsonNode jsonNode, String name) throws InvalidConfigException
+  {
+    JsonNode node = jsonNode.get(name);
+    
+    if(node == null)
+      throw new InvalidConfigException(String.format(FORMAT_1_REQUIRED_FIELD_MISSING, name));
+    
+    return node;
+  }
+  
+  protected static @Nonnull String getRequiredTextNode(JsonNode jsonNode, String name) throws InvalidConfigException
+  {
+    return getRequiredNode(jsonNode, name).asText();
+  }
+  
+  protected static @Nonnull URL getRequiredUrlNode(JsonNode jsonNode, String name) throws InvalidConfigException
+  {
+    try
+    {
+      return new URL(getRequiredNode(jsonNode, name).asText());
+    }
+    catch (MalformedURLException e)
+    {
+      throw new InvalidConfigException(e);
+    }
+  }
+  
+  protected static long getRequiredLongNode(JsonNode jsonNode, String name) throws InvalidConfigException
+  {
+    return getRequiredNode(jsonNode, name).asLong();
+  }
+  
+  protected static @Nullable String getOptionalTextNode(JsonNode jsonNode, String name)
+  {
+    JsonNode node = jsonNode.get(name);
+    
+    if(node == null)
+      return null;
+    
+    return node.asText();
+  }
+  
+  protected static @Nonnull URL getOptionalUrlNode(JsonNode jsonNode, String name) throws InvalidConfigException
+  {
+    try
+    {
+      JsonNode node = jsonNode.get(name);
+      
+      if(node == null)
+        return null;
+      
+      return new URL(node.asText());
+    }
+    catch (MalformedURLException e)
+    {
+      throw new InvalidConfigException(e);
+    }
+  }
+  
+  protected static @Nullable Long getOptionalLongNode(JsonNode jsonNode, String name)
+  {
+    JsonNode node = jsonNode.get(name);
+    
+    if(node == null)
+      return null;
+    
+    return node.asLong();
   }
 }

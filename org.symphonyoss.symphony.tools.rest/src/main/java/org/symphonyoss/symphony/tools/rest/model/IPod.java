@@ -23,22 +23,28 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import org.symphonyoss.symphony.tools.rest.util.Console;
+import java.net.URL;
+
+import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
 import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
 
-public interface IPod extends IModelObject, IComponent, IComponentContainer, IUrlEndpoint
+public interface IPod extends IModelObject, IComponent, IModelObjectContainer, IUrlEndpoint
 {
-
-  IAgent createOrUpdateAgent(IAgentConfig agentConfig);
-
-  IPodConfig getPodConfig();
-
-  Integer getPodId();
+  Long getPodId();
 
   IPodManager getManager();
 
-  Principal addPrincipal(Console console, String skey, String kmsession);
+  URL getKeyManagerUrl();
 
+  URL getPodUrl();
+
+  URL getWebUrl();
   
+  String getWebTitle();
+  
+  URL getPodApiUrl();
 
+  URL getSessionAuthUrl();
+
+  URL getKeyAuthUrl();
 }

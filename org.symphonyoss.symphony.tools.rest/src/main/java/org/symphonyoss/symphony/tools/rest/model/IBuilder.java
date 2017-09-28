@@ -23,39 +23,14 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-public class PrincipalConfigBuilder extends ConfigBuilder<PrincipalConfig>
+import java.io.File;
+import java.io.IOException;
+
+public interface IBuilder
 {
 
-  public PrincipalConfigBuilder()
-  {
-    super(new PrincipalConfig());
-  }
+  void store(File configDir, String fileName) throws IOException;
 
-  public PrincipalConfigBuilder(PrincipalConfig other)
-  {
-    super(new PrincipalConfig(other));
-  }
-  
-  public IPrincipalConfig  build()
-  {
-    return new PrincipalConfig(config_);
-  }
-  
-  public PrincipalConfigBuilder setUserName(String userName)
-  {
-    config_.userName_ = userName;
-    return this;
-  }
+  void store(File configDir) throws IOException;
 
-  public PrincipalConfigBuilder setUserId(long userId)
-  {
-    config_.userId_ = userId;
-    return this;
-  }
-
-  public PrincipalConfigBuilder setCertificate(String certificate)
-  {
-    config_.certificate_ = certificate;
-    return this;
-  }
 }

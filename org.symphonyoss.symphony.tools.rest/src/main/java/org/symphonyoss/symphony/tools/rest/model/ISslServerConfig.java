@@ -23,15 +23,10 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
-public interface ISslServerConfig extends IConfig
+public interface ISslServerConfig extends IModelObject
 {
-  String getTrustStorePassword();
-
-  File getTrustStoreFile();
-
   Set<X509Certificate> getTrustCerts();
 }

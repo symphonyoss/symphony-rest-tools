@@ -21,42 +21,9 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.model;
+package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
-import java.net.URL;
-
-public class AgentConfigBuilder extends ConfigBuilder<AgentConfig> implements IAgentConfig
+public enum ComponentStatus
 {
-  public AgentConfigBuilder()
-  {
-    super(new AgentConfig());
-  }
-
-  public AgentConfigBuilder(AgentConfig other)
-  {
-    super(other);
-  }
-
-  public AgentConfigBuilder setAgentApiUrl(URL agentApiUrl)
-  {
-    if(agentApiUrl == null)
-    {
-      config_.agentApiUrl_ = null;
-      config_.hostName_ = null;
-    }
-    else
-    {
-      config_.agentApiUrl_ = agentApiUrl.toString();
-      config_.hostName_ = agentApiUrl.getHost() +
-        (agentApiUrl.getPort() == -1 ? "" : ":" + agentApiUrl.getPort());
-    }
-    
-    return this;
-  }
-  
-  @Override
-  public String getAgentApiUrl()
-  {
-    return config_.agentApiUrl_;
-  }
+  Initializing, Starting, NotReady, OK, Warning, Error, Failed, Stopping, Stopped;  
 }

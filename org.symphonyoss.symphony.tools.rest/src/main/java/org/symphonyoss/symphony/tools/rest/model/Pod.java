@@ -23,114 +23,309 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
-import org.symphonyoss.symphony.tools.rest.util.Console;
-import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import javax.annotation.Nullable;
+
 import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
-import org.symphonyoss.symphony.tools.rest.util.home.PodManager;
 
-public class Pod extends ModelObjectContainer implements IPod
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class Pod extends SslServer implements IPod
 {
+  public static final String     TYPE_NAME                    = "Pod";
+  public static final String     WEB_TYPE_NAME                = "WebServer";
+  public static final String     TYPE_KEY_MANAGER             = "KeyManager";
+  public static final String     TYPE_SESSION_AUTH            = "SessionAuth";
+  public static final String     TYPE_KEY_AUTH                = "KeyAuth";
 
-  public static final String     TYPE_KEY_MANAGER  = "KeyManager";
-  public static final String     TYPE_SESSION_AUTH = "SessionAuth";
-  public static final String     TYPE_KEY_AUTH     = "KeyAuth";
+  private static final String    FORMAT_1_AGENTS_NO_ARRAY     = "Agents element \"%s\" must be an array";
+  private static final String    FORMAT_1_PRINCIPALS_NO_ARRAY = "Principals element \"%s\" must be an array";
 
-  private static final String    POD_ID            = "pod.id";
-  private static final String    AGENT_DIR_NAME    = "agent";
+  private static final String    POD_ID                       = "pod.id";
+  private static final String    AGENTS                       = "agents";
+  private static final String    PRINCIPALS                   = "principals";
+  private static final String    POD_URL                      = "podUrl";
+  private static final String    WEB_URL                      = "webUrl";
+  private static final String    WEB_TITLE                    = "webTitle";
+  private static final String    KEY_MANAGER_URL              = "keymanagerUrl";
+  private static final String    SESSION_AUTH_URL             = "sessionauthUrl";
+  private static final String    KEY_AUTH_URL                 = "keyauthUrl";
+  private static final String    POD_API_URL                  = "podApiUrl";
 
+  // Immutable Config
+  private final URL              keyManagerUrl_;
+  private final URL              podUrl_;
+  private final URL              webUrl_;
+  private final String           webTitle_;
+  private final URL              podApiUrl_;
+  private final URL              sessionAuthUrl_;
+  private final URL              keyAuthUrl_;
+
+  // Persistable State
+  private Long                   podId_;
+
+  // Members
   private final PodManager       manager_;
-  private PodConfig              podConfig_;
-  private Map<String, Agent>     agentMap_         = new HashMap<>();
-  private Map<String, Principal> principalMap_     = new HashMap<>();
-  private Integer                podId_;
-  private URL                    url_;
+  private Map<String, Agent>     agentMap_                    = new HashMap<>();
+  private Map<String, Principal> principalMap_                = new HashMap<>();
   
-  public Pod(PodManager manager, PodConfig config) throws NoSuchObjectException
+  /* package */ Pod(PodManager manager, JsonNode config) throws InvalidConfigException
   {
-    super(null, config);
+    super(null,
+        config.get(POD_URL) != null ? TYPE_NAME : WEB_TYPE_NAME,
+        config);
     
     manager_ = manager;
-    podConfig_ = config;
-    if(podConfig_.getPodUrl() != null)
+    
+    podUrl_         = getOptionalUrlNode(config, POD_URL);
+    webUrl_         = getOptionalUrlNode(config, WEB_URL);
+    webTitle_       = getOptionalTextNode(config, WEB_TITLE);
+    keyManagerUrl_  = getOptionalUrlNode(config, KEY_MANAGER_URL);
+    sessionAuthUrl_ = getOptionalUrlNode(config, SESSION_AUTH_URL);
+    keyAuthUrl_     = getOptionalUrlNode(config, KEY_AUTH_URL);
+    podApiUrl_      = getOptionalUrlNode(config, POD_API_URL);
+    
+    addUrlEndpoint(TYPE_KEY_MANAGER, "Key Manager", keyManagerUrl_);
+    addUrlEndpoint(TYPE_SESSION_AUTH, "Session Auth", sessionAuthUrl_);
+    addUrlEndpoint(TYPE_KEY_AUTH, "Key Auth", keyAuthUrl_);
+    
+    podId_ = getOptionalLongNode(config, POD_ID);
+    
+    JsonNode agentsNode = config.get(AGENTS);
+    
+    if(agentsNode != null)
     {
-      try
+      if(agentsNode.isArray())
       {
-        url_ = new URL(podConfig_.getPodUrl());
+        synchronized (agentMap_)
+        {
+          for(JsonNode node : ((ArrayNode)agentsNode))
+          {         
+            Agent agent = new Agent(this, node);
+            
+            addAgent(agent);
+          }
+        }
       }
-      catch (MalformedURLException e)
+      else
       {
-        addError("Invalid Pod URL");
-      }
-    }
-    else if(podConfig_.getWebUrl() != null)
-    {
-      try
-      {
-        url_ = new URL(podConfig_.getWebUrl());
-      }
-      catch (MalformedURLException e)
-      {
-        addError("Invalid Web URL");
+        throw new InvalidConfigException(String.format(FORMAT_1_AGENTS_NO_ARRAY, AGENTS));
       }
     }
     
-    addUrlEndpoint(TYPE_KEY_MANAGER, podConfig_.getKeyManagerUrl());
-    addUrlEndpoint(TYPE_SESSION_AUTH, podConfig_.getSessionAuthUrl());
-    addUrlEndpoint(TYPE_KEY_AUTH, podConfig_.getKeyAuthUrl());
+    JsonNode principalsNode = config.get(PRINCIPALS);
+    
+    if(principalsNode != null)
+    {
+      if(principalsNode.isArray())
+      {
+        synchronized (principalMap_)
+        {
+          for(JsonNode node : ((ArrayNode)principalsNode))
+          {            
+            Principal principal = new Principal(this, node);
+            
+            Principal oldAgent = principalMap_.put(principal.getName(), principal);
+            
+            if(oldAgent != null)
+            {
+              oldAgent.modelUpdated(principal);
+            }
+          }
+        }
+      }
+      else
+      {
+        throw new InvalidConfigException(String.format(FORMAT_1_PRINCIPALS_NO_ARRAY, AGENTS));
+      }
+    }
   }
   
-  
-
-  public static Pod newInstance(PodManager manager, File configDir) throws NoSuchObjectException
+  public void addAgent(Agent agent)
   {
-    PodConfig config = new PodConfig();
-    
-    config.load(configDir);
-    
-    Pod pod = new Pod(manager, config);
-    
-    File agentsDir = new File(configDir, AGENT_DIR_NAME);
-    
-    if(agentsDir.isDirectory())
+    Agent oldAgent = agentMap_.put(agent.getName(), agent);
+
+    if (oldAgent != null)
     {
-      for(File agentConfigDir : agentsDir.listFiles())
+      oldAgent.modelUpdated(agent);
+    }
+  }
+  
+  public void addAgent(Agent.Builder agentBuilder) throws InvalidConfigException
+  {
+    addAgent(agentBuilder.build(this));
+  }
+
+  public static class Builder extends SslServer.Builder
+  {
+    private URL podUrl_;
+    private URL podApiUrl_;
+    private URL webUrl_;
+    private URL keyManagerUrl_;
+    private URL keyAuthUrl_;
+    private URL sessionAuthUrl_;
+    
+    @Override
+    public Builder setName(String name)
+    {
+      super.setName(name);
+      return this;
+    }
+
+    @Override
+    public Builder addTrustCerts(Collection<X509Certificate> trustCerts)
+    {
+      super.addTrustCerts(trustCerts);
+      return this;
+    }
+    
+    @Override
+    public Builder addTrustCert(X509Certificate trustCert)
+    {
+      super.addTrustCert(trustCert);
+      return this;
+    }
+
+    public Builder setPodUrl(URL podUrl)
+    {
+      podUrl_ = podUrl;
+      jsonNode_.put(POD_URL, podUrl.toString());
+      return this;
+    }
+
+    public Builder setWebUrl(URL webUrl)
+    {
+      webUrl_ = webUrl;
+      jsonNode_.put(WEB_URL, webUrl.toString());
+      return this;
+    }
+
+    public Builder setWebTitle(String webTitle)
+    {
+      jsonNode_.put(WEB_TITLE, webTitle);
+      return this;
+    }
+
+    public Builder setKeyManagerUrl(URL keyManagerUrl)
+    {
+      keyManagerUrl_ = keyManagerUrl;
+      jsonNode_.put(KEY_MANAGER_URL, keyManagerUrl.toString());
+      return this;
+    }
+
+    public Builder setSessionAuthUrl(URL sessionAuthUrl)
+    {
+      sessionAuthUrl_ = sessionAuthUrl;
+      jsonNode_.put(SESSION_AUTH_URL, sessionAuthUrl.toString());
+      return this;
+    }
+
+    public Builder setKeyAuthUrl(URL keyAuthUrl)
+    {
+      keyAuthUrl_ = keyAuthUrl;
+      jsonNode_.put(KEY_AUTH_URL, keyAuthUrl.toString());
+      return this;
+    }
+
+    public Builder setPodApiUrl(URL podApiUrl)
+    {
+      podApiUrl_ = podApiUrl;
+      jsonNode_.put(POD_API_URL, podApiUrl.toString());
+      return this;
+    }
+    
+    public @Nullable URL getPodUrl()
+    {
+      return podUrl_;
+    }
+
+    public @Nullable URL getPodApiUrl()
+    {
+      return podApiUrl_;
+    }
+
+    public @Nullable URL getWebUrl()
+    {
+      return webUrl_;
+    }
+    
+    public @Nullable String getWebTitle()
+    {
+      return getOptionalTextNode(jsonNode_, WEB_TITLE);
+    }
+
+    public @Nullable URL getKeyManagerUrl()
+    {
+      return keyManagerUrl_;
+    }
+
+    public @Nullable URL getKeyAuthUrl()
+    {
+      return keyAuthUrl_;
+    }
+
+    public @Nullable URL getSessionAuthUrl()
+    {
+      return sessionAuthUrl_;
+    }
+
+    public Pod build(PodManager manager) throws InvalidConfigException
+    {
+      return new Pod(manager, jsonNode_);
+    }
+  }
+  
+  public static Builder  newBuilder()
+  {
+    return new Builder();
+  }
+  
+  @Override
+  public void storeConfig(ObjectNode config, boolean includeMutable)
+  {
+    super.storeConfig(config, includeMutable);
+    
+    putIfNotNull(config, POD_URL, podUrl_);
+    putIfNotNull(config, WEB_URL, webUrl_);
+    putIfNotNull(config, WEB_TITLE, webTitle_);
+    putIfNotNull(config, KEY_MANAGER_URL, keyManagerUrl_);
+    putIfNotNull(config, SESSION_AUTH_URL, sessionAuthUrl_);
+    putIfNotNull(config, KEY_AUTH_URL, keyAuthUrl_);
+    putIfNotNull(config, POD_API_URL, podApiUrl_);
+    
+    if(includeMutable)
+    {
+      putIfNotNull(config, POD_ID, podId_);
+    }
+    
+    synchronized (agentMap_)
+    {
+      if(!agentMap_.isEmpty())
       {
-        Agent.newInstance(pod, agentConfigDir);
+        ArrayNode agentsNode = config.putArray(AGENTS);
+        
+        for(Agent agent : agentMap_.values())
+        {
+          ObjectNode node = agentsNode.addObject();
+          
+          agent.storeConfig(node, includeMutable);
+        }
       }
     }
-    return pod;
   }
 
   @Override
   public IPodManager getManager()
   {
     return manager_;
-  }
-
-
-
-  @Override
-  protected void printFields(PrintWriter out)
-  {
-    super.printFields(out);
-    
-    out.printf(F, POD_ID,        podId_);
-  }
-
-  @Override
-  public void setProperties(Properties props)
-  {
-    super.setProperties(props);
-    
-    setIfNotNull(props, POD_ID,        podId_);
   }
 
   /**
@@ -145,84 +340,57 @@ public class Pod extends ModelObjectContainer implements IPod
   @Override
   public URL getUrl()
   {
-    return url_;
+    return podUrl_ == null ? webUrl_ : podUrl_;
   }
 
   @Override
-  public IPodConfig getPodConfig()
-  {
-    return podConfig_;
-  }
-
-  @Override
-  public Integer getPodId()
+  public Long getPodId()
   {
     return podId_;
   }
-
   
-  public void setPodId(Integer podId)
+  @Override
+  public URL getKeyManagerUrl()
   {
-    podId_ = podId;
+    return keyManagerUrl_;
   }
 
   @Override
-  public IAgent createOrUpdateAgent(IAgentConfig agentConfig)
+  public URL getPodUrl()
   {
-    File configDir = manager_.getConfigPath(podConfig_.getName(),
-        AGENT_DIR_NAME, agentConfig.getName());
-    
-    agentConfig.store(configDir);
-    
-    Agent newAgent;
-    
-    try
-    {
-      newAgent = Agent.newInstance(this, configDir);
-    }
-    catch(NoSuchObjectException e)
-    {
-      throw new ProgramFault("Failed to read new agent which we just created - this can't happen", e);
-    }
-    
-    Agent oldAgent;
-    synchronized (agentMap_)
-    {
-      oldAgent = agentMap_.put(agentConfig.getName(), newAgent);
-    }
-    
-    if(oldAgent != null)
-    {
-      oldAgent.modelUpdated(newAgent);
-    }
-    
+    return podUrl_;
+  }
 
-    replaceChild(oldAgent, newAgent);
-    manager_.modelObjectStructureChanged(this);
-    
-    return newAgent;
-  }
-  
   @Override
-  public Principal addPrincipal(Console console, String skey, String kmsession)
+  public URL getWebUrl()
   {
-    Principal newPrincipal = Principal.newInstance(console, this, skey, kmsession);
-    
-    Principal oldPrincipal;
-    synchronized (principalMap_)
-    {
-      oldPrincipal = principalMap_.put(newPrincipal.getConfig().getName(), newPrincipal);
-    }
-    
-    if(oldPrincipal != null)
-      oldPrincipal.modelUpdated(newPrincipal);
-    
-    replaceChild(oldPrincipal, newPrincipal);
-    manager_.modelObjectStructureChanged(this);
-    
-    return newPrincipal;
+    return webUrl_;
   }
-  
+
+  @Override
+  public String getWebTitle()
+  {
+    return webTitle_;
+  }
+
+  @Override
+  public URL getPodApiUrl()
+  {
+    return podApiUrl_;
+  }
+
+  @Override
+  public URL getSessionAuthUrl()
+  {
+    return sessionAuthUrl_;
+  }
+
+  @Override
+  public URL getKeyAuthUrl()
+  {
+    return keyAuthUrl_;
+  }
+
   @Override
   public void resetStatus()
   {

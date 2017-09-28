@@ -23,21 +23,23 @@
 
 package org.symphonyoss.symphony.tools.rest.util.home;
 
+import java.io.IOException;
 import java.util.Set;
 
+import org.symphonyoss.symphony.tools.rest.model.Agent;
 import org.symphonyoss.symphony.tools.rest.model.IModelObject;
 import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
-import org.symphonyoss.symphony.tools.rest.model.IVirtualModelObject;
+import org.symphonyoss.symphony.tools.rest.model.InvalidConfigException;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
+import org.symphonyoss.symphony.tools.rest.model.Pod;
 
 public interface IPodManager extends IModelObjectProvider
 {
 
   IPod getPod(String hostName);
 
-  IPod createOrUpdatePod(IPodConfig podConfig);
+  IPod createOrUpdatePod(Pod.Builder podConfig, Agent.Builder agent) throws InvalidConfigException, IOException;
 
   Set<IPod> getAll();
 
@@ -56,7 +58,7 @@ public interface IPodManager extends IModelObjectProvider
 
   void modelChanged();
 
-  void modelObjectChanged(IVirtualModelObject modelObject);
+  void modelObjectChanged(IModelObject modelObject);
 
   void modelObjectStructureChanged(IModelObject modelObject);
 

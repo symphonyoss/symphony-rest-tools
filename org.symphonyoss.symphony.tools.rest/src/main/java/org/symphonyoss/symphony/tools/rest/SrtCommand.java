@@ -175,10 +175,11 @@ public abstract class SrtCommand extends Srt
     }
   }
   
-  public URL createURL(String url, String path)
+  public URL createURL(URL urlp, String path)
   {
     try
     {
+      String url = urlp.toString();
       if(path.startsWith("/"))
       {
         while(url.endsWith("/"))

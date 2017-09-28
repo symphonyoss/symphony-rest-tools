@@ -44,9 +44,10 @@ import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
 import org.symphonyoss.symphony.jcurl.JCurl.HttpMethod;
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
-import org.symphonyoss.symphony.tools.rest.model.AgentConfigBuilder;
+import org.symphonyoss.symphony.tools.rest.model.Agent;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.PodConfigBuilder;
+import org.symphonyoss.symphony.tools.rest.model.InvalidConfigException;
+import org.symphonyoss.symphony.tools.rest.model.Pod;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
@@ -61,7 +62,7 @@ public class ProbePod extends SrtCommand
   private static final int[]    AUTH_PORTS   = new int[] { 8444, 8445, 8446 };
   private static final int[]    AgentPorts   = new int[] { 443, 8444, 8445, 8446 };
   private static final String[] SUFFIXES     = new String[] { "-api", "" };
-    
+
   private boolean               podHealthy_;
   private int                   podId_;
 
@@ -71,8 +72,8 @@ public class ProbePod extends SrtCommand
   private Probe                 sessionInfoResult_;
   private ScanResponse          agentResponse_;
 
-  private PodConfigBuilder      podConfig_   = new PodConfigBuilder();
-  private AgentConfigBuilder    agentConfig_ = new AgentConfigBuilder();
+  private Pod.Builder           podConfig_   = Pod.newBuilder();
+  private Agent.Builder         agentConfig_ = Agent.newBuilder();
   private Set<X509Certificate>  serverCerts_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
@@ -104,9 +105,9 @@ public class ProbePod extends SrtCommand
   @Override
   public void execute()
   {
-    podConfig_.setHostName(getFqdn());
+    podConfig_.setName(getFqdn());
     
-    IPod pod = getSrtHome().getPodManager().getPod(podConfig_.getName());
+    IPod pod = getSrtHome().getPodManager().getPod(getFqdn());
     boolean   doProbe = true;
 
     if(pod != null)
@@ -153,7 +154,7 @@ public class ProbePod extends SrtCommand
         {
           println("No podInfo, try to look for an in-cloud key manager...");
           
-          podConfig_.setKeyManagerUrl(createURL(podConfig_.getPodUrl() + "/relay"));
+          podConfig_.setKeyManagerUrl(createURL(podConfig_.getPodUrl(), "/relay"));
         }
         
         if(podConfig_.getKeyManagerUrl() == null)
@@ -162,69 +163,67 @@ public class ProbePod extends SrtCommand
           return;
         }
             
-        try
+        URL kmUrl = podConfig_.getKeyManagerUrl();
+        String keyManagerDomain;
+        String keyManagerName = kmUrl.getHost();
+        
+        int i = keyManagerName.indexOf('.');
+  
+        if (i == -1)
+          keyManagerDomain = DEFAULT_DOMAIN;
+        else
         {
-          URL kmUrl = new URL(podConfig_.getKeyManagerUrl());
-          String keyManagerDomain;
-          String keyManagerName = kmUrl.getHost();
-          
-          int i = keyManagerName.indexOf('.');
-    
-          if (i == -1)
-            keyManagerDomain = DEFAULT_DOMAIN;
-          else
-          {
-            keyManagerDomain = keyManagerName.substring(i);
-            keyManagerName = keyManagerName.substring(0, i);
-          }
-    
-          println("keyManagerName=" + keyManagerName);
-          println("keyManagerDomain=" + keyManagerDomain);
-          
-          
-          println();
-          println("Probing for API Keyauth");
-          println("=======================");
-          
-          keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
-          
-          if(keyAuthResponse_ != null)
-          {
-            podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
-            
-            String token = getTag(keyAuthResponse_, TOKEN);
-            
-            if(token != null)
-              getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
-          }
-    
-          // Need to find a reliable health check indicator of keymanager in
-          // all deployments, for now assume that as the pod told is this
-          // is the KM that it is.
-          
-    //      Builder builder = getJCurl();
-    //      builder = cookieAuth(builder);
-    //      
-    //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
-    //      
-    //      if(response.isFailed())
-    //        return;
-          println("Found key manager at " + podConfig_.getKeyManagerUrl());
-          
-          println();
-          println("Probing for API Agent");
-          println("=====================");
-          
-          agentResponse_ = probeAgent(getName(), getDomain());
-          
-          agentConfig_.setAgentApiUrl(getUrl(agentResponse_, null));
+          keyManagerDomain = keyManagerName.substring(i);
+          keyManagerName = keyManagerName.substring(0, i);
         }
-        catch (MalformedURLException e)
+  
+        println("keyManagerName=" + keyManagerName);
+        println("keyManagerDomain=" + keyManagerDomain);
+        
+        
+        println();
+        println("Probing for API Keyauth");
+        println("=======================");
+        
+        keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
+        
+        if(keyAuthResponse_ != null)
         {
-          println("Invalid keyManagerUrl \"" + podConfig_.getKeyManagerUrl() + "\" (" +
-              e.getMessage() + ")");
-          return;
+          podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
+          
+          String token = getTag(keyAuthResponse_, TOKEN);
+          
+          if(token != null)
+            getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
         }
+  
+        // Need to find a reliable health check indicator of keymanager in
+        // all deployments, for now assume that as the pod told is this
+        // is the KM that it is.
+        
+  //      Builder builder = getJCurl();
+  //      builder = cookieAuth(builder);
+  //      
+  //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
+  //      
+  //      if(response.isFailed())
+  //        return;
+        println("Found key manager at " + podConfig_.getKeyManagerUrl());
+        
+        println();
+        println("Probing for API Agent");
+        println("=====================");
+        
+        agentResponse_ = probeAgent(getName(), getDomain());
+        
+        URL agentUrl = getUrl(agentResponse_, null);
+        
+        if(agentUrl != null)
+        {
+          agentConfig_.setName(agentUrl.getHost());
+          agentConfig_.setAgentApiUrl(agentUrl);
+        }
+        
     
         println();
         println("Probe Successful");
@@ -274,10 +273,18 @@ public class ProbePod extends SrtCommand
       
       if(updateConfig)
       {
-        pod = getSrtHome().getPodManager().createOrUpdatePod(podConfig_.build());
+        try
+        {
+          getSrtHome().getPodManager().createOrUpdatePod(podConfig_, agentConfig_);
+        }
+        catch (InvalidConfigException | IOException e)
+        {
+          getConsole().error("Faild to save config:");
+          e.printStackTrace(getConsole().getErr());
+        }
 
-        if(agentConfig_.getAgentApiUrl() != null)
-          pod.createOrUpdateAgent(agentConfig_);
+//        if(agentConfig_.getAgentApiUrl() != null)
+//          pod.createOrUpdateAgent(agentConfig_);
         getConsole().error("Finished.");
       }
     }
@@ -380,7 +387,7 @@ public class ProbePod extends SrtCommand
       return;
     }
     
-    podConfig_.setPodUrl("https://" + getFqdn() + (port == 443 ? "" : ":" + port));
+    podConfig_.setPodUrl(createUrl("https://" + getFqdn() + (port == 443 ? "" : ":" + port)));
     podHealthy_ = true;
     healthJson.fields().forEachRemaining((field) ->
     {
@@ -517,6 +524,18 @@ public class ProbePod extends SrtCommand
   }
 
   
+
+  private URL createUrl(String url)
+  {
+    try
+    {
+      return new URL(url);
+    }
+    catch (MalformedURLException e)
+    {
+      throw new ProgramFault(e);
+    }
+  }
 
   private @Nonnull ScanResponse probeAuth(String title, String basePath, String name, String domain)
   {
@@ -688,7 +707,7 @@ public class ProbePod extends SrtCommand
       Certificate[] certs = jcr.getServerCertificates();
 
       X509Certificate cert = (X509Certificate) certs[certs.length - 1];
-      podConfig_.addRootCert(cert);
+      podConfig_.addTrustCert(cert);
 
       println("Root server cert " + cert.getSubjectX500Principal().getName());
       

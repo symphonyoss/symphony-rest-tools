@@ -23,60 +23,107 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.annotation.Nullable;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class Agent extends ModelObject implements IAgent
 {
+  public static final String AGENT_URL = "agentUrl";
+
+  public static final String TYPE_NAME = "Agent";
+  
+  //Immutable Config
+  private final String                agentApiUrl_;
+  
+  // Persistable State
+  
+  // Members
   private final Pod pod_;
-  private AgentConfig config_;
   private URL url_;
 
-  public Agent(Pod pod, AgentConfig config) throws NoSuchObjectException
+  /* package */ Agent(Pod pod, JsonNode config) throws InvalidConfigException
   {
-    super(pod, config);
+    super(pod, TYPE_NAME, config);
+    
     pod_ = pod;
-    config_ = config;
+    agentApiUrl_ = getRequiredTextNode(config, AGENT_URL);
     
     try
     {
-      url_ = new URL(config_.getAgentApiUrl());
+      url_ = new URL(agentApiUrl_);
     }
     catch (MalformedURLException e)
     {
-      addError("Invalid URL \"" + config_.getAgentApiUrl() + "\"");
+      throw new InvalidConfigException("Invalid URL \"" + agentApiUrl_ + "\"");
     }
   }
-
-  public static Agent newInstance(Pod pod, File configDir) throws NoSuchObjectException
+  
+  public static class Builder extends ModelObject.Builder
   {
-    AgentConfig config = new AgentConfig();
+    private URL agentApiUrl_;
     
-    config.load(configDir);
+    @Override
+    public Builder setName(String name)
+    {
+      super.setName(name);
+      return this;
+    }
+
+    public Builder setAgentApiUrl(URL agentApiUrl)
+    {
+      agentApiUrl_ = agentApiUrl;
+      jsonNode_.put(AGENT_URL, agentApiUrl.toString());
+      return this;
+    }
     
-    return new Agent(pod, config);
+    public @Nullable URL getAgentApiUrl()
+    {
+      return agentApiUrl_;
+    }
+    
+    public Agent build(Pod pod) throws InvalidConfigException
+    {
+      return new Agent(pod, jsonNode_);
+    }
+  }
+  
+  public static Builder  newBuilder()
+  {
+    return new Builder();
+  }
+  
+  @Override
+  public void storeConfig(ObjectNode jsonNode, boolean includeMutable)
+  {
+    super.storeConfig(jsonNode, includeMutable);
+    
+    putIfNotNull(jsonNode, AGENT_URL, agentApiUrl_);
   }
 
+  @Override
+  public String getAgentApiUrl()
+  {
+    return agentApiUrl_;
+  }
+
+  @Override
+  public String getTypeName()
+  {
+    return TYPE_NAME;
+  }
+  
   @Override
   public URL getUrl()
   {
     return url_;
   }
 
-  @Override
-  public boolean hasChildren()
-  {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public IModelObject[] getChildren()
-  {
-    // TODO Auto-generated method stub
-    return null;
-  }
+  
 
   @Override
   public IModelObject getParent()

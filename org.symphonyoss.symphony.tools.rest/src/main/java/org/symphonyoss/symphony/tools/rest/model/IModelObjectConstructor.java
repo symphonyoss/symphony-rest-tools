@@ -24,7 +24,7 @@
 package org.symphonyoss.symphony.tools.rest.model;
 
 @FunctionalInterface
-public interface IModelObjectConstructor<T extends IVirtualModelObject>
+public interface IModelObjectConstructor<T extends IModelObject>
 {
   T newInstance(IModelObject parent, String name);
 }

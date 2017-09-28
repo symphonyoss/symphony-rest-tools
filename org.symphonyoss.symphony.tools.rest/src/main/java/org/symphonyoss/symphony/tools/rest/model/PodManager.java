@@ -21,23 +21,23 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelListener;
-import org.symphonyoss.symphony.tools.rest.model.IModelObject;
-import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.IPodConfig;
-import org.symphonyoss.symphony.tools.rest.model.IVirtualModelObject;
-import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
-import org.symphonyoss.symphony.tools.rest.model.Pod;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
+import org.symphonyoss.symphony.tools.rest.util.home.ModelObjectManager;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PodManager extends ModelObjectManager implements IPodManager
 {
@@ -122,10 +122,10 @@ public class PodManager extends ModelObjectManager implements IPodManager
           {
             try
             {
-              podMap_.put(file.getName(), Pod.newInstance(this, file));
+              podMap_.put(file.getName(), loadPod(file));
               updated = true;
             }
-            catch(NoSuchObjectException e)
+            catch(IOException | InvalidConfigException e)
             {
               throw new ProgramFault("Failed to read pod config", e);
             }
@@ -152,9 +152,9 @@ public class PodManager extends ModelObjectManager implements IPodManager
         
         try
         {
-          pod = Pod.newInstance(this, configDir);
+          pod = loadPod(configDir);
         }
-        catch(NoSuchObjectException e)
+        catch(IOException | InvalidConfigException e)
         {
           pod = null;
         }
@@ -166,23 +166,30 @@ public class PodManager extends ModelObjectManager implements IPodManager
     return podMap_.get(hostName);
   }
 
+  private Pod loadPod(File configDir) throws JsonProcessingException, IOException, InvalidConfigException
+  {
+    File podConfig = new File(configDir, IModelObject.CONFIG_FILE_NAME + IModelObject.DOT_JSON);
+    ObjectMapper mapper = new ObjectMapper();
+    
+    JsonNode jsonNode = mapper.readTree(podConfig);
+    
+    return new Pod(this, jsonNode);
+  }
+
+
   @Override
-  public IPod createOrUpdatePod(IPodConfig podConfig)
+  public IPod createOrUpdatePod(Pod.Builder podConfig, Agent.Builder agentBuilder) throws InvalidConfigException, IOException
   {
     File configDir = getConfigPath(podConfig.getName());
     
-    podConfig.store(configDir);
+    Pod   newPod = podConfig.build(this);
     
-    Pod newPod;
+    if(agentBuilder.getAgentApiUrl() != null)
+    {
+      newPod.addAgent(agentBuilder);
+    }
     
-    try
-    {
-      newPod = Pod.newInstance(this, configDir);
-    }
-    catch(NoSuchObjectException e)
-    {
-      throw new ProgramFault("Failed to read new pod which we just created - this can't happen", e);
-    }
+    newPod.store(configDir);
     
     Pod oldPod;
     synchronized (podMap_)
@@ -208,7 +215,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
   }
   
   @Override
-  public void modelObjectChanged(IVirtualModelObject modelObject)
+  public void modelObjectChanged(IModelObject modelObject)
   {
     for(IModelListener listener : listeners_)
       listener.modelObjectChanged(modelObject);

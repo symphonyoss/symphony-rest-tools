@@ -23,44 +23,42 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class UrlEndpoint extends ModelObject implements IUrlEndpoint
-{
-  private URL url_;
+import org.junit.Test;
 
-  public UrlEndpoint(IModelObject parent, String typeName, String name, URL url)
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class AgentTest
+{
+
+  @Test(expected=InvalidConfigException.class)
+  public void testInvalidURL() throws InvalidConfigException
   {
-    super(parent, typeName, name);
-    url_ = url;
+    Agent.Builder builder = Agent.newBuilder();
+    builder.jsonNode_
+        .put(Agent.NAME, "Test Agent")
+        .put(Agent.AGENT_URL, "not a URL");
+    
+    builder.build(null);
   }
   
-//  public static UrlEndpoint newInstance(IModelObject parent, String typeName, String url)
-//  {
-//    URL urlObject;
-//    
-//    try
-//    {
-//      urlObject = new URL(url);
-//      return new UrlEndpoint(parent, typeName, 
-//          urlObject.getPort() == -1 ? 
-//              urlObject.getHost() :
-//              urlObject.getHost() + ":" +urlObject.getPort(),
-//          urlObject, null);
-//    }
-//    catch (MalformedURLException e)
-//    {
-//      return new UrlEndpoint(parent, typeName, url + "[Invalid]", null,
-//          "Invalid URL");
-//    }
-//  }
-
-  @Override
-  public URL getUrl()
+  @Test
+  public void testOK() throws InvalidConfigException, JsonProcessingException, MalformedURLException
   {
-    return url_;
+    Agent.Builder builder = Agent.newBuilder();
+    
+    Agent agent = builder.setName("Test Agent")
+        .setAgentApiUrl(new URL("http://www.symphony.com"))
+        .build(null);
+    
+    String json = new ObjectMapper().writeValueAsString(agent.toJson());
+    
+    assertEquals(json, "{\"name\":\"Test Agent\",\"agentUrl\":\"http://www.symphony.com\"}");
   }
-
 
 }
