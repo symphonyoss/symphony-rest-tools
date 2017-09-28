@@ -21,20 +21,12 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.IOException;
 import java.util.Set;
 
-import org.symphonyoss.symphony.tools.rest.model.Agent;
-import org.symphonyoss.symphony.tools.rest.model.IModelObject;
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
-import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.InvalidConfigException;
-import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
-import org.symphonyoss.symphony.tools.rest.model.Pod;
-
-public interface IPodManager extends IModelObjectProvider
+public interface IPodManager extends IModelObjectContainer
 {
 
   IPod getPod(String hostName);
@@ -56,10 +48,8 @@ public interface IPodManager extends IModelObjectProvider
    */
   String getDefaultPodName() throws NoSuchObjectException;
 
-  void modelChanged();
+  void loadAll();
 
-  void modelObjectChanged(IModelObject modelObject);
-
-  void modelObjectStructureChanged(IModelObject modelObject);
+  IPod save(IPod pod) throws IOException;
 
 }

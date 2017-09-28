@@ -23,6 +23,7 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import java.io.IOException;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -30,8 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-
-import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -78,7 +77,7 @@ public class Pod extends SslServer implements IPod
   
   /* package */ Pod(PodManager manager, JsonNode config) throws InvalidConfigException
   {
-    super(null,
+    super(manager,
         config.get(POD_URL) != null ? TYPE_NAME : WEB_TYPE_NAME,
         config);
     
@@ -343,6 +342,21 @@ public class Pod extends SslServer implements IPod
         }
       }
     }
+    
+    synchronized (principalMap_)
+    {
+      if(!principalMap_.isEmpty())
+      {
+        ArrayNode principalsNode = config.putArray(PRINCIPALS);
+        
+        for(Principal principal : principalMap_.values())
+        {
+          ObjectNode node = principalsNode.addObject();
+          
+          principal.storeConfig(node, includeMutable);
+        }
+      }
+    }
   }
 
   @Override
@@ -426,5 +440,11 @@ public class Pod extends SslServer implements IPod
     });
     
     manager_.modelObjectChanged(this);
+  }
+
+  @Override
+  public void save() throws IOException
+  {
+    manager_.save(this);
   }
 }

@@ -33,23 +33,12 @@ import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentProxy;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-/**
- * Includes an analog of org.eclipse.jface.viewers.ITreeContentProvider which
- * allows us to provide models from "pom-first land" for Eclipse based
- * UI consumption (the Eclipse UI plugins always have to be in 
- * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
- * from in here.
- * 
- * @author bruce.skingle
- *
- */
 public interface IModelObject extends IComponentProxy
 {
   static final String CONFIG_FILE_NAME = "config";
   static final String DOT_JSON         = ".json";
   
-  boolean                 hasChildren();
-  IModelObject[]          getChildren();
+
   
   /**
    * Returns the parent for the given element, or <code>null</code>

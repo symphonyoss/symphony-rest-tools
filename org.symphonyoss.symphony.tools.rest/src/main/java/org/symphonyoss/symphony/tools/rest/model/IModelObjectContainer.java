@@ -28,7 +28,17 @@ import javax.annotation.Nullable;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentProxy;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
-public interface IModelObjectContainer
+/**
+ * Includes an analog of org.eclipse.jface.viewers.IStructuredContentProvider which
+ * allows us to provide models from "pom-first land" for Eclipse based
+ * UI consumption (the Eclipse UI plugins always have to be in 
+ * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
+ * from in here.
+ * 
+ * @author bruce.skingle
+ *
+ */
+public interface IModelObjectContainer extends IModelObject
 {
   /**
    * Get the child component with the given name. If no such component exists
@@ -52,4 +62,14 @@ public interface IModelObjectContainer
   IComponentProxy getComponent(String name,
       IModelObjectConstructor<? extends IModelObject> constructor,
       @Nullable ISetter<IModelObject> setExisting);
+  
+  void addListener(IModelListener listener);
+  void removeListener(IModelListener listener);
+
+  void modelObjectChanged(IModelObject modelObject);
+
+  void modelObjectStructureChanged(IModelObject modelObject);
+  
+  boolean                 hasChildren();
+  IModelObject[]          getChildren();
 }

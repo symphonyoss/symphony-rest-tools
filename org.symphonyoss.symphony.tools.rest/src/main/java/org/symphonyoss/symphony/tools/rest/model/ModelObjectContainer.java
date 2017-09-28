@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
@@ -21,13 +22,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class ModelObjectContainer extends ModelObject implements IModelObjectContainer
 {
-  private List<IModelObject> childSet_     = new ArrayList<>();
-  private IModelObject[]     children_     = new IModelObject[0];
-  private Map<String, IModelObject> componentMap_     = new HashMap<>();
+  private final @Nullable IModelObjectContainer parentContainer_;
+
+  private List<IModelObject>                    childSet_     = new ArrayList<>();
+  private IModelObject[]                        children_     = new IModelObject[0];
+  private Map<String, IModelObject>             componentMap_ = new HashMap<>();
+  
+  private CopyOnWriteArrayList<IModelListener>  listeners_    = new CopyOnWriteArrayList<>();
+    
+  public ModelObjectContainer(IModelObjectContainer parentContainer, String typeName, JsonNode config) throws InvalidConfigException
+  {
+    super(parentContainer, typeName, config);
+    parentContainer_ = parentContainer;
+  }
   
   public ModelObjectContainer(IModelObject parent, String typeName, JsonNode config) throws InvalidConfigException
   {
     super(parent, typeName, config);
+    parentContainer_ = null;
+  }
+
+  public ModelObjectContainer(IModelObject parent, String typeName, String name)
+  {
+    super(parent, typeName, name);
+    parentContainer_ = null;
   }
 
   public void addChild(IModelObject child)
@@ -40,6 +58,8 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
         children_ = childSet_.toArray(new IModelObject[childSet_.size()]);
       }
     }
+    
+    modelObjectStructureChanged(this);
   }
   
   public void replaceChild(IModelObject oldChild, IModelObject newChild)
@@ -55,6 +75,8 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
         children_ = childSet_.toArray(new IModelObject[childSet_.size()]);
       }
     }
+    
+    modelObjectStructureChanged(this);
   }
   
   @Override
@@ -145,5 +167,38 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
     {
       addChild(new UrlEndpoint(this, typeName, name, url));
     }
+  }
+  
+  @Override
+  public void modelObjectChanged(IModelObject modelObject)
+  {
+    for(IModelListener listener : listeners_)
+      listener.modelObjectChanged(modelObject);
+    
+    if(parentContainer_ != null)
+      parentContainer_.modelObjectChanged(modelObject);
+  }
+  
+  @Override
+  public void modelObjectStructureChanged(IModelObject modelObject)
+  {
+    for(IModelListener listener : listeners_)
+      listener.modelObjectStructureChanged(modelObject);
+    
+    if(parentContainer_ != null)
+      parentContainer_.modelObjectStructureChanged(modelObject);
+  }
+
+  @Override
+  public void addListener(IModelListener listener)
+  {
+    listeners_.add(listener);
+    
+  }
+
+  @Override
+  public void removeListener(IModelListener listener)
+  {
+    listeners_.remove(listener);
   }
 }

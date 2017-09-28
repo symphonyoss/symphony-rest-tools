@@ -145,18 +145,6 @@ public class ModelObject extends ComponentProxy implements IModelObject
   }
 
   @Override
-  public boolean hasChildren()
-  {
-    return false;
-  }
-
-  @Override
-  public IModelObject[] getChildren()
-  {
-    return null;
-  }
-
-  @Override
   public IModelObject getParent()
   {
     return parent_;

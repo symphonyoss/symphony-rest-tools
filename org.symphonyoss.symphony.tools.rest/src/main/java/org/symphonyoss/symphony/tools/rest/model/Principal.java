@@ -30,6 +30,7 @@ import java.security.cert.CertificateParsingException;
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 import org.symphonyoss.symphony.tools.rest.Srt;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
@@ -149,7 +150,7 @@ public class Principal extends ModelObject
     }
   }
 
-  public static Principal newInstance(Console console, IPod pod, String skey, String kmsession)
+  public static Principal newInstance(Console console, IPod pod, String skey, String kmsession) throws IOException
   {
     Builder builder = Principal.newBuilder()
     .setSkey(skey)
@@ -170,17 +171,24 @@ public class Principal extends ModelObject
       
       console.println(json);
       
-      builder.setUserId(json.get("userid").asLong());
-
+      // {"id":206158450786,"emailAddress":"bruce+qa4@symphony.com","firstName":"Bruce","lastName":"Sk","displayName":"Bruce Sk","company":"companyNameFour","username":"bruce","avatars":[{"size":"original","url":"../avatars/static/orig/default.png"},{"size":"small","url":"../avatars/static/150/default.png"}]}
       
+      builder.setUserId(getRequiredLongNode(json, "id"));
+      builder.setName(getRequiredTextNode(json, "username"));
     }
-    catch(IOException | CertificateParsingException  e)
+    catch(IOException | CertificateParsingException | InvalidConfigException  e)
     {
       console.error("Unable to validate user");
       e.printStackTrace(console.getErr());
     }
     
-    return pod.addPrincipal(builder);
+    Principal principal = pod.addPrincipal(builder);
+    
+    pod.save();
+    
+    principal.setComponentStatus(ComponentStatus.OK, "Logged In");
+    
+    return principal;
   }
 
 }

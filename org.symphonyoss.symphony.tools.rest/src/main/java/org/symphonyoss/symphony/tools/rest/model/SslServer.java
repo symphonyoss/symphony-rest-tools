@@ -55,7 +55,7 @@ public class SslServer extends ModelObjectContainer implements ISslServerConfig
   private final Set<X509Certificate> trustCerts_       = new HashSet<>();
 
   
-  public SslServer(IModelObject parent, String typeName, JsonNode config) throws InvalidConfigException
+  public SslServer(IModelObjectContainer parent, String typeName, JsonNode config) throws InvalidConfigException
   {
     super(parent, typeName, config);
     

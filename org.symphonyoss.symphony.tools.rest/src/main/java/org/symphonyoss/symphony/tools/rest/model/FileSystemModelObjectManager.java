@@ -23,19 +23,30 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-/**
- * Includes an analog of org.eclipse.jface.viewers.IStructuredContentProvider which
- * allows us to provide models from "pom-first land" for Eclipse based
- * UI consumption (the Eclipse UI plugins always have to be in 
- * "manifest-first land" so we don't want a dependency on org.eclipse.jface.*
- * from in here.
- * 
- * @author bruce.skingle
- *
- */
-public interface IModelObjectProvider
+import java.io.File;
+
+public class FileSystemModelObjectManager extends ModelObjectContainer
 {
-  IModelObject[] getElements();
-  void addListener(IModelListener listener);
-  void removeListener(IModelListener listener);
+  private final File    configDir_;
+
+  public FileSystemModelObjectManager(IModelObject parent, String typeName, String name, File configDir)
+  {
+    super(parent, typeName, name);
+    configDir_ = configDir;
+  }
+
+  public File getConfigPath(String ...names)
+  {
+    File dir = configDir_;
+    
+    for(String name : names)
+      dir = new File(dir, name);
+    
+    return dir;
+  }
+
+  public File getConfigDir()
+  {
+    return configDir_;
+  }
 }

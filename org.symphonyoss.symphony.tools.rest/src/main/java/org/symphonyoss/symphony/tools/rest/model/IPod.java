@@ -23,11 +23,11 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
+import java.io.IOException;
 import java.net.URL;
 
 import org.symphonyoss.symphony.tools.rest.model.Principal.Builder;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
-import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
 
 public interface IPod extends IModelObject, IComponent, IModelObjectContainer, IUrlEndpoint
 {
@@ -50,4 +50,6 @@ public interface IPod extends IModelObject, IComponent, IModelObjectContainer, I
   URL getKeyAuthUrl();
 
   Principal addPrincipal(Builder principalBuilder);
+
+  void save() throws IOException;
 }

@@ -25,9 +25,9 @@ package org.symphonyoss.symphony.tools.rest.util.home;
 
 import java.io.File;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelObjectProvider;
+import org.symphonyoss.symphony.tools.rest.model.IPodManager;
 
-public interface ISrtHome extends IModelObjectProvider
+public interface ISrtHome
 {
   static final String SRT_HOME = "SRT_HOME";
   

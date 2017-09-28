@@ -32,8 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;
 
-import org.symphonyoss.symphony.tools.rest.model.IModelListener;
-import org.symphonyoss.symphony.tools.rest.model.IModelObject;
+import org.symphonyoss.symphony.tools.rest.model.IPodManager;
 import org.symphonyoss.symphony.tools.rest.model.PodManager;
 import org.symphonyoss.symphony.tools.rest.util.CommandLineParserFault;
 import org.symphonyoss.symphony.tools.rest.util.Console;
@@ -182,23 +181,4 @@ public class SrtHome implements ISrtHome
   {
     return podManager_;
   }
-
-  @Override
-  public IModelObject[] getElements()
-  {
-    return podManager_.getElements();
-  }
-
-  @Override
-  public void addListener(IModelListener listener)
-  {
-    podManager_.addListener(listener);
-  }
-
-  @Override
-  public void removeListener(IModelListener listener)
-  {
-    podManager_.removeListener(listener);
-  }
-
 }

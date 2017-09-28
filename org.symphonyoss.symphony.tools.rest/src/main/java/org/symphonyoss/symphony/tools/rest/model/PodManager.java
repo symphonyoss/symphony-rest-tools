@@ -29,27 +29,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
-import org.symphonyoss.symphony.tools.rest.util.home.IPodManager;
-import org.symphonyoss.symphony.tools.rest.util.home.ModelObjectManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class PodManager extends ModelObjectManager implements IPodManager
+public class PodManager extends FileSystemModelObjectManager implements IPodManager
 {
   private Map<String, Pod>                     podMap_    = new HashMap<>();
   private boolean                              allLoaded_;
-  private CopyOnWriteArrayList<IModelListener> listeners_ = new CopyOnWriteArrayList<>();
 
   public PodManager(File configDir)
   {
-    super(configDir);
+    super(null, "Pod Manager", "PodManager", configDir);
   }
-  
   
   @Override
   public int getSize()
@@ -108,12 +103,11 @@ public class PodManager extends ModelObjectManager implements IPodManager
     return new HashSet<IPod>(podMap_.values());
   }
 
-  private void loadAll()
+  @Override
+  public void loadAll()
   {
     if(!allLoaded_)
     {
-      boolean updated = false;
-      
       synchronized(podMap_)
       {
         for(File file : getConfigDir().listFiles())
@@ -122,8 +116,9 @@ public class PodManager extends ModelObjectManager implements IPodManager
           {
             try
             {
-              podMap_.put(file.getName(), loadPod(file));
-              updated = true;
+              Pod newPod = loadPod(file);
+              podMap_.put(file.getName(), newPod);
+              addChild(newPod);
             }
             catch(IOException | InvalidConfigException e)
             {
@@ -132,10 +127,6 @@ public class PodManager extends ModelObjectManager implements IPodManager
           }
         }
       }
-
-      if(updated)
-        for(IModelListener listener : listeners_)
-          listener.modelChanged();
     }
   }
 
@@ -160,6 +151,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
         }
         
         podMap_.put(hostName, pod);
+        addChild(pod);
       }
     }
     
@@ -176,6 +168,14 @@ public class PodManager extends ModelObjectManager implements IPodManager
     return new Pod(this, jsonNode);
   }
 
+  @Override
+  public IPod save(IPod pod) throws IOException
+  {
+    File configDir = getConfigPath(pod.getName());
+    pod.store(configDir);
+    
+    return pod;
+  }
 
   @Override
   public IPod createOrUpdatePod(Pod.Builder podConfig, Agent.Builder agentBuilder) throws InvalidConfigException, IOException
@@ -195,6 +195,7 @@ public class PodManager extends ModelObjectManager implements IPodManager
     synchronized (podMap_)
     {
       oldPod = podMap_.put(podConfig.getName(), newPod);
+      replaceChild(oldPod, newPod);
     }
     
     if(oldPod != null)
@@ -202,51 +203,6 @@ public class PodManager extends ModelObjectManager implements IPodManager
       oldPod.modelUpdated(newPod);
     }
     
-    modelChanged();
-    
     return newPod;
-  }
-  
-  @Override
-  public void modelChanged()
-  {
-    for(IModelListener listener : listeners_)
-      listener.modelChanged();
-  }
-  
-  @Override
-  public void modelObjectChanged(IModelObject modelObject)
-  {
-    for(IModelListener listener : listeners_)
-      listener.modelObjectChanged(modelObject);
-  }
-  
-  @Override
-  public void modelObjectStructureChanged(IModelObject modelObject)
-  {
-    for(IModelListener listener : listeners_)
-      listener.modelObjectStructureChanged(modelObject);
-  }
-
-  @Override
-  public IModelObject[] getElements()
-  {
-    synchronized (podMap_)
-    {
-      return podMap_.values().toArray(new IModelObject[podMap_.size()]);
-    }
-  }
-
-  @Override
-  public void addListener(IModelListener listener)
-  {
-    listeners_.add(listener);
-    loadAll();
-  }
-
-  @Override
-  public void removeListener(IModelListener listener)
-  {
-    listeners_.remove(listener);
   }
 }
