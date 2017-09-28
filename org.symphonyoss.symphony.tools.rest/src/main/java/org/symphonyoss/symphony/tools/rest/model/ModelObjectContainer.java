@@ -46,7 +46,9 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
   {
     synchronized (childSet_)
     {
-      childSet_.remove(oldChild);
+      if(oldChild != null)
+        childSet_.remove(oldChild);
+      
       childSet_.add(newChild);
       synchronized (children_)
       {

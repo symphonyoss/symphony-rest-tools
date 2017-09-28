@@ -272,12 +272,18 @@ public class ModelObject extends ComponentProxy implements IModelObject
 
   protected static void putIfNotNull(ObjectNode jsonNode, String name, Object value)
   {
-    if(value != null)
+    if(value == null)
+    {
+      jsonNode.remove(name);
+    }
+    else
     {
       String str = value.toString().trim();
       
       if(str.length()>0)
         jsonNode.put(name, str);
+      else
+        jsonNode.remove(name);
     }
   }
   

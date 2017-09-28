@@ -31,6 +31,7 @@ import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 import org.symphonyoss.symphony.tools.rest.Srt;
 import org.symphonyoss.symphony.tools.rest.util.Console;
+import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -102,9 +103,28 @@ public class Principal extends ModelObject
       return this;
     }
     
-    public Principal build(Pod pod) throws InvalidConfigException
+    public Builder setSkey(String skey)
     {
-      return new Principal(pod, jsonNode_);
+      putIfNotNull(jsonNode_, SKEY, skey);
+      return this;
+    }
+    
+    public Builder setKmsession(String kmSesion)
+    {
+      putIfNotNull(jsonNode_, KMSESSION, kmSesion);
+      return this;
+    }
+    
+    public Principal build(Pod pod)
+    {
+      try
+      {
+        return new Principal(pod, jsonNode_);
+      }
+      catch (InvalidConfigException e)
+      {
+       throw new ProgramFault(e);
+      }
     }
   }
   
@@ -128,19 +148,13 @@ public class Principal extends ModelObject
       putIfNotNull(config, KMSESSION, kmsession_);
     }
   }
-  
 
-  public void validate(String skey, String kmsession)
+  public static Principal newInstance(Console console, IPod pod, String skey, String kmsession)
   {
-
-    skey_ = skey;
-    kmsession_ = kmsession;
-
+    Builder builder = Principal.newBuilder()
+    .setSkey(skey)
+    .setKmsession(kmsession);
     
-  }
-
-  public void validate(Console console, IPod pod, String skey, String kmsession)
-  {
     console.println("Validating session");
     
     JCurl jcurl = JCurl.builder()
@@ -152,15 +166,21 @@ public class Principal extends ModelObject
       HttpURLConnection con = jcurl.connect(pod.getPodApiUrl() + SESSION_INFO);
       
       Response response = jcurl.processResponse(con);
+      JsonNode json = response.getJsonNode();
       
-      console.println(response.getJsonNode());
-//      principal.skey_ = skey;
-//      principal.kmsession_ = kmsession;
+      console.println(json);
+      
+      builder.setUserId(json.get("userid").asLong());
+
+      
     }
-    catch(IOException | CertificateParsingException e)
+    catch(IOException | CertificateParsingException  e)
     {
-      addError("Unable to validate JSON: " + e);
+      console.error("Unable to validate user");
+      e.printStackTrace(console.getErr());
     }
+    
+    return pod.addPrincipal(builder);
   }
 
 }

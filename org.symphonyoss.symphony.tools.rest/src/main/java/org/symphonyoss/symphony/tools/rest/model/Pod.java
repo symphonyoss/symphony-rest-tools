@@ -23,7 +23,6 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -149,7 +148,7 @@ public class Pod extends SslServer implements IPod
     }
   }
   
-  public void addAgent(Agent agent)
+  public Agent addAgent(Agent agent)
   {
     Agent oldAgent = agentMap_.put(agent.getName(), agent);
 
@@ -157,11 +156,35 @@ public class Pod extends SslServer implements IPod
     {
       oldAgent.modelUpdated(agent);
     }
+    
+    replaceChild(oldAgent, agent);
+    
+    return agent;
   }
   
-  public void addAgent(Agent.Builder agentBuilder) throws InvalidConfigException
+  public Agent addAgent(Agent.Builder agentBuilder) throws InvalidConfigException
   {
-    addAgent(agentBuilder.build(this));
+    return addAgent(agentBuilder.build(this));
+  }
+  
+  public Principal addPrincipal(Principal principal)
+  {
+    Principal oldPrincipal = principalMap_.put(principal.getName(), principal);
+
+    if (oldPrincipal != null)
+    {
+      oldPrincipal.modelUpdated(principal);
+    }
+    
+    replaceChild(oldPrincipal, principal);
+    
+    return principal;
+  }
+  
+  @Override
+  public Principal addPrincipal(Principal.Builder principalBuilder)
+  {
+    return addPrincipal(principalBuilder.build(this));
   }
 
   public static class Builder extends SslServer.Builder
@@ -197,48 +220,48 @@ public class Pod extends SslServer implements IPod
     public Builder setPodUrl(URL podUrl)
     {
       podUrl_ = podUrl;
-      jsonNode_.put(POD_URL, podUrl.toString());
+      putIfNotNull(jsonNode_, POD_URL, podUrl);
       return this;
     }
 
     public Builder setWebUrl(URL webUrl)
     {
       webUrl_ = webUrl;
-      jsonNode_.put(WEB_URL, webUrl.toString());
+      putIfNotNull(jsonNode_, WEB_URL, webUrl);
       return this;
     }
 
     public Builder setWebTitle(String webTitle)
     {
-      jsonNode_.put(WEB_TITLE, webTitle);
+      putIfNotNull(jsonNode_, WEB_TITLE, webTitle);
       return this;
     }
 
     public Builder setKeyManagerUrl(URL keyManagerUrl)
     {
       keyManagerUrl_ = keyManagerUrl;
-      jsonNode_.put(KEY_MANAGER_URL, keyManagerUrl.toString());
+      putIfNotNull(jsonNode_, KEY_MANAGER_URL, keyManagerUrl);
       return this;
     }
 
     public Builder setSessionAuthUrl(URL sessionAuthUrl)
     {
       sessionAuthUrl_ = sessionAuthUrl;
-      jsonNode_.put(SESSION_AUTH_URL, sessionAuthUrl.toString());
+      putIfNotNull(jsonNode_, SESSION_AUTH_URL, sessionAuthUrl);
       return this;
     }
 
     public Builder setKeyAuthUrl(URL keyAuthUrl)
     {
       keyAuthUrl_ = keyAuthUrl;
-      jsonNode_.put(KEY_AUTH_URL, keyAuthUrl.toString());
+      putIfNotNull(jsonNode_, KEY_AUTH_URL, keyAuthUrl);
       return this;
     }
 
     public Builder setPodApiUrl(URL podApiUrl)
     {
       podApiUrl_ = podApiUrl;
-      jsonNode_.put(POD_API_URL, podApiUrl.toString());
+      putIfNotNull(jsonNode_, POD_API_URL, podApiUrl);
       return this;
     }
     

@@ -77,7 +77,7 @@ public class Agent extends ModelObject implements IAgent
     public Builder setAgentApiUrl(URL agentApiUrl)
     {
       agentApiUrl_ = agentApiUrl;
-      jsonNode_.put(AGENT_URL, agentApiUrl.toString());
+      putIfNotNull(jsonNode_, AGENT_URL, agentApiUrl);
       return this;
     }
     
