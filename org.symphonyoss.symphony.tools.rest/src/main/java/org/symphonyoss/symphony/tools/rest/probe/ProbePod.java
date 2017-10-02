@@ -364,7 +364,8 @@ public class ProbePod extends SrtCommand
     Probe healthCheckResult = new Probe(getName(), "", getDomain(), port,
         "/").setProbePath(POD_HEALTHCHECK_PATH, MIME_JSON);
     
-    doProbe(healthCheckResult);
+    JCurl jcurl = getJCurl().build();
+    doProbe(jcurl, healthCheckResult, 200, 500);
 
     if (healthCheckResult.isFailed())
     {

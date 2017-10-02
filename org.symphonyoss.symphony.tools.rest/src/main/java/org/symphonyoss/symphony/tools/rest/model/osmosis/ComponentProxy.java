@@ -28,6 +28,11 @@ import javax.annotation.Nullable;
 
 public class ComponentProxy extends Component implements IComponentProxy
 {
+  public ComponentProxy()
+  {
+    super(ComponentStatus.NotReady, "No Contact");
+  }
+  
   @Override
   public void setComponentStatus(@Nullable ComponentStatus status, @Nonnull String statusMessage)
   {

@@ -23,16 +23,27 @@
 
 package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import javax.annotation.Nullable;
 
 public class Component implements IComponent
 {
-  private ComponentStatus    status_;
-  private String             statusMessage_;
+  private ComponentStatus                          status_;
+  private String                                   statusMessage_;
+  private CopyOnWriteArrayList<IComponentListener> listeners_ = new CopyOnWriteArrayList<>();
   
   public Component()
   {
+    this(ComponentStatus.Initializing, "Initializing...");
   }
+  
+  protected Component(ComponentStatus status, String statusMessage)
+  {
+    status_ = status;
+    statusMessage_ = statusMessage;
+  }
+
 
   @Override
   public String getComponentStatusMessage()
@@ -46,10 +57,12 @@ public class Component implements IComponent
    return status_;
   }
 
-  protected void setComponentStatus(@Nullable ComponentStatus status, String statusMessage)
+  protected synchronized void setComponentStatus(ComponentStatus status, String statusMessage)
   {
     status_ = status;
     statusMessage_ = statusMessage;
+    
+    notifyListeners();
   }
 
   /**
@@ -59,5 +72,33 @@ public class Component implements IComponent
   {
     status_ = null;
     statusMessage_ = UNKNOWN_STATUS;
+  }
+  
+  public void notifyListeners()
+  {
+    for(IComponentListener listener : listeners_)
+      listener.componentStatusChanged(status_, statusMessage_);
+  }
+
+  @Override
+  public void addListener(IComponentListener listener)
+  {
+    listeners_.add(listener);
+    
+  }
+
+  @Override
+  public void removeListener(IComponentListener listener)
+  {
+    listeners_.remove(listener);
+  }
+  
+  public synchronized void setComponentStatusIfMoreSevere(ComponentStatus status)
+  {
+    if(status.isMoreSevereThan(status_))
+    {
+      status_ = status;
+      notifyListeners();
+    }
   }
 }

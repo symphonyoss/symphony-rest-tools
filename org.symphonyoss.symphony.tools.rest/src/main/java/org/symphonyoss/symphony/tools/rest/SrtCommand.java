@@ -103,6 +103,10 @@ public abstract class SrtCommand extends Srt
     {
       name_ = getDefaultName();
     }
+    else
+    {
+      name_ = console_.promptString("Hostname", name_);
+    }
 
     int i = name_.indexOf('.');
 

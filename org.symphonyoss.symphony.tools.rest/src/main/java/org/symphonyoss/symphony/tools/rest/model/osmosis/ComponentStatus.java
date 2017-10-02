@@ -25,5 +25,20 @@ package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
 public enum ComponentStatus
 {
-  Initializing, Starting, NotReady, OK, Warning, Error, Failed, Stopping, Stopped;  
+  NotReady(0), 
+  Initializing(1), Starting(1), 
+  OK(21), Warning(22), Error(23), Failed(24),
+  Stopping(0), Stopped(0);
+  
+  private final int severity_;
+
+  private ComponentStatus(int severity)
+  {
+    severity_ = severity;
+  }
+  
+  public boolean isMoreSevereThan(ComponentStatus other)
+  {
+    return severity_ > other.severity_;
+  }
 }

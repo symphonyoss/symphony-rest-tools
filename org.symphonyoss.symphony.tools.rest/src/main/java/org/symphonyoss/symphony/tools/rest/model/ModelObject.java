@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentProxy;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
+import org.symphonyoss.symphony.tools.rest.util.IVisitor;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -46,19 +47,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ModelObject extends ComponentProxy implements IModelObject
 {
-  
-  private static final String   FORMAT_1_REQUIRED_FIELD_MISSING = "Required field \"%s\" missing";
-  private static final String   FORMAT_1_INVALID_STATUS         = "Invalid component status \"%s\"";
-  public static final String    NAME                            = "name";
-  public static final String    COMPONENT_STATUS                = "componentStatus";
-  public static final String    COMPONENT_STATUS_MESSAGE        = "componentStatusMessage";
+  private static final String         FORMAT_1_REQUIRED_FIELD_MISSING = "Required field \"%s\" missing";
+  private static final String         FORMAT_1_INVALID_STATUS         = "Invalid component status \"%s\"";
+  public static final String          NAME                            = "name";
+  public static final String          COMPONENT_STATUS                = "componentStatus";
+  public static final String          COMPONENT_STATUS_MESSAGE        = "componentStatusMessage";
 
-  private final IModelObject parent_;
-  private final String              typeName_;
-  private final String              name_;
-  
-  private StringBuilder             errorBuilder_ = new StringBuilder();
-  private String                    errorText_    = null;
+  private final IModelObjectContainer parent_;
+  private final String                typeName_;
+  private final String                name_;
+
+  private StringBuilder               errorBuilder_                   = new StringBuilder();
+  private String                      errorText_                      = null;
   
   /**
    * Intended for virtual model objects which do no have persisted state.
@@ -68,14 +68,14 @@ public class ModelObject extends ComponentProxy implements IModelObject
    * @param typeName
    * @param name
    */
-  public ModelObject(IModelObject parent, String typeName, String name)
+  public ModelObject(IModelObjectContainer parent, String typeName, String name)
   {
     parent_ = parent;
     typeName_ = typeName;
     name_ = name;
   }
 
-  public ModelObject(IModelObject parent, String typeName, JsonNode config)  throws InvalidConfigException
+  public ModelObject(IModelObjectContainer parent, String typeName, JsonNode config)  throws InvalidConfigException
   {
     this(parent, typeName, getRequiredTextNode(config, NAME));
     
@@ -144,6 +144,12 @@ public class ModelObject extends ComponentProxy implements IModelObject
     }
   }
 
+  @Override
+  public void visit(IVisitor<IModelObject> visitor)
+  {
+    visitor.visit(this);
+  }
+  
   @Override
   public IModelObject getParent()
   {
@@ -342,5 +348,12 @@ public class ModelObject extends ComponentProxy implements IModelObject
       return null;
     
     return node.asLong();
+  }
+  
+  @Override
+  public void resetStatus()
+  {
+    super.resetStatus();
+    parent_.modelObjectChanged(this);
   }
 }

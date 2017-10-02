@@ -32,48 +32,51 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Pod extends SslServer implements IPod
 {
-  public static final String     TYPE_NAME                    = "Pod";
-  public static final String     WEB_TYPE_NAME                = "WebServer";
-  public static final String     TYPE_KEY_MANAGER             = "KeyManager";
-  public static final String     TYPE_SESSION_AUTH            = "SessionAuth";
-  public static final String     TYPE_KEY_AUTH                = "KeyAuth";
+  public static final String        TYPE_NAME                    = "Pod";
+  public static final String        WEB_TYPE_NAME                = "WebServer";
+  public static final String        TYPE_KEY_MANAGER             = "KeyManager";
+  public static final String        TYPE_SESSION_AUTH            = "SessionAuth";
+  public static final String        TYPE_KEY_AUTH                = "KeyAuth";
 
-  private static final String    FORMAT_1_AGENTS_NO_ARRAY     = "Agents element \"%s\" must be an array";
-  private static final String    FORMAT_1_PRINCIPALS_NO_ARRAY = "Principals element \"%s\" must be an array";
+  private static final String       FORMAT_1_AGENTS_NO_ARRAY     = "Agents element \"%s\" must be an array";
+  private static final String       FORMAT_1_PRINCIPALS_NO_ARRAY = "Principals element \"%s\" must be an array";
 
-  private static final String    POD_ID                       = "pod.id";
-  private static final String    AGENTS                       = "agents";
-  private static final String    PRINCIPALS                   = "principals";
-  private static final String    POD_URL                      = "podUrl";
-  private static final String    WEB_URL                      = "webUrl";
-  private static final String    WEB_TITLE                    = "webTitle";
-  private static final String    KEY_MANAGER_URL              = "keymanagerUrl";
-  private static final String    SESSION_AUTH_URL             = "sessionauthUrl";
-  private static final String    KEY_AUTH_URL                 = "keyauthUrl";
-  private static final String    POD_API_URL                  = "podApiUrl";
+  private static final String       POD_ID                       = "pod.id";
+  private static final String       AGENTS                       = "agents";
+  private static final String       PRINCIPALS                   = "principals";
+  private static final String       POD_URL                      = "podUrl";
+  private static final String       WEB_URL                      = "webUrl";
+  private static final String       WEB_TITLE                    = "webTitle";
+  private static final String       KEY_MANAGER_URL              = "keymanagerUrl";
+  private static final String       SESSION_AUTH_URL             = "sessionauthUrl";
+  private static final String       KEY_AUTH_URL                 = "keyauthUrl";
+  private static final String       POD_API_URL                  = "podApiUrl";
 
   // Immutable Config
-  private final URL              keyManagerUrl_;
-  private final URL              podUrl_;
-  private final URL              webUrl_;
-  private final String           webTitle_;
-  private final URL              podApiUrl_;
-  private final URL              sessionAuthUrl_;
-  private final URL              keyAuthUrl_;
+  private final URL                 keyManagerUrl_;
+  private final URL                 podUrl_;
+  private final URL                 webUrl_;
+  private final String              webTitle_;
+  private final URL                 podApiUrl_;
+  private final URL                 sessionAuthUrl_;
+  private final URL                 keyAuthUrl_;
 
   // Persistable State
-  private Long                   podId_;
+  private Long                      podId_;
 
   // Members
-  private final PodManager       manager_;
-  private Map<String, Agent>     agentMap_                    = new HashMap<>();
-  private Map<String, Principal> principalMap_                = new HashMap<>();
+  private final PodManager          manager_;
+  private Map<String, Agent>        agentMap_                    = new HashMap<>();
+  private Map<String, Principal>    principalMap_                = new HashMap<>();
+  private DynamicComponentContainer dynamicContainer_;
   
   /* package */ Pod(PodManager manager, JsonNode config) throws InvalidConfigException
   {
@@ -429,22 +432,36 @@ public class Pod extends SslServer implements IPod
   }
 
   @Override
-  public void resetStatus()
-  {
-    super.resetStatus();
-    
-    visitAllComponents((component) -> 
-    {
-      component.resetStatus();
-      manager_.modelObjectChanged(component);
-    });
-    
-    manager_.modelObjectChanged(this);
-  }
-
-  @Override
   public void save() throws IOException
   {
     manager_.save(this);
+  }
+  
+  public synchronized DynamicComponentContainer getDynamicContainer()
+  {
+    if(dynamicContainer_ == null)
+    {
+      dynamicContainer_ = new DynamicComponentContainer(this);
+      addChild(dynamicContainer_);
+    }
+    return dynamicContainer_;
+  }
+
+  @Override
+  public IModelObject getComponent(String name)
+  {
+    return getDynamicContainer().getComponent(name,
+        (parent, componentName) -> new ModelObject(this, GENERIC_COMPONENT, componentName),
+        null);
+  }
+
+  @Override
+  public IModelObject getComponent(String name,
+      IModelObjectConstructor<? extends IModelObject> constructor,
+      @Nullable ISetter<IModelObject> setExisting)
+  {
+    return getDynamicContainer().getComponent(name,
+        (parent, componentName) -> new ModelObject(this, GENERIC_COMPONENT, componentName),
+        setExisting);
   }
 }

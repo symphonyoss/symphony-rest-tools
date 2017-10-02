@@ -8,15 +8,12 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
 import org.symphonyoss.symphony.tools.rest.util.IVisitor;
-import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -26,8 +23,7 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
 
   private List<IModelObject>                    childSet_     = new ArrayList<>();
   private IModelObject[]                        children_     = new IModelObject[0];
-  private Map<String, IModelObject>             componentMap_ = new HashMap<>();
-  
+    
   private CopyOnWriteArrayList<IModelListener>  listeners_    = new CopyOnWriteArrayList<>();
     
   public ModelObjectContainer(IModelObjectContainer parentContainer, String typeName, JsonNode config) throws InvalidConfigException
@@ -35,14 +31,8 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
     super(parentContainer, typeName, config);
     parentContainer_ = parentContainer;
   }
-  
-  public ModelObjectContainer(IModelObject parent, String typeName, JsonNode config) throws InvalidConfigException
-  {
-    super(parent, typeName, config);
-    parentContainer_ = null;
-  }
 
-  public ModelObjectContainer(IModelObject parent, String typeName, String name)
+  public ModelObjectContainer(IModelObjectContainer parent, String typeName, String name)
   {
     super(parent, typeName, name);
     parentContainer_ = null;
@@ -80,49 +70,13 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
   }
   
   @Override
-  public IModelObject getComponent(String name)
+  public void visit(IVisitor<IModelObject> visitor)
   {
-    return getComponent(name,
-        (parent, componentName) -> new ModelObject(this, GENERIC_COMPONENT, componentName),
-        null);
-  }
-
-  @Override
-  public IModelObject getComponent(String name,
-      IModelObjectConstructor<? extends IModelObject> constructor,
-      @Nullable ISetter<IModelObject> setExisting)
-  {
-    while(name.startsWith("_"))
-      name = name.substring(1);
+    super.visit(visitor);
     
-    while(name.endsWith("_"))
-      name = name.substring(0, name.length() - 1);
-    
-    synchronized (componentMap_)
+    synchronized (children_)
     {
-      IModelObject component = componentMap_.get(name);
-      
-      if(component == null)
-      {
-        IModelObject vmo = constructor.newInstance(this, name);
-        
-        componentMap_.put(name, vmo);
-        
-        addChild(vmo);
-        
-        return vmo;
-      }
-      
-      setExisting.set(component);
-      return component;
-    }
-  }
-  
-  public void visitAllComponents(IVisitor<IModelObject> visitor)
-  {
-    synchronized (componentMap_)
-    {
-      for(IModelObject component : componentMap_.values())
+      for(IModelObject component : children_)
         visitor.visit(component);
     }
   }

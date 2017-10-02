@@ -29,7 +29,7 @@ public class UrlEndpoint extends ModelObject implements IUrlEndpoint
 {
   private URL url_;
 
-  public UrlEndpoint(IModelObject parent, String typeName, String name, URL url)
+  public UrlEndpoint(IModelObjectContainer parent, String typeName, String name, URL url)
   {
     super(parent, typeName, name);
     url_ = url;

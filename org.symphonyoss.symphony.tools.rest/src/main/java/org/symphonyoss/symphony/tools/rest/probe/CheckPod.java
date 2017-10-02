@@ -105,7 +105,10 @@ public class CheckPod extends SrtCommand
       println("Checking Pod");
       println("=============");
       
-      pod_.resetStatus();
+      pod_.visit((component) -> 
+      {
+        component.resetStatus();
+      });
       
       URL url = createURL(pod_.getPodUrl(),
           POD_HEALTHCHECK_PATH);
@@ -115,11 +118,22 @@ public class CheckPod extends SrtCommand
       
       
   
-      if(connection.getResponseCode() != 200)
+      switch(connection.getResponseCode())
       {
-        println("Healthcheck failed.");
-        pod_.setComponentStatus(ComponentStatus.Failed, "Error " + connection.getResponseCode());
-        return;
+        case 200:
+          println("Pod is healthy.");
+          pod_.setComponentStatus(ComponentStatus.OK, "Healthcheck OK");
+          break;
+          
+        case 500:
+          println("Pod is unwell.");
+          pod_.setComponentStatus(ComponentStatus.Failed, "Healthcheck FAILED");
+          break;
+          
+          default:
+            println("Healthcheck failed.");
+            pod_.setComponentStatus(ComponentStatus.Failed, "Error " + connection.getResponseCode());
+            return;
       }
   
       Response response = jCurl.processResponse(connection);

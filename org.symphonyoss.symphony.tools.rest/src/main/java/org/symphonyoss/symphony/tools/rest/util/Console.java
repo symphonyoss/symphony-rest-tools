@@ -51,6 +51,13 @@ public class Console
     err_ = err;
   }
 
+  public String  promptString(String prompt, String defaultValue)
+  {
+    String s = promptString(prompt + "[" + defaultValue + "]");
+    
+    return s.equals("") ? defaultValue : s;
+  }
+
   public String  promptString(String prompt)
   {
     out_.print(prompt);

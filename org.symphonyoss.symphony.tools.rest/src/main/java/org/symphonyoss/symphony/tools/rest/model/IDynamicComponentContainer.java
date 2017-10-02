@@ -23,40 +23,33 @@
 
 package org.symphonyoss.symphony.tools.rest.model;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import javax.annotation.Nullable;
 
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentProxy;
-import org.symphonyoss.symphony.tools.rest.util.IVisitor;
+import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-public interface IModelObject extends IComponentProxy
+public interface IDynamicComponentContainer extends IModelObjectContainer
 {
-  static final String CONFIG_FILE_NAME = "config";
-  static final String DOT_JSON         = ".json";
-  
-
-  
   /**
-   * Returns the parent for the given element, or <code>null</code>
-   * indicating that it is a top level node.
-   *
-   * @return the parent element, or <code>null</code> if it
-   *   has none or if the parent cannot be computed
+   * Get the child component with the given name. If no such component exists
+   * then it is created as a generic ModelObject.
+   * 
+   * @param   name    Name of the required component.
+   * @return  The required component.
    */
-  @Nullable IModelObject  getParent();
-  
-  String                  getTypeName();
-  String                  getName();
-  String                  getErrorText();
-  void                    print(PrintWriter out);
-  ObjectNode              toJson();
-  void store(File configDir, String fileName) throws IOException;
-  void store(File configDir) throws IOException;
+  IComponentProxy getComponent(String name);
 
-  void visit(IVisitor<IModelObject> visitor);
+  /**
+   * Get the child component with the given name. If no such component exists
+   * then it is created.
+   * 
+   * @param   name        Name of the required component.
+   * @param   constructor An IModelObjectConstructor to create a new child component if necessary
+   * @param   setExisting A setter which is called with the existing component if it is not constructed.
+   * 
+   * @return  The required component.
+   */
+  IComponentProxy getComponent(String name,
+      IModelObjectConstructor<? extends IModelObject> constructor,
+      @Nullable ISetter<IModelObject> setExisting);
 }

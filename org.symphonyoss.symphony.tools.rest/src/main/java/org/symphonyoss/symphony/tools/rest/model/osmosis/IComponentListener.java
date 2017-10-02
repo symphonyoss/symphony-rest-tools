@@ -24,24 +24,9 @@
 package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-/**
- * Represents an application component, which has a lifecycle phase in addition
- * (as a sub-class of IComponentPart) to a status.
- *  
- * @author Bruce Skingle
- *
- */
-public interface IComponent
+public interface IComponentListener
 {
-  static final String GENERIC_COMPONENT = "Component";
-  static final String UNKNOWN_STATUS = "Unknown";
-  
-  @Nonnull String getComponentStatusMessage();
-
-  @Nonnull ComponentStatus getComponentStatus();
-
-  void addListener(IComponentListener listener);
-
-  void removeListener(IComponentListener listener);
+  void componentStatusChanged(@Nullable ComponentStatus status, @Nonnull String statusMessage);
 }

@@ -29,7 +29,7 @@ public class FileSystemModelObjectManager extends ModelObjectContainer
 {
   private final File    configDir_;
 
-  public FileSystemModelObjectManager(IModelObject parent, String typeName, String name, File configDir)
+  public FileSystemModelObjectManager(IModelObjectContainer parent, String typeName, String name, File configDir)
   {
     super(parent, typeName, name);
     configDir_ = configDir;

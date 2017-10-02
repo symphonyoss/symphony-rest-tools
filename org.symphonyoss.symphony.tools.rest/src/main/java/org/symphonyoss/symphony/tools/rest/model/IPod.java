@@ -28,6 +28,7 @@ import java.net.URL;
 
 import org.symphonyoss.symphony.tools.rest.model.Principal.Builder;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
+import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
 public interface IPod extends IModelObject, IComponent, IModelObjectContainer, IUrlEndpoint
 {
@@ -52,4 +53,9 @@ public interface IPod extends IModelObject, IComponent, IModelObjectContainer, I
   Principal addPrincipal(Builder principalBuilder);
 
   void save() throws IOException;
+
+  IModelObject getComponent(String name);
+
+  IModelObject getComponent(String name, IModelObjectConstructor<? extends IModelObject> constructor,
+      ISetter<IModelObject> setExisting);
 }
