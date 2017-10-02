@@ -37,18 +37,19 @@ import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
 public abstract class SrtCommand extends Srt
 {
-  private final String                programName_;
-  private final Console         console_;
-  private String                name_;
-  private String                domain_;
-  private String                fqdn_;
-  private int                   connectTimeoutMillis_ = 2000;
-  private int                   readTimeoutMillis_    = 0;
+  private final String  programName_;
+  private final Console console_;
+  private String        name_;
+  private String        domain_;
+  private String        fqdn_;
+  private int           connectTimeoutMillis_ = 2000;
+  private int           readTimeoutMillis_    = 0;
 
-  private ISrtHome              srtHome_;
-  private String                keystore_;
-  private String                storepass_            = "changeit";
-  private String                storetype_            = DEFAULT_KEYSTORE_TYPE;
+  private ISrtHome      srtHome_;
+  private String        keystore_;
+  private String        storepass_            = "changeit";
+  private String        storetype_            = DEFAULT_KEYSTORE_TYPE;
+  private boolean       confirmName_;
   
   /**
    * Create an instance with a Console connected to standard I/O.
@@ -97,16 +98,34 @@ public abstract class SrtCommand extends Srt
     srtHome_ = srtHome;
   }
   
+  public boolean isConfirmName()
+  {
+    return confirmName_;
+  }
+
+  public void setConfirmName(boolean confirmName)
+  {
+    confirmName_ = confirmName;
+  }
+
   public void run()
   {
-    if (name_ == null)
+    if(name_ == null)
     {
       name_ = getDefaultName();
     }
-    else
+    
+    do
     {
-      name_ = console_.promptString("Hostname", name_);
-    }
+      if(name_ == null || name_.length()==0)
+      {
+        name_ = console_.promptString("Hostname");
+      }
+      else if(confirmName_)
+      {
+        name_ = console_.promptString("Hostname", name_);
+      }
+    } while(name_ == null || name_.length()==0);
 
     int i = name_.indexOf('.');
 
@@ -148,9 +167,6 @@ public abstract class SrtCommand extends Srt
     try
     {
       String name = getSrtHome().getPodManager().getDefaultPodName();
-      
-      if(name == null)
-        name = promptForName();
       
       return name;
     }

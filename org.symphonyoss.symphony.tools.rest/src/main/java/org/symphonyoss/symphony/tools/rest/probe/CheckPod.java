@@ -82,7 +82,8 @@ public class CheckPod extends SrtCommand
 
     if(pod_ == null)
     {
-      getConsole().error(getFqdn() + " is not a known pod.");
+      getConsole().flush();
+      getConsole().error(getFqdn() + " is not a known pod. Try probe instead?");
       return;
     }
     

@@ -84,22 +84,19 @@ public class ProbePod extends SrtCommand
   public ProbePod(Console console, String name, ISrtHome srtHome)
   {
     super(PROGRAM_NAME, console, name, srtHome);
+    setConfirmName(true);
   }
 
   public ProbePod(Console console, String[] argv)
   {
     super(PROGRAM_NAME, console, argv);
+    setConfirmName(true);
   }
 
   public ProbePod(String[] argv)
   {
     super(PROGRAM_NAME, argv);
-  }
-
-  @Override
-  protected String getDefaultName()
-  {
-    return promptForName();
+    setConfirmName(true);
   }
 
   @Override
@@ -123,170 +120,177 @@ public class ProbePod extends SrtCommand
     if(!doProbe)
     {
       getConsole().error("Aborted.");
+      return;
+    }
+    
+
+    println("Probing for Pod");
+    println("===============");
+    
+    for(int port : POD_PORTS)
+    {
+      probePod(port);
+      
+      if(podConfig_.getPodUrl() != null)
+        break;
+    }
+    
+    if(podConfig_.getWebUrl() == null)
+    {
+      getConsole().flush();
+      getConsole().error("Probe did not even find a website.");
+      return;
+    }
+    
+    if(podConfig_.getPodUrl() == null)
+    {
+      println();
+      println("Probe Reveals a Website but no Pod");
+      println("==================================");
+      
+      String  format = "%-20s=%s\n";
+      
+      getConsole().printf(format, "Web URL", podConfig_.getWebUrl());
+      println();
     }
     else
     {
-      println("Probing for Pod");
-      println("===============");
-      
-      for(int port : POD_PORTS)
+      if(podConfig_.getKeyManagerUrl() == null)
       {
-        probePod(port);
+        println("No podInfo, try to look for an in-cloud key manager...");
         
-        if(podConfig_.getPodUrl() != null)
-          break;
+        podConfig_.setKeyManagerUrl(createURL(podConfig_.getPodUrl(), "/relay"));
       }
       
-      if(podConfig_.getPodUrl() == null)
+      if(podConfig_.getKeyManagerUrl() == null)
       {
-        println();
-        println("Probe Reveals a Website but no Pod");
-        println("==================================");
-        
-        String  format = "%-20s=%s\n";
-        
-        getConsole().printf(format, "Web URL", podConfig_.getWebUrl());
-        println();
+        // We found a pod but can't get podInfo - fatal error
+        return;
       }
+          
+      URL kmUrl = podConfig_.getKeyManagerUrl();
+      String keyManagerDomain;
+      String keyManagerName = kmUrl.getHost();
+      
+      int i = keyManagerName.indexOf('.');
+
+      if (i == -1)
+        keyManagerDomain = DEFAULT_DOMAIN;
       else
       {
-        if(podConfig_.getKeyManagerUrl() == null)
-        {
-          println("No podInfo, try to look for an in-cloud key manager...");
-          
-          podConfig_.setKeyManagerUrl(createURL(podConfig_.getPodUrl(), "/relay"));
-        }
+        keyManagerDomain = keyManagerName.substring(i);
+        keyManagerName = keyManagerName.substring(0, i);
+      }
+
+      println("keyManagerName=" + keyManagerName);
+      println("keyManagerDomain=" + keyManagerDomain);
+      
+      
+      println();
+      println("Probing for API Keyauth");
+      println("=======================");
+      
+      keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
+      
+      if(keyAuthResponse_ != null)
+      {
+        podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
         
-        if(podConfig_.getKeyManagerUrl() == null)
-        {
-          // We found a pod but can't get podInfo - fatal error
-          return;
-        }
-            
-        URL kmUrl = podConfig_.getKeyManagerUrl();
-        String keyManagerDomain;
-        String keyManagerName = kmUrl.getHost();
+        String token = getTag(keyAuthResponse_, TOKEN);
         
-        int i = keyManagerName.indexOf('.');
-  
-        if (i == -1)
-          keyManagerDomain = DEFAULT_DOMAIN;
-        else
-        {
-          keyManagerDomain = keyManagerName.substring(i);
-          keyManagerName = keyManagerName.substring(0, i);
-        }
-  
-        println("keyManagerName=" + keyManagerName);
-        println("keyManagerDomain=" + keyManagerDomain);
-        
-        
-        println();
-        println("Probing for API Keyauth");
-        println("=======================");
-        
-        keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
-        
-        if(keyAuthResponse_ != null)
-        {
-          podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
-          
-          String token = getTag(keyAuthResponse_, TOKEN);
-          
-          if(token != null)
-            getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
-        }
-  
-        // Need to find a reliable health check indicator of keymanager in
-        // all deployments, for now assume that as the pod told is this
-        // is the KM that it is.
-        
-  //      Builder builder = getJCurl();
-  //      builder = cookieAuth(builder);
-  //      
-  //      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
-  //      
-  //      if(response.isFailed())
-  //        return;
-        println("Found key manager at " + podConfig_.getKeyManagerUrl());
-        
-        println();
-        println("Probing for API Agent");
-        println("=====================");
-        
-        agentResponse_ = probeAgent(getName(), getDomain());
-        
-        URL agentUrl = getUrl(agentResponse_, null);
-        
-        if(agentUrl != null)
-        {
-          agentConfig_.setName(agentUrl.getHost());
-          agentConfig_.setAgentApiUrl(agentUrl);
-        }
-        
-    
-        println();
-        println("Probe Successful");
-        println("================");
-        
-        String  format = "%-20s=%s\n";
-        
-        printf(format, "Web URL", podConfig_.getWebUrl());
-        printf(format, "Pod URL", podConfig_.getPodUrl());
-        printf(format, "Pod ID", podId_);
-        printf(format, "Key Manager URL", podConfig_.getKeyManagerUrl());
-        printf(format, "Session Auth URL", podConfig_.getSessionAuthUrl());
-        printf(format, "Key Auth URL", podConfig_.getKeyAuthUrl());
-        printf(format, "Pod API URL", podConfig_.getPodApiUrl());
-        printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
-        
-        if(getKeystore() != null)
-        {
-          println();
-          printf(format, "Client cert", getKeystore());
-          
-          if(sessionInfoResult_.isFailed())
-          {
-            println("This cert was not accepted for authentication");
-          }
-          else
-          {
-            println("We authenticated as");
-            for(String field : SESSION_INFO_FIELDS)
-              printf(format, "userInfo." + field, sessionInfoResult_.getJcurlResponse().getTag(field));
-          }
-        }
-        println();
+        if(token != null)
+          getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
+      }
+
+      // Need to find a reliable health check indicator of keymanager in
+      // all deployments, for now assume that as the pod told is this
+      // is the KM that it is.
+      
+//      Builder builder = getJCurl();
+//      builder = cookieAuth(builder);
+//      
+//      ProbeResponse response = probe(builder.build(), keyManagerName + keyManagerDomain, podConfig_.getKeyManagerUrl(), MIME_HTML);
+//      
+//      if(response.isFailed())
+//        return;
+      println("Found key manager at " + podConfig_.getKeyManagerUrl());
+      
+      println();
+      println("Probing for API Agent");
+      println("=====================");
+      
+      agentResponse_ = probeAgent(getName(), getDomain());
+      
+      URL agentUrl = getUrl(agentResponse_, null);
+      
+      if(agentUrl != null)
+      {
+        agentConfig_.setName(agentUrl.getHost());
+        agentConfig_.setAgentApiUrl(agentUrl);
       }
       
-      println("Root server certs:");
-      for (X509Certificate cert : podConfig_.getTrustCerts())
-        println(cert.getSubjectX500Principal().getName());
   
       println();
-      println("End server certs:");
-      for (X509Certificate cert : serverCerts_)
-        println(cert.getSubjectX500Principal().getName());
+      println("Probe Successful");
+      println("================");
       
-      boolean updateConfig = pod == null ? true : getConsole().promptBoolean("Overwrite the saved config?");;
+      String  format = "%-20s=%s\n";
       
+      printf(format, "Web URL", podConfig_.getWebUrl());
+      printf(format, "Pod URL", podConfig_.getPodUrl());
+      printf(format, "Pod ID", podId_);
+      printf(format, "Key Manager URL", podConfig_.getKeyManagerUrl());
+      printf(format, "Session Auth URL", podConfig_.getSessionAuthUrl());
+      printf(format, "Key Auth URL", podConfig_.getKeyAuthUrl());
+      printf(format, "Pod API URL", podConfig_.getPodApiUrl());
+      printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
       
-      if(updateConfig)
+      if(getKeystore() != null)
       {
-        try
+        println();
+        printf(format, "Client cert", getKeystore());
+        
+        if(sessionInfoResult_.isFailed())
         {
-          getSrtHome().getPodManager().createOrUpdatePod(podConfig_, agentConfig_);
+          println("This cert was not accepted for authentication");
         }
-        catch (InvalidConfigException | IOException e)
+        else
         {
-          getConsole().error("Faild to save config:");
-          e.printStackTrace(getConsole().getErr());
+          println("We authenticated as");
+          for(String field : SESSION_INFO_FIELDS)
+            printf(format, "userInfo." + field, sessionInfoResult_.getJcurlResponse().getTag(field));
         }
+      }
+      println();
+    }
+    
+    println("Root server certs:");
+    for (X509Certificate cert : podConfig_.getTrustCerts())
+      println(cert.getSubjectX500Principal().getName());
+
+    println();
+    println("End server certs:");
+    for (X509Certificate cert : serverCerts_)
+      println(cert.getSubjectX500Principal().getName());
+    
+    boolean updateConfig = pod == null ? true : getConsole().promptBoolean("Overwrite the saved config?");;
+    
+    
+    if(updateConfig)
+    {
+      try
+      {
+        getSrtHome().getPodManager().createOrUpdatePod(podConfig_, agentConfig_);
+      }
+      catch (InvalidConfigException | IOException e)
+      {
+        getConsole().error("Faild to save config:");
+        e.printStackTrace(getConsole().getErr());
+      }
 
 //        if(agentConfig_.getAgentApiUrl() != null)
 //          pod.createOrUpdateAgent(agentConfig_);
-        getConsole().error("Finished.");
-      }
+      getConsole().error("Finished.");
     }
   }
 
