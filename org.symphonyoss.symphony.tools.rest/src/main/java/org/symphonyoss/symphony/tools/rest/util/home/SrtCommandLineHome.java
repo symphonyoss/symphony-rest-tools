@@ -23,47 +23,46 @@
 
 package org.symphonyoss.symphony.tools.rest.util.home;
 
-import org.symphonyoss.symphony.tools.rest.util.CommandLineParser;
 import org.symphonyoss.symphony.tools.rest.util.Console;
-import org.symphonyoss.symphony.tools.rest.util.Flag;
-import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
+import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParser;
+import org.symphonyoss.symphony.tools.rest.util.command.Flag;
+import org.symphonyoss.symphony.tools.rest.util.command.Switch;
 
 public class SrtCommandLineHome extends CommandLineParser
 {
   private String  home_;
 
-  public SrtCommandLineHome()
+  public SrtCommandLineHome(String commandName)
   {
-    init();
+    super(commandName);
+    withFlag(
+      new Flag("Location of SRT home", (v) -> home_ = v)
+        .withName(ISrtHome.SRT_HOME));
   }
 
-  public SrtCommandLineHome(ISetter<String> argSetter)
-  {
-    super(argSetter);
-    init();
-  }
-
-  private void init()
-  {
-    addFlag((v) -> home_ =v, ISrtHome.SRT_HOME);
-  }
 
   public ISrtHome createSrtHome(Console console)
   {
     return new SrtHome(console, home_, "Command Line Flag");
   }
 
+
   @Override
-  public SrtCommandLineHome addFlag(ISetter<String> setter, String... names)
+  public SrtCommandLineHome withSwitch(Switch aswitch)
   {
-    super.addFlag(setter, names);
+    super.withSwitch(aswitch);
+    
     return this;
   }
 
+
   @Override
-  public SrtCommandLineHome addFlag(Flag flag, String... names)
+  public SrtCommandLineHome withFlag(Flag flag)
   {
-    super.addFlag(flag, names);
+    super.withFlag(flag);
+    
     return this;
   }
+
+  
 }

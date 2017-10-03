@@ -32,6 +32,9 @@ import org.symphonyoss.symphony.jcurl.JCurl.Builder;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
+import org.symphonyoss.symphony.tools.rest.util.command.Flag;
+import org.symphonyoss.symphony.tools.rest.util.command.Switch;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
@@ -48,8 +51,15 @@ public abstract class SrtCommand extends Srt
   private ISrtHome      srtHome_;
   private String        keystore_;
   private String        storepass_            = "changeit";
-  private String        storetype_            = DEFAULT_KEYSTORE_TYPE;
-  private boolean       confirmName_;
+  private String        storetype_            = Srt.DEFAULT_KEYSTORE_TYPE;
+  private String        truststore_;
+  private String        trustpass_            = "changeit";
+  private String        trusttype_            = Srt.DEFAULT_TRUSTSTORE_TYPE;
+  //private List<>
+  private SrtCommandLineHome parser_;
+  
+  protected final  Switch verbose_ = new Switch('v', "Set verbose Mode", 3);
+  protected final  Switch interactive_ = new Switch('i', "Set interactive Mode", 2);
   
   /**
    * Create an instance with a Console connected to standard I/O.
@@ -61,6 +71,20 @@ public abstract class SrtCommand extends Srt
     this(programName, new Console(System.in, System.out, System.err), argv);
   }
   
+  public SrtCommand(String programName, Console console, String name, ISrtHome srtHome)
+  {
+    programName_ = programName;
+    console_ = console;
+    name_ = name;
+    
+    parser_ = new SrtCommandLineHome(programName)
+        .withSwitch(verbose_);
+    
+    init();
+    
+    srtHome_ = srtHome == null ? parser_.createSrtHome(console_) : srtHome;
+  }
+  
   /**
    * Create an instance with the given console.
    * 
@@ -69,43 +93,46 @@ public abstract class SrtCommand extends Srt
    */
   public SrtCommand(String programName, Console console, String[] argv)
   {
-    programName_ = programName;
-    console_ = console;
+    this(programName, console, null, null);
     
-    SrtCommandLineHome parser = new SrtCommandLineHome((v) -> 
-      {
-        if (name_ == null)
-          name_ = v;
-        else
-          System.err.println("Unknown parameter \"" + v + "\" ignored.");
-  
-      })
-      .addFlag((v) -> keystore_ = v, "keystore")
-      .addFlag((v) -> storepass_ = v, "storepass")
-      .addFlag((v) -> storetype_ = v, "storetype")
-      ;
-  
-    parser.process(argv);
-    
-    srtHome_ = parser.createSrtHome(console_);
+    parser_.process(argv);
   }
   
-  public SrtCommand(String programName, Console console, String name, ISrtHome srtHome)
+  protected void withHostName(boolean required)
   {
-    programName_ = programName;
-    console_ = console;
-    name_ = name;
-    srtHome_ = srtHome;
-  }
-  
-  public boolean isConfirmName()
-  {
-    return confirmName_;
+    parser_.withFlag(new Flag("Host Name", (v) -> name_ = v)
+        .withRequired(required));
   }
 
-  public void setConfirmName(boolean confirmName)
+  protected void withKeystore(boolean required)
   {
-    confirmName_ = confirmName;
+    parser_
+      .withFlag(new Flag("Keystore File Name", (v) -> keystore_ = v)
+        .withName("keystore")
+        .withRequired(required))
+      .withFlag(new Flag("Keystore Type", (v) -> storetype_ = v)
+          .withName("storetype"))
+      .withFlag(new Flag("Keystore Password", (v) -> storepass_ = v)
+          .withName("storepass"))
+    ;
+  }
+  
+  protected void withTruststore(boolean required)
+  {
+    parser_
+      .withFlag(new Flag("Truststore File Name", (v) -> truststore_ = v)
+         .withName("truststore")
+        .withRequired(required))
+      .withFlag(new Flag("Truststore Type", (v) -> trusttype_ = v)
+          .withName("trusttype"))
+      .withFlag(new Flag("Truststore Type", (v) -> trustpass_ = v)
+          .withName("trustpass"))
+    ;
+  }
+  
+  protected void init()
+  {
+    // Sub-classes may override but should call super.init();
   }
 
   public void run()
@@ -115,22 +142,89 @@ public abstract class SrtCommand extends Srt
       name_ = getDefaultName();
     }
     
-    do
+    boolean abort = false;
+    boolean promptAll = false;
+        
+    switch(interactive_.getCount())
     {
-      if(name_ == null || name_.length()==0)
-      {
-        name_ = console_.promptString("Hostname");
-      }
-      else if(confirmName_)
-      {
-        name_ = console_.promptString("Hostname", name_);
-      }
-    } while(name_ == null || name_.length()==0);
-
+      case 0:
+        for(Flag flag : parser_.getFlags())
+        {
+          if(flag.isRequired() && flag.getCount()==0)
+          {
+            console_.error("A value for " + flag.getDescription() + " is required.");
+            abort = true;
+          }
+        }
+        break;
+      
+      case 2:
+        promptAll = true;
+        // Fall through
+        
+      default:
+        for(Flag flag : parser_.getFlags())
+        {
+          if(promptAll || flag.isRequired())
+          {
+            boolean doAgain;
+            
+            do
+            {
+              doAgain = false;
+              String value = console_.promptString(flag.getPrompt(), flag.getValue());
+              
+              try
+              {
+                flag.getSetter().set(value);
+                if(flag.isRequired() && value.length()==0)
+                {
+                  getConsole().error("\nA value is required\n");
+                  doAgain=true;
+                }
+              }
+              catch(CommandLineParserFault e)
+              {
+                doAgain = true;
+              }
+            } while(doAgain);
+          }
+        }
+    }
+    
+    if(abort)
+    {
+      console_.error("Aborted.");
+      getConsole().close();
+      return;
+    }
+    
+//    boolean confirm = confirmName_;
+//    
+//    if(name_ == null || name_.length()==0)
+//    {
+//      name_ = getSrtHome().getName(Srt.NAME_HOST);
+//      confirm = true;
+//    }
+//    
+//    do
+//    {
+//      if(name_ == null || name_.length()==0)
+//      {
+//        name_ = console_.promptString(Srt.NAME_HOST);
+//      }
+//      else if(confirm)
+//      {
+//        name_ = console_.promptString(Srt.NAME_HOST, name_);
+//      }
+//    } while(name_ == null || name_.length()==0);
+//
+//    getSrtHome().setName(Srt.NAME_HOST, name_);
+    
     int i = name_.indexOf('.');
 
     if (i == -1)
-      domain_ = DEFAULT_DOMAIN;
+      domain_ = Srt.DEFAULT_DOMAIN;
     else
     {
       domain_ = name_.substring(i);
@@ -174,11 +268,6 @@ public abstract class SrtCommand extends Srt
     {
       throw new ProgramFault("There are no valid pod configurations. Try probe first.", e);
     }
-  }
-
-  protected String promptForName()
-  {
-    return console_.promptString("Hostname");
   }
 
   public abstract void execute();

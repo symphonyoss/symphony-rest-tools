@@ -24,19 +24,25 @@
 package org.symphonyoss.symphony.tools.rest.util.home;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;
+import java.util.Properties;
 
 import org.symphonyoss.symphony.tools.rest.model.IPodManager;
 import org.symphonyoss.symphony.tools.rest.model.PodManager;
-import org.symphonyoss.symphony.tools.rest.util.CommandLineParserFault;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
 
 public class SrtHome implements ISrtHome
 {
@@ -46,6 +52,8 @@ public class SrtHome implements ISrtHome
   private final File       sessionDir_;
   private final Console    console_;
   private final IPodManager podManager_;
+  private File defaultsFile_;
+  private Properties defaultsProps_;
 
   public SrtHome(Console console)
   {
@@ -74,6 +82,22 @@ public class SrtHome implements ISrtHome
     sessionDir_.mkdirs();
     
     podManager_ = new PodManager(configDir_);
+    
+    defaultsFile_ = new File(home_, "defaults.properties");
+    defaultsProps_ = new Properties();
+    
+    try(Reader reader = new FileReader(defaultsFile_))
+    {
+      defaultsProps_.load(reader);
+    }
+    catch (FileNotFoundException e)
+    {
+      // No defaults
+    }
+    catch (IOException e)
+    {
+      throw new ProgramFault("Unable to read defaults file \"" + defaultsFile_.getAbsolutePath() + "\"", e);
+    }
   }
   
   private class Builder
@@ -180,5 +204,37 @@ public class SrtHome implements ISrtHome
   public IPodManager getPodManager()
   {
     return podManager_;
+  }
+
+  @Override
+  public String getName(String label)
+  {
+    return defaultsProps_.getProperty(labelToPropName(label));
+  }
+  
+  @Override
+  public void setName(String label, String name)
+  {
+    label = labelToPropName(label);
+    
+    String current = defaultsProps_.getProperty(label);
+    
+    if(current != null && current.equals(name))
+      return;
+    
+    defaultsProps_.setProperty(label, name);
+    try(Writer writer = new FileWriter(defaultsFile_))
+    {
+      defaultsProps_.store(writer, "");
+    }
+    catch (IOException e)
+    {
+      throw new ProgramFault("Unable to write defaults file \"" + defaultsFile_.getAbsolutePath() + "\"", e);
+    }
+  }
+
+  private String labelToPropName(String label)
+  {
+    return label.replaceAll("  *", "");
   }
 }

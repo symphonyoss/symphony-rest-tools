@@ -84,19 +84,27 @@ public class ProbePod extends SrtCommand
   public ProbePod(Console console, String name, ISrtHome srtHome)
   {
     super(PROGRAM_NAME, console, name, srtHome);
-    setConfirmName(true);
   }
 
   public ProbePod(Console console, String[] argv)
   {
     super(PROGRAM_NAME, console, argv);
-    setConfirmName(true);
   }
 
   public ProbePod(String[] argv)
   {
     super(PROGRAM_NAME, argv);
-    setConfirmName(true);
+  }
+
+  @Override
+  protected void init()
+  {
+    super.init();
+    interactive_.setCount(2);
+
+    withHostName(true);
+    withKeystore(false);
+    withTruststore(false);
   }
 
   @Override

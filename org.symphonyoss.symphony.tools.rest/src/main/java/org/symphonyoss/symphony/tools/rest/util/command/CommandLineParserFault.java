@@ -21,25 +21,35 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util.home;
+package org.symphonyoss.symphony.tools.rest.util.command;
 
-import java.io.File;
+import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
-import org.symphonyoss.symphony.tools.rest.model.IPodManager;
-
-public interface ISrtHome
+public class CommandLineParserFault extends ProgramFault
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
+  private static final long serialVersionUID = 1L;
 
-  File getConfigDir(String name);
+  public CommandLineParserFault()
+  {
+  }
 
-  void saveSessionToken(String hostName, String tokenName, String token);
+  public CommandLineParserFault(String message)
+  {
+    super(message);
+  }
 
-  IPodManager getPodManager();
+  public CommandLineParserFault(Throwable cause)
+  {
+    super(cause);
+  }
 
-  String getName(String label);
+  public CommandLineParserFault(String message, Throwable cause)
+  {
+    super(message, cause);
+  }
 
-  void setName(String label, String name);
+  public CommandLineParserFault(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+  {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

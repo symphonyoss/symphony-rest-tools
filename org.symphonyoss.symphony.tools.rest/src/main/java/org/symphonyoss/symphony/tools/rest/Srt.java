@@ -25,23 +25,23 @@ package org.symphonyoss.symphony.tools.rest;
 
 public class Srt
 {
-  public static final String   DEFAULT_DOMAIN        = ".symphony.com";
+  public static final String   DEFAULT_DOMAIN          = ".symphony.com";
 
-  public static final String   MIME_HTML             = "text/html";
-  public static final String   MIME_JSON             = "application/json";
-  public static final String   SESSION_TOKEN         = "sessionToken";
-  public static final String   SKEY                  = "skey";
-  public static final String   KMSESSION             = "kmsession";
-  public static final String   KEYMANAGER_TOKEN      = "keyManagerToken";
-  public static final String   DEFAULT_KEYSTORE_TYPE = "pkcs12";
+  public static final String   MIME_HTML               = "text/html";
+  public static final String   MIME_JSON               = "application/json";
+  public static final String   SESSION_TOKEN           = "sessionToken";
+  public static final String   SKEY                    = "skey";
+  public static final String   KMSESSION               = "kmsession";
+  public static final String   KEYMANAGER_TOKEN        = "keyManagerToken";
+  public static final String   DEFAULT_KEYSTORE_TYPE   = "pkcs12";
+  public static final String   DEFAULT_TRUSTSTORE_TYPE = "jks";
 
-  public static final String   TOKEN                 = "token";
-  public static final String   DISPLAY_NAME          = "displayName";
-  public static final String   ID                    = "id";
-  public static final String   COMPANY               = "company";
-  public static final String[] SESSION_INFO_FIELDS   = new String[] { DISPLAY_NAME, ID, COMPANY };
+  public static final String   TOKEN                   = "token";
+  public static final String   DISPLAY_NAME            = "displayName";
+  public static final String   ID                      = "id";
+  public static final String   COMPANY                 = "company";
+  public static final String[] SESSION_INFO_FIELDS     = new String[] { DISPLAY_NAME, ID, COMPANY };
 
-  public static final String   POD_CLIENT_PATH       = "/client/index.html";
-  public static final String   POD_HEALTHCHECK_PATH  = "/webcontroller/HealthCheck";
-
+  public static final String   POD_CLIENT_PATH         = "/client/index.html";
+  public static final String   POD_HEALTHCHECK_PATH    = "/webcontroller/HealthCheck";
 }

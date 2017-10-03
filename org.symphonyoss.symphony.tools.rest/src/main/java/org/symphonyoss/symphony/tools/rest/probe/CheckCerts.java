@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
+import org.symphonyoss.symphony.tools.rest.Srt;
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.IModelObject;
@@ -44,45 +45,35 @@ import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class CheckPod extends SrtCommand
+public class CheckCerts extends SrtCommand
 {
-  private static final String      PROGRAM_NAME                = "CheckPod";
+  private static final String      PROGRAM_NAME                = "CheckCerts";
 
   private IPod                     pod_;
   private boolean                  structureChange_;
   private Set<IModelObject> changedComponents_          = new HashSet<>();
-//  private Set<IModelObject> structureChangedComponents_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
   {
-    new CheckPod(argv).run();
+    new CheckCerts(argv).run();
   }
 
-  public CheckPod(Console console, String name, ISrtHome srtHome)
+  public CheckCerts(Console console, String name, ISrtHome srtHome)
   {
     super(PROGRAM_NAME, console, name, srtHome);
   }
 
-  public CheckPod(Console console, String[] argv)
+  public CheckCerts(Console console, String[] argv)
   {
     super(PROGRAM_NAME, console, argv);
   }
 
-  public CheckPod(String[] argv)
+  public CheckCerts(String[] argv)
   {
     super(PROGRAM_NAME, argv);
   }
   
-  @Override
-  protected void init()
-  {
-    super.init();
-    interactive_.setCount(2);
 
-    withHostName(true);
-    withKeystore(false);
-    withTruststore(false);
-  }
 
   @Override
   public void execute()
@@ -95,6 +86,8 @@ public class CheckPod extends SrtCommand
       getConsole().error(getFqdn() + " is not a known pod. Try probe instead?");
       return;
     }
+    
+    
     
     println("Pod Configuration");
     println("=================");

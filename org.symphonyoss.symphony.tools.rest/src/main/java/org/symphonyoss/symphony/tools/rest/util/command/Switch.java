@@ -21,33 +21,56 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util;
+package org.symphonyoss.symphony.tools.rest.util.command;
 
-public class CommandLineParserFault extends ProgramFault
+public class Switch
 {
-  private static final long serialVersionUID = 1L;
-
-  public CommandLineParserFault()
+  private final char    name_;
+  private final int     max_;
+  private final String  help_;
+  private int           count_;
+  
+  public Switch(char name, String help)
   {
+    this(name, help, 1);
+  }
+  
+  public Switch(char name, String help, int max)
+  {
+    name_ = name;
+    help_ = help;
+    max_ = max;
+  }
+  
+  public void setCount(int count)
+  {
+    count_ = count> max_ ? max_ : count;
   }
 
-  public CommandLineParserFault(String message)
+  public void increment()
   {
-    super(message);
+    count_++;
+    if(count_ > max_)
+    {
+      if(max_ == 1)
+        throw new CommandLineParserFault("Switch \"" + name_ + "\" may be set only once");
+      else
+        throw new CommandLineParserFault("Switch \"" + name_ + "\" may be set at most " + max_ + " times");
+    }
   }
 
-  public CommandLineParserFault(Throwable cause)
+  public int getCount()
   {
-    super(cause);
+    return count_;
   }
 
-  public CommandLineParserFault(String message, Throwable cause)
+  public char getName()
   {
-    super(message, cause);
+    return name_;
   }
 
-  public CommandLineParserFault(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+  public String getHelp()
   {
-    super(message, cause, enableSuppression, writableStackTrace);
+    return help_;
   }
 }

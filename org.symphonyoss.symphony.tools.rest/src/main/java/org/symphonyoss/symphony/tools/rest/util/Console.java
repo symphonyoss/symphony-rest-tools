@@ -139,9 +139,11 @@ public class Console
     return out_.printf(l, format, args);
   }
   
-  public void error(String x)
+  public void error(String format, Object ...args)
   {
-    err_.println(x);
+    out_.flush();
+    err_.format(format, args);
+    err_.flush();
   }
 
   public void close()
