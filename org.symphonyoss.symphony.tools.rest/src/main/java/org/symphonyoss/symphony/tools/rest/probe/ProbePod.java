@@ -100,7 +100,7 @@ public class ProbePod extends SrtCommand
   protected void init()
   {
     super.init();
-    interactive_.setCount(2);
+//    interactive_.setCount(2);
 
     withHostName(true);
     withKeystore(false);

@@ -32,7 +32,6 @@ import org.symphonyoss.symphony.jcurl.JCurl.Builder;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
-import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
 import org.symphonyoss.symphony.tools.rest.util.command.Switch;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
@@ -78,7 +77,8 @@ public abstract class SrtCommand extends Srt
     name_ = name;
     
     parser_ = new SrtCommandLineHome(programName)
-        .withSwitch(verbose_);
+        .withSwitch(verbose_)
+        .withSwitch(interactive_);
     
     init();
     
@@ -142,55 +142,9 @@ public abstract class SrtCommand extends Srt
       name_ = getDefaultName();
     }
     
-    boolean abort = false;
-    boolean promptAll = false;
-        
-    switch(interactive_.getCount())
-    {
-      case 0:
-        for(Flag flag : parser_.getFlags())
-        {
-          if(flag.isRequired() && flag.getCount()==0)
-          {
-            console_.error("A value for " + flag.getDescription() + " is required.");
-            abort = true;
-          }
-        }
-        break;
-      
-      case 2:
-        promptAll = true;
-        // Fall through
-        
-      default:
-        for(Flag flag : parser_.getFlags())
-        {
-          if(promptAll || flag.isRequired())
-          {
-            boolean doAgain;
-            
-            do
-            {
-              doAgain = false;
-              String value = console_.promptString(flag.getPrompt(), flag.getValue());
-              
-              try
-              {
-                flag.getSetter().set(value);
-                if(flag.isRequired() && value.length()==0)
-                {
-                  getConsole().error("\nA value is required\n");
-                  doAgain=true;
-                }
-              }
-              catch(CommandLineParserFault e)
-              {
-                doAgain = true;
-              }
-            } while(doAgain);
-          }
-        }
-    }
+    boolean abort = console_.setParameters(parser_, interactive_.getCount());
+    
+    
     
     if(abort)
     {

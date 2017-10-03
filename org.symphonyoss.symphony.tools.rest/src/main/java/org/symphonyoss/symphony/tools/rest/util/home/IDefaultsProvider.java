@@ -23,19 +23,9 @@
 
 package org.symphonyoss.symphony.tools.rest.util.home;
 
-import java.io.File;
-
-import org.symphonyoss.symphony.tools.rest.model.IPodManager;
-
-public interface ISrtHome extends IDefaultsProvider
+public interface IDefaultsProvider
 {
-  static final String SRT_HOME = "SRT_HOME";
-  
-  File  getHome();
+  String getDefault(String label);
 
-  File getConfigDir(String name);
-
-  void saveSessionToken(String hostName, String tokenName, String token);
-
-  IPodManager getPodManager();
+  void setDefault(String label, String name);
 }

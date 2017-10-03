@@ -40,6 +40,11 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
 
   public void addChild(IModelObject child)
   {
+    if(child == null)
+    {
+      throw new NullPointerException("Child may not be null");
+    }
+    
     synchronized (childSet_)
     {
       childSet_.add(child);
@@ -54,6 +59,11 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
   
   public void replaceChild(IModelObject oldChild, IModelObject newChild)
   {
+    if(newChild == null)
+    {
+      throw new NullPointerException("newChild may not be null");
+    }
+    
     synchronized (childSet_)
     {
       if(oldChild != null)

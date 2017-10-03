@@ -139,19 +139,19 @@ public class PodManager extends FileSystemModelObjectManager implements IPodMana
       {
         File configDir = getConfigPath(hostName);
        
-        Pod pod;
-        
         try
         {
-          pod = loadPod(configDir);
+          Pod pod = loadPod(configDir);
+          
+          podMap_.put(hostName, pod);
+          addChild(pod);
+          
+          return pod;
         }
         catch(IOException | InvalidConfigException e)
         {
-          pod = null;
+         return null;
         }
-        
-        podMap_.put(hostName, pod);
-        addChild(pod);
       }
     }
     

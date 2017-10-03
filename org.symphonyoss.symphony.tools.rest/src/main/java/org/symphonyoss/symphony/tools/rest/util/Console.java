@@ -31,11 +31,17 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Locale;
 
+import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
+import org.symphonyoss.symphony.tools.rest.util.command.Flag;
+import org.symphonyoss.symphony.tools.rest.util.home.IDefaultsProvider;
+import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
+
 public class Console
 {
   private final BufferedReader in_;
   private final PrintWriter    out_;
   private final PrintWriter    err_;
+  private IDefaultsProvider    defaultsProvider_;
   
   public Console(InputStream in, OutputStream out, OutputStream err)
   {
@@ -51,14 +57,29 @@ public class Console
     err_ = err;
   }
 
+  public IDefaultsProvider getDefaultsProvider()
+  {
+    return defaultsProvider_;
+  }
+
+  public void setDefaultsProvider(IDefaultsProvider defaultsProvider)
+  {
+    defaultsProvider_ = defaultsProvider;
+  }
+
   public String  promptString(String prompt, String defaultValue)
   {
-    String s = promptString(prompt + "[" + defaultValue + "]");
+    String s = doPromptString(prompt + "[" + defaultValue + "]");
     
-    return s.equals("") ? defaultValue : s;
+    return s.equals("") ? defaultValue : s.trim();
   }
 
   public String  promptString(String prompt)
+  {
+    return doPromptString(prompt).trim();
+  }
+
+  public String  doPromptString(String prompt)
   {
     out_.print(prompt);
     out_.print(": ");
@@ -77,8 +98,6 @@ public class Console
     
     if(line == null)
       throw new ProgramFault("Unexpected end of file on console.");
-    
-    line = line.trim();
     
     return line;
   }
@@ -141,7 +160,9 @@ public class Console
   
   public void error(String format, Object ...args)
   {
+    // The Eclipse console does strange things all this flushing seems to work for all cases....
     out_.flush();
+    err_.flush();
     err_.format(format, args);
     err_.flush();
   }
@@ -164,5 +185,78 @@ public class Console
   {
     err_.flush();
     out_.flush();
+  }
+
+  public boolean setParameters(SrtCommandLineHome parser, int interactiveCount)
+  {
+    boolean abort = false;
+    boolean promptAll = false;
+    
+    println("Press RETURN to accept default values");
+    println("Enter a space to clear the default value");
+    println("Leading and trailing whitespace are deleted");
+    
+    switch(interactiveCount)
+    {
+      case 0:
+        for(Flag flag : parser.getFlags())
+        {
+          if(flag.isRequired() && flag.getCount()==0)
+          {
+            error("A value for " + flag.getDescription() + " is required.\n");
+            abort = true;
+          }
+        }
+        break;
+      
+      case 2:
+        promptAll = true;
+        // Fall through
+        
+      default:
+        for(Flag flag : parser.getFlags())
+        {
+          if(promptAll || flag.isRequired())
+          {
+            boolean doAgain;
+            
+            do
+            {
+              doAgain = false;
+              
+              String defaultValue = flag.getValue();
+              
+              if(defaultValue.length()==0)
+                defaultValue = defaultsProvider_.getDefault(flag.getPrompt());
+              
+              String value = promptString(flag.getPrompt(), defaultValue);
+              
+              try
+              {
+                flag.getSetter().set(value);
+                if(flag.isRequired() && value.length()==0)
+                {
+                  error("A value is required\n");
+                  doAgain=true;
+                }
+              }
+              catch(CommandLineParserFault e)
+              {
+                doAgain = true;
+              }
+            } while(doAgain);
+          }
+        }
+    }
+    
+    if(!abort)
+    {
+      for(Flag flag : parser.getFlags())
+      {
+        defaultsProvider_.setDefault(flag.getPrompt(), flag.getValue());
+      }
+    }
+    
+    return abort;
   }
 }

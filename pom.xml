@@ -46,6 +46,7 @@
 			org.symphonyoss.symphony.tools.rest.dependencies
 		</module>
 		<module>org.symphonyoss.symphony.tools.rest.test</module>
+		<module>symphony-rest-tools-package</module>
 	</modules>
 
 	<licenses>

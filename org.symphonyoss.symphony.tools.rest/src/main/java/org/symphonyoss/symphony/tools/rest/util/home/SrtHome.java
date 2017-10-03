@@ -63,6 +63,7 @@ public class SrtHome implements ISrtHome
   public SrtHome(Console console, String homeStr, String setBy)
   {
     console_ = console;
+    console_.setDefaultsProvider(this);
     
     Builder builder = new Builder(homeStr, setBy);
     
@@ -207,13 +208,13 @@ public class SrtHome implements ISrtHome
   }
 
   @Override
-  public String getName(String label)
+  public String getDefault(String label)
   {
     return defaultsProps_.getProperty(labelToPropName(label));
   }
   
   @Override
-  public void setName(String label, String name)
+  public void setDefault(String label, String name)
   {
     label = labelToPropName(label);
     
