@@ -228,6 +228,7 @@ public abstract class SrtCommand extends Srt
   protected Builder getJCurl()
   {
     Builder builder = JCurl.builder()
+        .extract(TOKEN, TOKEN)  // force JCurl to parse JSON
         .trustAllHostnames(true)
         .trustAllCertificates(true)
         .header("User-Agent", programName_ + " / 0.1.0 https://github.com/bruceskingle/symphony-rest-tools");
@@ -245,6 +246,11 @@ public abstract class SrtCommand extends Srt
     
       if(getStoretype() != null)
         builder.storetype(getStoretype());
+    }
+    
+    if(verbose_.getCount()>0)
+    {
+      builder.verbosity(verbose_.getCount());
     }
     return builder;
   }

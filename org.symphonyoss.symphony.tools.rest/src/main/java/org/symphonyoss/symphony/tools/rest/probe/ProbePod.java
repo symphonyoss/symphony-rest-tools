@@ -135,10 +135,10 @@ public class ProbePod extends SrtCommand
       .withSwitch(overwriteConfig_);
     
     podObjective_ = getConsole().createObjective("Locate Pod");
-    keyManagerObjective_ = getConsole().createObjective("Locate Key Manager");
     sessionAuthObjective_ = getConsole().createObjective("Locate Session Auth Endpoint");
-    keyAuthObjective_ = getConsole().createObjective("Locate Key Manager Auth Endpoint");
     podApiObjective_ = getConsole().createObjective("Locate Pod API Endpoint");
+    keyManagerObjective_ = getConsole().createObjective("Locate Key Manager");
+    keyAuthObjective_ = getConsole().createObjective("Locate Key Manager Auth Endpoint");
     agentObjective_ = getConsole().createObjective("Locate Agent");
   }
 

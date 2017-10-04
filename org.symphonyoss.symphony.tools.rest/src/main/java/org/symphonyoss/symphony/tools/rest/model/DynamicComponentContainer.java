@@ -43,6 +43,11 @@ public class DynamicComponentContainer extends ModelObjectContainer implements I
   {
     super(parent, TYPE_NAME, "Dynamic Components");
   }
+  
+  public DynamicComponentContainer(IModelObjectContainer parent, String name)
+  {
+    super(parent, TYPE_NAME, name);
+  }
 
   @Override
   public IModelObject getComponent(String name)
@@ -86,6 +91,6 @@ public class DynamicComponentContainer extends ModelObjectContainer implements I
   @Override
   public void componentStatusChanged(ComponentStatus status, String statusMessage)
   {
-    setComponentStatusIfMoreSevere(status);
+    setComponentStatusIfMoreSevere(status, statusMessage);
   }
 }

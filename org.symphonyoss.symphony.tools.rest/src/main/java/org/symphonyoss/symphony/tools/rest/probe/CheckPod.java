@@ -24,6 +24,7 @@
 package org.symphonyoss.symphony.tools.rest.probe;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.CertificateParsingException;
@@ -40,6 +41,7 @@ import org.symphonyoss.symphony.tools.rest.model.ModelObject;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
 import org.symphonyoss.symphony.tools.rest.util.Console;
+import org.symphonyoss.symphony.tools.rest.util.IObjective;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,6 +53,8 @@ public class CheckPod extends SrtCommand
   private IPod                     pod_;
   private boolean                  structureChange_;
   private Set<IModelObject> changedComponents_          = new HashSet<>();
+
+  private IObjective podObjective_;
 //  private Set<IModelObject> structureChangedComponents_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
@@ -77,6 +81,8 @@ public class CheckPod extends SrtCommand
     withHostName(true);
     withKeystore(false);
     withTruststore(false);
+    
+    podObjective_ = getConsole().createObjective("Check Pod");
   }
 
   @Override
@@ -98,7 +104,14 @@ public class CheckPod extends SrtCommand
 
     println();
     
+    int totalWork = 1;
+    getConsole().beginTask("Checking " + getFqdn(), totalWork);
+    
     probePod();
+    
+    getConsole().worked(1);
+    
+    getConsole().printObjectives();
   }
 
   
@@ -107,6 +120,7 @@ public class CheckPod extends SrtCommand
   {
     try
     {
+      
       println("Checking Pod");
       println("=============");
       
@@ -121,24 +135,19 @@ public class CheckPod extends SrtCommand
       JCurl jCurl = getJCurl().build();
       HttpURLConnection connection = jCurl.connect(url);
       
+      int responseCode = connection.getResponseCode();
       
-  
-      switch(connection.getResponseCode())
+      switch(responseCode)
       {
         case 200:
-          println("Pod is healthy.");
-          pod_.setComponentStatus(ComponentStatus.OK, "Healthcheck OK");
-          break;
-          
         case 500:
-          println("Pod is unwell.");
-          pod_.setComponentStatus(ComponentStatus.Failed, "Healthcheck FAILED");
           break;
           
-          default:
-            println("Healthcheck failed.");
-            pod_.setComponentStatus(ComponentStatus.Failed, "Error " + connection.getResponseCode());
-            return;
+        default:
+          println("Healthcheck failed.");
+          pod_.setComponentStatus(ComponentStatus.Failed, "Error " + connection.getResponseCode());
+          pod_.getManager().modelObjectChanged(pod_);
+          return;
       }
   
       Response response = jCurl.processResponse(connection);
@@ -147,6 +156,8 @@ public class CheckPod extends SrtCommand
       if (healthJson == null)
       {
         println("This looks a lot like a Symphony Pod, but it isn't");
+        pod_.setComponentStatus(ComponentStatus.Failed, "Non-JSON response from HealthCheck");
+        pod_.getManager().modelObjectChanged(pod_);
         return;
       }
   
@@ -154,10 +165,14 @@ public class CheckPod extends SrtCommand
       {
         println("This looks like a Symphony Pod, but the healthcheck returns something other than an object");
         println(healthJson);
+        pod_.setComponentStatus(ComponentStatus.Failed, String.format("Received a JSON %s from HealthCheck, but we expect an object", healthJson.getNodeType()));
+        pod_.getManager().modelObjectChanged(pod_);
         return;
       }
       
       Iterator<String> it = healthJson.fieldNames();
+      int failedComponents = 0;
+      int totalComponents = 0;
       
       while(it.hasNext())
       {
@@ -176,7 +191,44 @@ public class CheckPod extends SrtCommand
             },
             (existingComponent) -> changedComponents_.add(existingComponent)
         ).setComponentStatus(healthy ? ComponentStatus.OK : ComponentStatus.Failed, "");
+        
+        if(!healthy)
+          failedComponents++;
+        
+        totalComponents++;
       }
+      
+      switch(responseCode)
+      {
+        case 200:
+          println("Pod is healthy.");
+          
+          if(failedComponents == 0)
+          {
+            pod_.setComponentStatus(ComponentStatus.OK, "Healthcheck OK");
+            podObjective_.setStatus(ComponentStatus.OK);
+          }
+          else
+          {
+            pod_.setComponentStatus(ComponentStatus.Error, 
+                String.format("Healthcheck OK but %d of %d non-critical components failed", failedComponents, totalComponents));
+            podObjective_.setStatus(ComponentStatus.Error);
+          }
+          break;
+          
+        case 500:
+          println("Pod is unwell.");
+          pod_.setComponentStatus(ComponentStatus.Failed, 
+              String.format("Healthcheck FAILED (%d of %d components failed)", failedComponents, totalComponents));
+          podObjective_.setStatus(ComponentStatus.Failed);
+          break;
+          
+          default:
+            pod_.setComponentStatus(ComponentStatus.Failed, "Unexpected Error " + responseCode);
+            podObjective_.setStatus(ComponentStatus.Failed);
+            return;
+      }
+      
       
       if(structureChange_)
       {
@@ -196,9 +248,18 @@ public class CheckPod extends SrtCommand
         }
       }
     }
+    catch(ConnectException e)
+    {
+      getConsole().error("Cannot connect to pod");
+      pod_.setComponentStatus(ComponentStatus.Stopped, "Cannot Connect");
+      podObjective_.setStatus(ComponentStatus.Stopped);
+      pod_.getManager().modelObjectChanged(pod_);
+    }
     catch(IOException | CertificateParsingException e)
     {
       e.printStackTrace(getConsole().getErr());
+      podObjective_.setStatus(ComponentStatus.Stopped);
+      pod_.getManager().modelObjectChanged(pod_);
     }
   }
 }

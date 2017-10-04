@@ -93,11 +93,12 @@ public class Component implements IComponent
     listeners_.remove(listener);
   }
   
-  public synchronized void setComponentStatusIfMoreSevere(ComponentStatus status)
+  public synchronized void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessage)
   {
     if(status.isMoreSevereThan(status_))
     {
       status_ = status;
+      statusMessage_ = statusMessage;
       notifyListeners();
     }
   }

@@ -6,13 +6,13 @@ Bundle-Version: 0.1.1.qualifier
 Bundle-Vendor: Packaged by Symphony Communication Services, LLC.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .,
- lib/jcurl-0.9.6.jar,
  lib/jsr305-3.0.2.jar,
  lib/bcpkix-jdk15on-1.51.jar,
  lib/bcprov-jdk15on-1.51.jar,
  lib/jackson-annotations-2.8.7.jar,
  lib/jackson-core-2.8.7.jar,
- lib/jackson-databind-2.8.7.jar
+ lib/jackson-databind-2.8.7.jar,
+ lib/jcurl-0.9.7.jar
 Export-Package: com.fasterxml.jackson.annotation,
  com.fasterxml.jackson.core,
  com.fasterxml.jackson.core.base,

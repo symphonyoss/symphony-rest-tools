@@ -39,6 +39,6 @@ public enum ComponentStatus
   
   public boolean isMoreSevereThan(ComponentStatus other)
   {
-    return severity_ > other.severity_;
+    return other==null || severity_ > other.severity_;
   }
 }

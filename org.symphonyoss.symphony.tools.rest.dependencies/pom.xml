@@ -14,15 +14,13 @@
 	    <artifactId>org.symphonyoss.symphony.tools.rest</artifactId>
 	    <version>${project.version}</version>
   	</dependency>
-  	<dependency>
+ 		<dependency>
 			<groupId>org.symphonyoss.symphony</groupId>
 			<artifactId>jcurl</artifactId>
-			<version>0.9.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
-			<version>3.0.2</version>
 		</dependency>
 	</dependencies>
 
