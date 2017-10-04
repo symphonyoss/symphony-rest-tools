@@ -46,6 +46,7 @@ public class TypeConverterFactory
     stringConverterMap_.put(Long.class,     (v) -> Long.parseLong(v));
     stringConverterMap_.put(Double.class,   (v) -> Double.parseDouble(v));
     stringConverterMap_.put(Float.class,    (v) -> Float.parseFloat(v));
+    stringConverterMap_.put(Boolean.class,    (v) -> Boolean.parseBoolean(v));
   }
   
   public static <S,T> ITypeConverter<S,T> getConverter(Class<S> sourceType, Class<T> targetType)

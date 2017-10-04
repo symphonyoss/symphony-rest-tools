@@ -19,10 +19,10 @@ public class CommandLineParserTest
   private ISetter<String> sink_ = (v) -> v=null;
   
   private Flag flag_ = new Flag("Help me", sink_).withName("h");
-  private Switch switch_ = new Switch('h', "Show help");
+  private Switch switch_ = new Switch('h', "Help", "Show help");
   private CommandLineParser clp_ = new CommandLineParser("testCommand")
       .withSwitch(switch_)
-      .withSwitch(new Switch('q', "Quiet Mode."))
+      .withSwitch(new Switch('q', "Quiet", "Quiet Mode."))
       .withFlag(new Flag("Keystore File Name", sink_).withName("k").withName("keystore"))
       .withFlag(new Flag("FileName", sink_))
       ;
@@ -88,7 +88,7 @@ public class CommandLineParserTest
     
     assertEquals("Usage: testCommand", clp.getUsage());
     
-    clp.withSwitch(new Switch('q', "Quiet mode."));
+    clp.withSwitch(new Switch('q', "Quiet", "Quiet mode."));
     
     assertEquals("Usage: testCommand [-q]", clp.getUsage());
     
@@ -98,7 +98,7 @@ public class CommandLineParserTest
     
     assertEquals("Usage: testCommand [-q] [[-k | --keystore] Keystore_file_name]", clp.getUsage());
     
-    clp.withSwitch(new Switch('a', "Show all."));
+    clp.withSwitch(new Switch('a', "Show All", "Show all."));
     
     assertEquals("Usage: testCommand [-qa] [[-k | --keystore] Keystore_file_name]", clp.getUsage());
     

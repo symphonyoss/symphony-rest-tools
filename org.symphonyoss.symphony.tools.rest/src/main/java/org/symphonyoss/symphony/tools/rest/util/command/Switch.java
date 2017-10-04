@@ -25,19 +25,21 @@ package org.symphonyoss.symphony.tools.rest.util.command;
 
 public class Switch
 {
-  private final char    name_;
-  private final int     max_;
-  private final String  help_;
-  private int           count_;
+  private final char   name_;
+  private final String label_;
+  private final String help_;
+  private final int    max_;
+  private int          count_;
   
-  public Switch(char name, String help)
+  public Switch(char name, String label, String help)
   {
-    this(name, help, 1);
+    this(name, label, help, 1);
   }
   
-  public Switch(char name, String help, int max)
+  public Switch(char name, String label, String help, int max)
   {
     name_ = name;
+    label_ = label;
     help_ = help;
     max_ = max;
   }
@@ -67,6 +69,16 @@ public class Switch
   public char getName()
   {
     return name_;
+  }
+
+  public String getLabel()
+  {
+    return label_;
+  }
+
+  public int getMax()
+  {
+    return max_;
   }
 
   public String getHelp()

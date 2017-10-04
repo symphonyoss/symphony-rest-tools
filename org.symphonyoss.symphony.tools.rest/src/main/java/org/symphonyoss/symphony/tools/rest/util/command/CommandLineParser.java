@@ -32,6 +32,8 @@ import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 public class CommandLineParser
 {
+  private static final String EM_DASH = "\u2014";
+  
   private String            commandName_;
   private Map<String, Flag> flagMap_  = new HashMap<>();
   private List<Flag>        flags_  = new ArrayList<>();
@@ -165,14 +167,11 @@ public class CommandLineParser
       
       if(arg.startsWith("--"))
       {
-        Flag flag = flagMap_.get(arg.substring(2));
-        
-        if(flag == null)
-        {
-          throw new CommandLineParserFault("Unrecognized flag \"" + arg + "\"");
-        }
-        
-        set(arg, flag, argv);
+        handleFlag(arg.substring(2), arg, argv);
+      }
+      if(arg.startsWith(EM_DASH))
+      {
+        handleFlag(arg.substring(1), arg, argv);
       }
       else if(arg.startsWith("-"))
       {
@@ -201,6 +200,18 @@ public class CommandLineParser
         set(null, argSetter_, argv);
       }
     }
+  }
+
+  private void handleFlag(String flagName, String arg, String[] argv)
+  {
+    Flag flag = flagMap_.get(flagName);
+    
+    if(flag == null)
+    {
+      throw new CommandLineParserFault("Unrecognized flag \"" + arg + "\"");
+    }
+    
+    set(arg, flag, argv);
   }
 
   private void set(String flagName, Flag flag, String[] argv)

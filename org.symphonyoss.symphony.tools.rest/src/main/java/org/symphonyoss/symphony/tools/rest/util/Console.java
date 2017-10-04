@@ -30,7 +30,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.symphonyoss.symphony.tools.rest.SrtCommand;
 import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
 import org.symphonyoss.symphony.tools.rest.util.home.IDefaultsProvider;
@@ -38,10 +40,11 @@ import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
 public class Console
 {
-  private final BufferedReader in_;
-  private final PrintWriter    out_;
-  private final PrintWriter    err_;
-  private IDefaultsProvider    defaultsProvider_;
+  private final BufferedReader             in_;
+  private final PrintWriter                out_;
+  private final PrintWriter                err_;
+  private IDefaultsProvider                defaultsProvider_;
+  private CopyOnWriteArrayList<IObjective> objectives_ = new CopyOnWriteArrayList<>();
   
   public Console(InputStream in, OutputStream out, OutputStream err)
   {
@@ -258,5 +261,77 @@ public class Console
     }
     
     return abort;
+  }
+
+  public void execute(SrtCommand srtCommand)
+  {
+    boolean abort = setParameters(srtCommand.getParser(), srtCommand.getInteractive().getCount());
+    
+    if(abort)
+    {
+      error("Aborted.");
+    }
+    else
+    {
+      srtCommand.doExecute();
+    }
+  }
+
+  public void beginTask(String name, int totalWork)
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void done()
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public boolean isCanceled()
+  {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  public void setTaskName(String name)
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void subTask(String name)
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void worked(int work)
+  {
+    // TODO Auto-generated method stub
+    
+  }
+  
+  public IObjective createObjective(String name)
+  {
+    IObjective objective = new Objective(name);
+    
+    objectives_.add(objective);
+    
+    return objective;
+  }
+
+  public void printObjectives()
+  {
+    for(IObjective objective : objectives_)
+    {
+      printf("%20s %s\n", objective.getLabel(), objective.getStatus());
+    }
+  }
+
+  public CopyOnWriteArrayList<IObjective> getObjectives()
+  {
+    return objectives_;
   }
 }

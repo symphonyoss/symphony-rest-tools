@@ -58,8 +58,9 @@ public abstract class SrtCommand extends Srt
   //private List<>
   private SrtCommandLineHome parser_;
   
-  protected final  Switch verbose_ = new Switch('v', "Set verbose Mode", 3);
-  protected final  Switch interactive_ = new Switch('i', "Set interactive Mode", 2);
+  protected final  Switch verbose_ = new Switch('v', "Verbose", "Set verbose Mode", 3);
+  protected final  Switch interactive_ = new Switch('i', "Interactive", "Set interactive Mode", 2);
+  private boolean withHostName_;
   
   /**
    * Create an instance with a Console connected to standard I/O.
@@ -93,6 +94,7 @@ public abstract class SrtCommand extends Srt
         .withRequired(required)
         .withSelectionType(IPod.class))
         ;
+    withHostName_ = true;
   }
 
   protected void withKeystore(boolean required)
@@ -133,54 +135,30 @@ public abstract class SrtCommand extends Srt
       name_ = getDefaultName();
     }
     
-    boolean abort = console_.setParameters(parser_, interactive_.getCount());
-    
-    
-    
-    if(abort)
+    console_.execute(this);
+    console_.close();
+   }
+   
+  public void doExecute()
+  {
+    if(withHostName_)
     {
-      console_.error("Aborted.");
-      getConsole().close();
-      return;
+      int i = name_.indexOf('.');
+  
+      if (i == -1)
+        domain_ = Srt.DEFAULT_DOMAIN;
+      else
+      {
+        domain_ = name_.substring(i);
+        name_ = name_.substring(0, i);
+      }
+  
+      fqdn_ = name_ + domain_;
+  
+      console_.println("name=" + name_);
+      console_.println("domain=" + domain_);
+      console_.println();
     }
-    
-//    boolean confirm = confirmName_;
-//    
-//    if(name_ == null || name_.length()==0)
-//    {
-//      name_ = getSrtHome().getName(Srt.NAME_HOST);
-//      confirm = true;
-//    }
-//    
-//    do
-//    {
-//      if(name_ == null || name_.length()==0)
-//      {
-//        name_ = console_.promptString(Srt.NAME_HOST);
-//      }
-//      else if(confirm)
-//      {
-//        name_ = console_.promptString(Srt.NAME_HOST, name_);
-//      }
-//    } while(name_ == null || name_.length()==0);
-//
-//    getSrtHome().setName(Srt.NAME_HOST, name_);
-    
-    int i = name_.indexOf('.');
-
-    if (i == -1)
-      domain_ = Srt.DEFAULT_DOMAIN;
-    else
-    {
-      domain_ = name_.substring(i);
-      name_ = name_.substring(0, i);
-    }
-
-    fqdn_ = name_ + domain_;
-
-    console_.println("name=" + name_);
-    console_.println("domain=" + domain_);
-    console_.println();
     
     try
     {
@@ -349,5 +327,15 @@ public abstract class SrtCommand extends Srt
   public SrtCommandLineHome getParser()
   {
     return parser_;
+  }
+
+  public Switch getVerbose()
+  {
+    return verbose_;
+  }
+
+  public Switch getInteractive()
+  {
+    return interactive_;
   }
 }

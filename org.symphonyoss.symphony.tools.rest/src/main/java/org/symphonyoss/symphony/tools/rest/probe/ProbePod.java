@@ -48,8 +48,13 @@ import org.symphonyoss.symphony.tools.rest.model.Agent;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.InvalidConfigException;
 import org.symphonyoss.symphony.tools.rest.model.Pod;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 import org.symphonyoss.symphony.tools.rest.util.Console;
+import org.symphonyoss.symphony.tools.rest.util.IObjective;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
+import org.symphonyoss.symphony.tools.rest.util.SubTaskMonitor;
+import org.symphonyoss.symphony.tools.rest.util.command.Flag;
+import org.symphonyoss.symphony.tools.rest.util.command.Switch;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -63,6 +68,11 @@ public class ProbePod extends SrtCommand
   private static final int[]    AgentPorts   = new int[] { 443, 8444, 8445, 8446 };
   private static final String[] SUFFIXES     = new String[] { "-api", "" };
 
+  private static final int PROBE_POD_WORK = 6;
+  private static final int AUTH_PROBE_WORK = 1;
+  private static final int AGENT_PROBE_WORK = 1;
+  private static final int SAVE_CONFIG_WORK = 2;
+
   private boolean               podHealthy_;
   private int                   podId_;
 
@@ -75,6 +85,24 @@ public class ProbePod extends SrtCommand
   private Pod.Builder           podConfig_   = Pod.newBuilder();
   private Agent.Builder         agentConfig_ = Agent.newBuilder();
   private Set<X509Certificate>  serverCerts_ = new HashSet<>();
+  
+  private Switch               overwriteConfig_;
+
+  private IObjective podObjective_;
+
+  private IObjective keyManagerObjective_;
+
+  private IObjective podApiObjective_;
+
+  private IObjective agentObjective_;
+
+  private IObjective sessionAuthObjective_;
+
+  private IObjective keyAuthObjective_;
+
+  private String sessionToken_;
+
+  private String keymanagerToken_;
   
   public static void main(String[] argv) throws IOException
   {
@@ -100,6 +128,18 @@ public class ProbePod extends SrtCommand
     withHostName(true);
     withKeystore(false);
     withTruststore(false);
+    
+    overwriteConfig_ = new Switch('s', "Overwrite Config", "Overwrite any existingsaved config for this pod", 1);
+    
+    getParser()
+      .withSwitch(overwriteConfig_);
+    
+    podObjective_ = getConsole().createObjective("Locate Pod");
+    keyManagerObjective_ = getConsole().createObjective("Locate Key Manager");
+    sessionAuthObjective_ = getConsole().createObjective("Locate Session Auth Endpoint");
+    keyAuthObjective_ = getConsole().createObjective("Locate Key Manager Auth Endpoint");
+    podApiObjective_ = getConsole().createObjective("Locate Pod API Endpoint");
+    agentObjective_ = getConsole().createObjective("Locate Agent");
   }
 
   @Override
@@ -108,40 +148,62 @@ public class ProbePod extends SrtCommand
     podConfig_.setName(getFqdn());
     
     IPod pod = getSrtHome().getPodManager().getPod(getFqdn());
-    boolean   doProbe = true;
-
-    if(pod != null)
-    {
-      println("We have an existing config for this Pod:");
-      println("========================================");
-      
-      pod.print(getConsole().getOut());
-      
-      doProbe = getConsole().promptBoolean("Continue with probe?");
-    }
+//    boolean   doProbe = true;
+//
+//    if(pod != null)
+//    {
+//      println("We have an existing config for this Pod:");
+//      println("========================================");
+//      
+//      pod.print(getConsole().getOut());
+//      
+//      doProbe = getConsole().promptBoolean("Continue with probe?");
+//    }
+//    
+//    if(!doProbe)
+//    {
+//      getConsole().error("Aborted.");
+//      return;
+//    }
     
-    if(!doProbe)
-    {
-      getConsole().error("Aborted.");
-      return;
-    }
+    int totalWork = (PROBE_POD_WORK  * POD_PORTS.length) + AUTH_PROBE_WORK + AGENT_PROBE_WORK + SAVE_CONFIG_WORK;
     
+    getConsole().beginTask("Probing " + getFqdn() + " for a Pod", totalWork);
+    podObjective_.setStatus(ComponentStatus.Starting);
+    podApiObjective_.setStatus(ComponentStatus.Starting);
+    sessionAuthObjective_.setStatus(ComponentStatus.Starting);
 
     println("Probing for Pod");
     println("===============");
     
+    int skippedWork = PROBE_POD_WORK  * POD_PORTS.length;
+    
     for(int port : POD_PORTS)
     {
+      if(getConsole().isCanceled())
+        return;
+      
       probePod(port);
+      
+      skippedWork -= PROBE_POD_WORK;
       
       if(podConfig_.getPodUrl() != null)
         break;
     }
     
+    if(skippedWork > 0)
+      getConsole().worked(skippedWork);
+    
     if(podConfig_.getWebUrl() == null)
     {
       getConsole().flush();
       getConsole().error("Probe did not even find a website.");
+      podObjective_.setStatus(ComponentStatus.Failed);
+      
+      podObjective_.setStatus(ComponentStatus.Failed);
+      podApiObjective_.setStatus(ComponentStatus.Failed);
+      sessionAuthObjective_.setStatus(ComponentStatus.Failed);
+      
       return;
     }
     
@@ -155,9 +217,24 @@ public class ProbePod extends SrtCommand
       
       getConsole().printf(format, "Web URL", podConfig_.getWebUrl());
       println();
+      
+      podObjective_.setStatus(ComponentStatus.Failed);
+      podApiObjective_.setStatus(ComponentStatus.Failed);
+      sessionAuthObjective_.setStatus(ComponentStatus.Failed);
+      
+      return;
     }
     else
     {
+      if(getConsole().isCanceled())
+        return;
+      
+      podObjective_.setStatus(ComponentStatus.OK);
+      podApiObjective_.setStatus(podConfig_.getPodApiUrl() == null ? ComponentStatus.Failed : ComponentStatus.OK);
+      sessionAuthObjective_.setStatus(podConfig_.getSessionAuthUrl() == null ? 
+          ComponentStatus.Failed : 
+            sessionToken_ == null ? ComponentStatus.Warning : ComponentStatus.OK);
+
       if(podConfig_.getKeyManagerUrl() == null)
       {
         println("No podInfo, try to look for an in-cloud key manager...");
@@ -165,12 +242,16 @@ public class ProbePod extends SrtCommand
         podConfig_.setKeyManagerUrl(createURL(podConfig_.getPodUrl(), "/relay"));
       }
       
+      // How can this ever be true?
       if(podConfig_.getKeyManagerUrl() == null)
       {
         // We found a pod but can't get podInfo - fatal error
+        podObjective_.setStatus(ComponentStatus.Failed);
         return;
       }
-          
+      
+      keyManagerObjective_.setStatus(ComponentStatus.Starting);
+      
       URL kmUrl = podConfig_.getKeyManagerUrl();
       String keyManagerDomain;
       String keyManagerName = kmUrl.getHost();
@@ -188,22 +269,6 @@ public class ProbePod extends SrtCommand
       println("keyManagerName=" + keyManagerName);
       println("keyManagerDomain=" + keyManagerDomain);
       
-      
-      println();
-      println("Probing for API Keyauth");
-      println("=======================");
-      
-      keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
-      
-      if(keyAuthResponse_ != null)
-      {
-        podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
-        
-        String token = getTag(keyAuthResponse_, TOKEN);
-        
-        if(token != null)
-          getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
-      }
 
       // Need to find a reliable health check indicator of keymanager in
       // all deployments, for now assume that as the pod told is this
@@ -217,7 +282,43 @@ public class ProbePod extends SrtCommand
 //      if(response.isFailed())
 //        return;
       println("Found key manager at " + podConfig_.getKeyManagerUrl());
+      keyManagerObjective_.setStatus(ComponentStatus.OK);
       
+      if(getConsole().isCanceled())
+        return;
+
+      println();
+      println("Probing for API Keyauth");
+      println("=======================");
+
+      keyAuthObjective_.setStatus(ComponentStatus.Starting);
+      SubTaskMonitor subTaskMonitor = new SubTaskMonitor(getConsole(), "Probing for API Keyauth", AUTH_PROBE_WORK);
+      
+      keyAuthResponse_ = probeAuth("Key Auth", "/keyauth", keyManagerName, keyManagerDomain);
+      
+      if(keyAuthResponse_ != null)
+      {
+        podConfig_.setKeyAuthUrl(getUrl(keyAuthResponse_, TOKEN));
+        
+        String token = getTag(keyAuthResponse_, TOKEN);
+        
+        if(token != null)
+        {
+          keymanagerToken_ = token;
+          getSrtHome().saveSessionToken(getFqdn(), KEYMANAGER_TOKEN, token);
+        }
+      }
+      
+      keyAuthObjective_.setStatus(keyAuthResponse_ == null ? 
+          ComponentStatus.Failed : 
+            keymanagerToken_ == null ? ComponentStatus.Warning : ComponentStatus.OK);
+      
+      if(subTaskMonitor.worked(1))
+        return;
+
+
+      agentObjective_.setStatus(ComponentStatus.Starting);
+      subTaskMonitor = new SubTaskMonitor(getConsole(), "Probing for API Agent", AUTH_PROBE_WORK);
       println();
       println("Probing for API Agent");
       println("=====================");
@@ -230,9 +331,18 @@ public class ProbePod extends SrtCommand
       {
         agentConfig_.setName(agentUrl.getHost());
         agentConfig_.setAgentApiUrl(agentUrl);
+        agentObjective_.setStatus(ComponentStatus.OK);
+      }
+      else
+      {
+        agentObjective_.setStatus(ComponentStatus.Failed);
       }
       
+      if(subTaskMonitor.worked(1))
+        return;
   
+      getConsole().printObjectives();
+      
       println();
       println("Probe Successful");
       println("================");
@@ -248,6 +358,8 @@ public class ProbePod extends SrtCommand
       printf(format, "Pod API URL", podConfig_.getPodApiUrl());
       printf(format, "Agent API URL", agentConfig_.getAgentApiUrl());
       
+      
+
       if(getKeystore() != null)
       {
         println();
@@ -267,6 +379,10 @@ public class ProbePod extends SrtCommand
       println();
     }
     
+    if(getConsole().isCanceled())
+      return;
+
+        
     println("Root server certs:");
     for (X509Certificate cert : podConfig_.getTrustCerts())
       println(cert.getSubjectX500Principal().getName());
@@ -275,12 +391,19 @@ public class ProbePod extends SrtCommand
     println("End server certs:");
     for (X509Certificate cert : serverCerts_)
       println(cert.getSubjectX500Principal().getName());
-    
-    boolean updateConfig = pod == null ? true : getConsole().promptBoolean("Overwrite the saved config?");;
-    
-    
-    if(updateConfig)
+        
+    if(getConsole().isCanceled())
+      return;
+
+    if(pod==null || overwriteConfig_.getCount()>0)
     {
+      System.err.println("OK");
+    }
+    
+    if(pod==null || overwriteConfig_.getCount()>0)
+    {
+      SubTaskMonitor subTaskMonitor = new SubTaskMonitor(getConsole(), "Saving Configuration", SAVE_CONFIG_WORK);
+
       try
       {
         getSrtHome().getPodManager().createOrUpdatePod(podConfig_, agentConfig_);
@@ -290,6 +413,9 @@ public class ProbePod extends SrtCommand
         getConsole().error("Faild to save config:");
         e.printStackTrace(getConsole().getErr());
       }
+      
+      if(subTaskMonitor.worked(1))
+        return;
 
 //        if(agentConfig_.getAgentApiUrl() != null)
 //          pod.createOrUpdateAgent(agentConfig_);
@@ -337,6 +463,8 @@ public class ProbePod extends SrtCommand
 
   private void probePod(int port)
   {
+    SubTaskMonitor subTaskMonitor = new SubTaskMonitor(getConsole(), "Probing Port " + port, PROBE_POD_WORK);
+    
     Probe probe = new Probe(getName(), "", getDomain(), port,
         "/");
     
@@ -349,12 +477,17 @@ public class ProbePod extends SrtCommand
       else
         println("This is not a website");
 
+      subTaskMonitor.done();
+      
       return;
     }
     else if(podConfig_.getWebUrl() == null)
     {
       podConfig_.setWebUrl(probe.getProbeUrl());
     }
+    
+    if(subTaskMonitor.worked(1))
+      return;
     
 
     probe = new Probe(getName(), getDomain(), "", port,
@@ -365,6 +498,9 @@ public class ProbePod extends SrtCommand
     if (probe.isFailed())
     {
       println("This is a website but not a Symphony Pod");
+      
+      subTaskMonitor.done();
+      
       return;
     }
 
@@ -377,14 +513,23 @@ public class ProbePod extends SrtCommand
     if (healthCheckResult.isFailed())
     {
       println("This looks quite like a Symphony Pod, but it isn't");
+      
+      subTaskMonitor.done();
+      
       return;
     }
+    
+    if(subTaskMonitor.worked(1))
+      return;
 
     JsonNode healthJson = healthCheckResult.getJsonNode();
 
     if (healthJson == null)
     {
       println("This looks a lot like a Symphony Pod, but it isn't");
+      
+      subTaskMonitor.done();
+      
       return;
     }
 
@@ -392,6 +537,9 @@ public class ProbePod extends SrtCommand
     {
       println("This looks like a Symphony Pod, but the healthcheck returns something other than an object");
       println(healthJson);
+      
+      subTaskMonitor.done();
+      
       return;
     }
     
@@ -416,13 +564,19 @@ public class ProbePod extends SrtCommand
     println("===========================");
     
     sessionAuthResponse_ = probeAuth("Session Auth", "/sessionauth", getName(), getDomain());
+
+    if(subTaskMonitor.worked(1))
+      return;
     
     if(sessionAuthResponse_ != null)
     {
       String token = getTag(sessionAuthResponse_, TOKEN);
       
       if(token != null)
+      {
+        sessionToken_ = token;
         getSrtHome().saveSessionToken(getFqdn(), SESSION_TOKEN, token);
+      }
       
       podConfig_.setSessionAuthUrl(getUrl(sessionAuthResponse_, TOKEN));
       
@@ -456,6 +610,9 @@ public class ProbePod extends SrtCommand
       }
     }
     
+    if(subTaskMonitor.worked(1))
+      return;
+    
     Builder builder = getJCurl()
         .expect(401)
         .expect(200);
@@ -466,10 +623,16 @@ public class ProbePod extends SrtCommand
         "/").setProbePath("/login/checkauth?type=user", MIME_JSON);
     
     doProbe(builder.build(), checkAuthResult, 200, 401);
+    
+    if(subTaskMonitor.worked(1))
+      return;
 
     if (checkAuthResult.isFailed())
     {
       println("Can't do checkauth from this Pod.");
+      
+      subTaskMonitor.done();
+      
       return;
     }
     
@@ -478,6 +641,9 @@ public class ProbePod extends SrtCommand
     if (checkAuthJson == null)
     {
       println("Invalid checkAuth response");
+      
+      subTaskMonitor.done();
+      
       return;
     }
     
@@ -502,10 +668,16 @@ public class ProbePod extends SrtCommand
         "/").setProbePath("/webcontroller/public/podInfo", MIME_JSON);
     
     doProbe(builder.build(), podInfoResult);
+    
+    if(subTaskMonitor.worked(1))
+      return;
 
     if (podInfoResult.isFailed())
     {
       println("Can't get podInfo from this Pod.");
+      
+      subTaskMonitor.done();
+      
       return;
     }
 
@@ -514,6 +686,9 @@ public class ProbePod extends SrtCommand
     if (podInfoJson == null)
     {
       println("Invalid podInfo response");
+      
+      subTaskMonitor.done();
+      
       return;
     }
     
@@ -523,12 +698,18 @@ public class ProbePod extends SrtCommand
     {
       println("This looks like a Symphony Pod, but the podInfo returns something unexpected");
       println(podInfoJson);
+      
+      subTaskMonitor.done();
+      
       return;
     }
     
     podId_ = podInfoJsonData.get("podId").asInt();
     podConfig_.setKeyManagerUrl(createURL(podInfoJsonData.get("keyManagerUrl").asText()));
 
+    
+    subTaskMonitor.done();
+    
   }
 
   
