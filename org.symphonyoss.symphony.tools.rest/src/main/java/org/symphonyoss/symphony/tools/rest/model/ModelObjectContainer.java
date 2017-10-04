@@ -79,6 +79,22 @@ public class ModelObjectContainer extends ModelObject implements IModelObjectCon
     modelObjectStructureChanged(this);
   }
   
+  public void removeChild(IModelObject oldChild)
+  {
+    synchronized (childSet_)
+    {
+      if(oldChild != null)
+        childSet_.remove(oldChild);
+      
+      synchronized (children_)
+      {
+        children_ = childSet_.toArray(new IModelObject[childSet_.size()]);
+      }
+    }
+    
+    modelObjectStructureChanged(this);
+  }
+  
   @Override
   public void visit(IVisitor<IModelObject> visitor)
   {

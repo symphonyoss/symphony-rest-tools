@@ -205,4 +205,31 @@ public class PodManager extends FileSystemModelObjectManager implements IPodMana
     
     return newPod;
   }
+  
+  public void deletePod(Pod oldPod) throws IOException
+  {
+    File configDir = getConfigPath(oldPod.getName());
+    
+    deleteRecursively(configDir);
+    
+    synchronized (podMap_)
+    {
+      podMap_.remove(oldPod.getName());
+      removeChild(oldPod);
+    }
+    
+    oldPod.modelUpdated(null);
+  }
+
+  private void deleteRecursively(File f)
+  {
+    if(f.isDirectory())
+    {
+      for(File ff : f.listFiles())
+      {
+        deleteRecursively(ff);
+      }
+    }
+    f.delete();
+  }
 }

@@ -438,6 +438,12 @@ public class Pod extends SslServer implements IPod, ISrtSelectable
     manager_.save(this);
   }
   
+  @Override
+  public void delete() throws IOException
+  {
+    manager_.deletePod(this);
+  }
+  
   public synchronized DynamicComponentContainer getDynamicContainer()
   {
     if(dynamicContainer_ == null)

@@ -53,6 +53,8 @@ public interface IPod extends IModelObject, IComponent, IModelObjectContainer, I
   Principal addPrincipal(Builder principalBuilder);
 
   void save() throws IOException;
+  
+  void delete() throws IOException;
 
   IModelObject getComponent(String name);
 
