@@ -81,14 +81,9 @@ public class ProbePod extends SrtCommand
     new ProbePod(argv).run();
   }
 
-  public ProbePod(Console console, String name, ISrtHome srtHome)
+  public ProbePod(Console console, ISrtHome srtHome)
   {
-    super(PROGRAM_NAME, console, name, srtHome);
-  }
-
-  public ProbePod(Console console, String[] argv)
-  {
-    super(PROGRAM_NAME, console, argv);
+    super(PROGRAM_NAME, console, srtHome);
   }
 
   public ProbePod(String[] argv)

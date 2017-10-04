@@ -26,6 +26,7 @@ package org.symphonyoss.symphony.tools.rest.util.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.symphonyoss.symphony.tools.rest.model.IModelObject;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.TypeConverterFactory;
 
@@ -40,6 +41,7 @@ public class Flag
   private boolean               duplicatesAllowed_;
   private int                   count_;
   private String                value_ = "";
+  private Class<? extends IModelObject> selectionType_;
   
   public Flag(String prompt, ISetter<String> setter)
   {
@@ -69,7 +71,19 @@ public class Flag
       }
     };
   }
-    
+  
+  public Flag withSelectionType(Class<? extends IModelObject> selectionType)
+  {
+    selectionType_ = selectionType;
+    return this;
+  }
+
+
+  public Class<? extends IModelObject> getSelectionType()
+  {
+    return selectionType_;
+  }
+  
   public boolean isRequired()
   {
     return required_;
@@ -119,19 +133,12 @@ public class Flag
 
   public boolean checkCount()
   {
-    count_++;
-    
-    return duplicatesAllowed_ || count_==1;
+    return duplicatesAllowed_ || count_==0;
   }
 
   public int getCount()
   {
     return count_;
-  }
-
-  public ISetter<String> getSetter()
-  {
-    return setter_;
   }
 
   public List<String> getNames()
@@ -156,5 +163,11 @@ public class Flag
   public String getValue()
   {
     return value_;
+  }
+
+  public void set(String value)
+  {
+    count_++;
+    setter_.set(value);
   }
 }

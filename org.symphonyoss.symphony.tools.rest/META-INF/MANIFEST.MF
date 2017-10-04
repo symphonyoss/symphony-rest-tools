@@ -10,6 +10,7 @@ Export-Package: org.symphonyoss.symphony.tools.rest,
  org.symphonyoss.symphony.tools.rest.model.osmosis,
  org.symphonyoss.symphony.tools.rest.probe,
  org.symphonyoss.symphony.tools.rest.util,
+ org.symphonyoss.symphony.tools.rest.util.command,
  org.symphonyoss.symphony.tools.rest.util.home,
  org.symphonyoss.symphony.tools.rest.util.typeutils
 Import-Package: com.fasterxml.jackson.core,

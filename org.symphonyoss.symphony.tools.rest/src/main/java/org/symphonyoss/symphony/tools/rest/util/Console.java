@@ -233,7 +233,7 @@ public class Console
               
               try
               {
-                flag.getSetter().set(value);
+                flag.set(value);
                 if(flag.isRequired() && value.length()==0)
                 {
                   error("A value is required\n");

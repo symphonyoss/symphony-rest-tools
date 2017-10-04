@@ -58,14 +58,9 @@ public class CheckCerts extends SrtCommand
     new CheckCerts(argv).run();
   }
 
-  public CheckCerts(Console console, String name, ISrtHome srtHome)
+  public CheckCerts(Console console, ISrtHome srtHome)
   {
-    super(PROGRAM_NAME, console, name, srtHome);
-  }
-
-  public CheckCerts(Console console, String[] argv)
-  {
-    super(PROGRAM_NAME, console, argv);
+    super(PROGRAM_NAME, console, srtHome);
   }
 
   public CheckCerts(String[] argv)
@@ -73,8 +68,6 @@ public class CheckCerts extends SrtCommand
     super(PROGRAM_NAME, argv);
   }
   
-
-
   @Override
   public void execute()
   {

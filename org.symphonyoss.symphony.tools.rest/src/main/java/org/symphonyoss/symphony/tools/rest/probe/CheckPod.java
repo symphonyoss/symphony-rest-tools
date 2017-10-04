@@ -58,14 +58,9 @@ public class CheckPod extends SrtCommand
     new CheckPod(argv).run();
   }
 
-  public CheckPod(Console console, String name, ISrtHome srtHome)
+  public CheckPod(Console console, ISrtHome srtHome)
   {
-    super(PROGRAM_NAME, console, name, srtHome);
-  }
-
-  public CheckPod(Console console, String[] argv)
-  {
-    super(PROGRAM_NAME, console, argv);
+    super(PROGRAM_NAME, console, srtHome);
   }
 
   public CheckPod(String[] argv)

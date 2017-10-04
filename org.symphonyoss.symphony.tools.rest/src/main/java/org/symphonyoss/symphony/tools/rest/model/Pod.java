@@ -32,13 +32,14 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import org.symphonyoss.symphony.tools.rest.ISrtSelectable;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Pod extends SslServer implements IPod
+public class Pod extends SslServer implements IPod, ISrtSelectable
 {
   public static final String        TYPE_NAME                    = "Pod";
   public static final String        WEB_TYPE_NAME                = "WebServer";
@@ -463,5 +464,11 @@ public class Pod extends SslServer implements IPod
     return getDynamicContainer().getComponent(name,
         (parent, componentName) -> new ModelObject(this, GENERIC_COMPONENT, componentName),
         setExisting);
+  }
+
+  @Override
+  public Class<? extends IModelObject> getSelectionType()
+  {
+    return IPod.class;
   }
 }

@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
-import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
 public class CommandLineParser
 {
@@ -214,15 +213,12 @@ public class CommandLineParser
         throw new CommandLineParserFault("Duplicate values for flag \"" + flagName + "\" not allowed");
     }
       
-    ISetter<String> setter = flag.getSetter();
-    {
-      if(argc_ < argv.length)
-        setter.set(argv[argc_++]);
-      else if(flagName == null)
-        throw new CommandLineParserFault("Insufficient argument values");
-      else
-        throw new CommandLineParserFault("Insufficient values for flag \"" + flagName + "\"");
-    }
+    if(argc_ < argv.length)
+      flag.set(argv[argc_++]);
+    else if(flagName == null)
+      throw new CommandLineParserFault("Insufficient argument values");
+    else
+      throw new CommandLineParserFault("Insufficient values for flag \"" + flagName + "\"");
   }
 
   public String getCommandName()

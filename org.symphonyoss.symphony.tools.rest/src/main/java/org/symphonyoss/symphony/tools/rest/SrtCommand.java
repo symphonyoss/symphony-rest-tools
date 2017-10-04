@@ -29,6 +29,7 @@ import java.net.URL;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
+import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
@@ -67,14 +68,15 @@ public abstract class SrtCommand extends Srt
    */
   public SrtCommand(String programName, String[] argv)
   {
-    this(programName, new Console(System.in, System.out, System.err), argv);
+    this(programName, new Console(System.in, System.out, System.err), null);
+    
+    parser_.process(argv);
   }
   
-  public SrtCommand(String programName, Console console, String name, ISrtHome srtHome)
+  public SrtCommand(String programName, Console console, ISrtHome srtHome)
   {
     programName_ = programName;
     console_ = console;
-    name_ = name;
     
     parser_ = new SrtCommandLineHome(programName)
         .withSwitch(verbose_)
@@ -85,23 +87,12 @@ public abstract class SrtCommand extends Srt
     srtHome_ = srtHome == null ? parser_.createSrtHome(console_) : srtHome;
   }
   
-  /**
-   * Create an instance with the given console.
-   * 
-   * @param console A Console for I/O.,
-   * @param argv    Command line arguments.
-   */
-  public SrtCommand(String programName, Console console, String[] argv)
-  {
-    this(programName, console, null, null);
-    
-    parser_.process(argv);
-  }
-  
   protected void withHostName(boolean required)
   {
     parser_.withFlag(new Flag("Host Name", (v) -> name_ = v)
-        .withRequired(required));
+        .withRequired(required)
+        .withSelectionType(IPod.class))
+        ;
   }
 
   protected void withKeystore(boolean required)
@@ -348,5 +339,15 @@ public abstract class SrtCommand extends Srt
   public PrintWriter printf(String format, Object... args)
   {
     return console_.printf(format, args);
+  }
+
+  public String getProgramName()
+  {
+    return programName_;
+  }
+
+  public SrtCommandLineHome getParser()
+  {
+    return parser_;
   }
 }
