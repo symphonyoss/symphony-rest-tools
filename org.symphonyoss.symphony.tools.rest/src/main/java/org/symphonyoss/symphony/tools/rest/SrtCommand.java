@@ -32,7 +32,6 @@ import org.symphonyoss.symphony.tools.rest.console.Console;
 import org.symphonyoss.symphony.tools.rest.console.ConsoleDelegate;
 import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.util.IObjective;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
@@ -216,16 +215,9 @@ public abstract class SrtCommand extends ConsoleDelegate
   
   protected String getDefaultName()
   {
-    try
-    {
-      String name = getSrtHome().getPodManager().getDefaultPodName();
+    String name = getSrtHome().getPodManager().getDefaultPodName();
       
-      return name;
-    }
-    catch (NoSuchObjectException e)
-    {
-      throw new ProgramFault("There are no valid pod configurations. Try probe first.", e);
-    }
+    return name;
   }
 
   public abstract void execute();

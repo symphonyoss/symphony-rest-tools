@@ -65,16 +65,13 @@ public class PodManager extends FileSystemModelObjectManager implements IPodMana
 
 
   @Override
-  public String getDefaultPodName() throws NoSuchObjectException
+  public String getDefaultPodName()
   {
     synchronized(podMap_)
     {
       if(allLoaded_)
       {
         Set<String> keySet = podMap_.keySet();
-        
-        if(keySet.size() == 0)
-          throw new NoSuchObjectException("No pod configurations exist");
         
         if(keySet.size() == 1)
           return keySet.iterator().next();
@@ -84,9 +81,6 @@ public class PodManager extends FileSystemModelObjectManager implements IPodMana
     }
     
     String[] names = getConfigDir().list();
-    
-    if(names.length == 0)
-      throw new NoSuchObjectException("No pod configurations exist");
     
     if(names.length == 1)
       return names[0];

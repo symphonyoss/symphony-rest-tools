@@ -160,6 +160,7 @@ public class Principal extends ModelObject
     
     JCurl jcurl = JCurl.builder()
         .header(Srt.SESSION_TOKEN, skey)
+        .extract(KMSESSION, KMSESSION)
         .build();
     
     try
