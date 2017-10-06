@@ -210,7 +210,7 @@ public class SrtHome implements ISrtHome
   @Override
   public String getDefault(String label)
   {
-    return defaultsProps_.getProperty(labelToPropName(label));
+    return defaultsProps_.getProperty(labelToPropName(label), "");
   }
   
   @Override

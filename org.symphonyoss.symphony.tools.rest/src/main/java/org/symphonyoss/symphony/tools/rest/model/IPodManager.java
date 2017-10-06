@@ -38,15 +38,12 @@ public interface IPodManager extends IModelObjectContainer
   int getSize();
 
   /**
-   * Return the default configuration name. If there are no Pods then
-   * an exception is thrown, if there is no default and more than one
-   * valid configuration then returns null.
+   * Return the configuration name if there is exactly one configuration otherwise returns null.
    * 
    * @return The name of the default Pod configuration.
    * 
-   * @throws NoSuchObjectException If there are no valid configurations.
    */
-  String getDefaultPodName() throws NoSuchObjectException;
+  String getDefaultPodName();
 
   void loadAll();
 

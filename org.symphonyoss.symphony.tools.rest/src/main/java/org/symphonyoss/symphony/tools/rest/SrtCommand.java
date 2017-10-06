@@ -30,7 +30,6 @@ import java.net.URL;
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
 import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
@@ -181,16 +180,9 @@ public abstract class SrtCommand extends Srt
   
   protected String getDefaultName()
   {
-    try
-    {
-      String name = getSrtHome().getPodManager().getDefaultPodName();
+    String name = getSrtHome().getPodManager().getDefaultPodName();
       
-      return name;
-    }
-    catch (NoSuchObjectException e)
-    {
-      throw new ProgramFault("There are no valid pod configurations. Try probe first.", e);
-    }
+    return name;
   }
 
   public abstract void execute();
