@@ -23,42 +23,69 @@
 
 package org.symphonyoss.symphony.tools.rest.probe;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.SSLHandshakeException;
+import javax.security.auth.x500.X500Principal;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
-import org.symphonyoss.symphony.jcurl.JCurl.Response;
+import org.symphonyoss.symphony.jcurl.JCurl.Builder;
+import org.symphonyoss.symphony.jcurl.JCurl.HttpMethod;
 import org.symphonyoss.symphony.tools.rest.Srt;
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.model.IModelObject;
-import org.symphonyoss.symphony.tools.rest.model.ModelObject;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
-import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
-import org.symphonyoss.symphony.tools.rest.util.Console;
+import org.symphonyoss.symphony.tools.rest.util.IObjective;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 public class CheckCerts extends SrtCommand
 {
-  private static final String      PROGRAM_NAME                = "CheckCerts";
+  private static final String PROGRAM_NAME          = "CheckCerts";
+  private static final String WE_CANT_TELL          = "We cannot tell if these certs are good for this pod.";
+  private static final String CERTS_ARE_GOOD_SERVER = "This truststore is good for this pod.";
+  private static final String CERTS_ARE_GOOD        = "These certs are good for this pod.";
+  private static final String CERTS_ARE_BAD_TRUST   = "Server certs not in truststore.";
+  private static final String CERTS_ARE_BAD_AUTH    = "Client cert is NOT valid.";
+  private static final String CERTS_ARE_BAD_ACCOUNT = "Client cert is valid, auth failed FORBIDDEN.";
+  private static final String UNKNOWN_CERT          = "Received fatal alert: certificate_unknown";
+  private static final String BAD_CERT              = "Received fatal alert: bad_unknown";
+  private static final String AUTHENTICATED         = "Authenticated OK";
+  private static final String CERTS_ARE_BAD_UNKNOWN = "Client cert is valid, auth failed %d.";
 
-  private IPod                     pod_;
-  private boolean                  structureChange_;
-  private Set<IModelObject> changedComponents_          = new HashSet<>();
+  private IPod                pod_;
+  private String              clientCertCommonName_;
+  private IObjective          keystoreObjective_;
+  private IObjective          truststoreObjective_;
+  private IObjective          sessionAuthObjective_;
+  private IObjective          keyAuthObjective_;
+  private IObjective          podObjective_;
   
   public static void main(String[] argv) throws IOException
   {
     new CheckCerts(argv).run();
   }
 
-  public CheckCerts(Console console, ISrtHome srtHome)
+  public CheckCerts(IConsole console, ISrtHome srtHome)
   {
     super(PROGRAM_NAME, console, srtHome);
   }
@@ -69,127 +96,383 @@ public class CheckCerts extends SrtCommand
   }
   
   @Override
+  protected void init()
+  {
+    super.init();
+
+    withHostName(true);
+    withKeystore(true);
+    withTruststore(true);
+    
+    keystoreObjective_ = createObjective("Validate Keystore");
+    truststoreObjective_ = createObjective("Validate Truststore");
+    podObjective_ = createObjective("Connect to Pod");
+    sessionAuthObjective_ = createObjective("Authenticate to Pod");
+    keyAuthObjective_ = createObjective("Authenticate to Key Manager");
+  }
+  
+  @Override
   public void execute()
   {
+    int totalWork = 10; // TOD: count this
+    
+    beginTask(totalWork, "Check Certs");
+    
     pod_ = getSrtHome().getPodManager().getPod(getFqdn());
 
     if(pod_ == null)
     {
-      getConsole().flush();
-      getConsole().error(getFqdn() + " is not a known pod. Try probe instead?");
+      flush();
+      error(getFqdn() + " is not a known pod. Try probe instead?");
       return;
     }
     
     
     
-    println("Pod Configuration");
-    println("=================");
+    title("Pod Configuration");
     
-    pod_.print(getConsole().getOut());
+    pod_.print(getConsole());
 
     println();
     
-    probePod();
-  }
-
-  
-
-  private void probePod()
-  {
-    try
+    if(validateKeyStore("KeyStore", getKeystore(), getStoretype(), getStorepass().toCharArray(),
+        true, keystoreObjective_) != null)
+    {
+      return;
+    }
+    
+    if(validateKeyStore("TrustStore", getTruststore(), getTrusttype(), getTrustpass().toCharArray(),
+        false, truststoreObjective_) != null)
+    {
+      return;
+    }
+    
+    if(pod_.getPodUrl() == null)
+    {
+      error("No pod URL for this pod.");
+    }
+    else
     {
       println("Checking Pod");
       println("=============");
       
-      pod_.visit((component) -> 
-      {
-        component.resetStatus();
-      });
+      probe("Pod", createURL(pod_.getPodUrl(),
+          Srt.POD_HEALTHCHECK_PATH), false, podObjective_);
+    }
+    
+    if(pod_.getSessionAuthUrl() == null)
+    {
+      error("No session auth URL for this pod.");
+    }
+    else
+    {
+      println("Checking Session Auth");
+      println("=====================");
       
-      URL url = createURL(pod_.getPodUrl(),
-          POD_HEALTHCHECK_PATH);
+      probe("Session Auth", createURL(pod_.getSessionAuthUrl(),
+          Srt.AUTHENTICATE_PATH), true, sessionAuthObjective_);
+    }
+    
+    if(pod_.getPodUrl() == null)
+    {
+      sessionAuthObjective_.setComponentStatus(ComponentStatus.Failed,
+          error("No key manager URL for this pod."));
+    }
+    else
+    {
       
-      JCurl jCurl = getJCurl().build();
-      HttpURLConnection connection = jCurl.connect(url);
       
+      println("Checking Key Manager");
+      println("====================");
       
+      probe("Key Manager", pod_.getKeyManagerUrl(), false, null);
+    }
+    
+    if(pod_.getKeyAuthUrl() == null)
+    {
+      keyAuthObjective_.setComponentStatus(ComponentStatus.Failed,
+          error("No key auth URL for this pod."));
+    }
+    else
+    {
+      println("Checking Key Auth");
+      println("=================");
+      
+      probe("Key Auth", createURL(pod_.getKeyAuthUrl(),
+          Srt.AUTHENTICATE_PATH), true, keyAuthObjective_);
+    }
+  }
+
   
-      switch(connection.getResponseCode())
-      {
-        case 200:
-          println("Pod is healthy.");
-          pod_.setComponentStatus(ComponentStatus.OK, "Healthcheck OK");
-          break;
-          
-        case 500:
-          println("Pod is unwell.");
-          pod_.setComponentStatus(ComponentStatus.Failed, "Healthcheck FAILED");
-          break;
-          
-          default:
-            println("Healthcheck failed.");
-            pod_.setComponentStatus(ComponentStatus.Failed, "Error " + connection.getResponseCode());
-            return;
-      }
-  
-      Response response = jCurl.processResponse(connection);
-      JsonNode healthJson = response.getJsonNode();
-  
-      if (healthJson == null)
-      {
-        println("This looks a lot like a Symphony Pod, but it isn't");
-        return;
-      }
-  
-      if (!healthJson.isObject())
-      {
-        println("This looks like a Symphony Pod, but the healthcheck returns something other than an object");
-        println(healthJson);
-        return;
-      }
+
+  private String validateKeyStore(String name, String keystore, String storetype, char[] storepass, boolean isKeyStore, IObjective objective)
+  {
+    boolean warn = false;
+    
+    beginSubTask("Validate %s %s", name, keystore);
+    try
+    {
+      File keyStoreFile = new File(keystore);
       
-      Iterator<String> it = healthJson.fieldNames();
-      
-      while(it.hasNext())
+      if(!keyStoreFile.isFile())
       {
-        String name = it.next();
-        boolean healthy = healthJson.get(name).asBoolean();
-        
-        printf("%30s %s\n", name, healthy);
-        
-        pod_.getComponent(name, 
-            (parent, componentName) -> 
-            {
-              ModelObject component = new ModelObject(pod_, IComponent.GENERIC_COMPONENT, componentName);
-              
-              structureChange_ = true;
-              return component;
-            },
-            (existingComponent) -> changedComponents_.add(existingComponent)
-        ).setComponentStatus(healthy ? ComponentStatus.OK : ComponentStatus.Failed, "");
+        objective.setComponentStatus(ComponentStatus.Failed, "Not a file");
+        return error("%s is not a valid file", name);
       }
       
-      if(structureChange_)
+      if(!keyStoreFile.canRead())
       {
-        pod_.getManager().modelObjectStructureChanged(pod_);
+        objective.setComponentStatus(ComponentStatus.Failed, "Not readable");
+        return error("%s is not readable", name);
+      }
+      
+      KeyStore keyStore;
+      if(storetype == null)
+      {
+        keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       }
       else
       {
-//        for(IModelObject component : structureChangedComponents_)
-//        {
-//          changedComponents_.remove(component);
-//          pod_.getManager().modelObjectStructureChanged(component);
-//        }
-        
-        for(IModelObject component : changedComponents_)
+        keyStore = KeyStore.getInstance(storetype);
+      }
+      try(InputStream in = new FileInputStream(keyStoreFile))
+      {
+        keyStore.load(in, storepass);
+      }
+      catch (NoSuchAlgorithmException | CertificateException | IOException e)
+      {
+        objective.setComponentStatus(ComponentStatus.Failed, "Not valid keystore file (%s)", e);
+        return error(e, "%s is not readable", name);
+      }
+      
+      List<String>  aliases = new ArrayList<>();
+      Enumeration<String> it = keyStore.aliases();
+      
+      while(it.hasMoreElements())
+        aliases.add(it.nextElement());
+      
+      if(aliases.isEmpty())
+      {
+        objective.setComponentStatus(ComponentStatus.Failed, "Empty Keystore");
+        return error("%s is empty", name);
+      }
+      
+      if(isKeyStore && aliases.size() != 1)
+      {
+        warn = true;
+        objective.setComponentStatus(ComponentStatus.Warning, "Keystore has multiple entries");
+        error("%s has %d entries", name, aliases.size());
+      }
+      else
+      {
+        printfln("%s has %d entries", name, aliases.size());
+      }
+      
+      for(String alias : aliases)
+      {
+        if(keyStore.isCertificateEntry(alias))
         {
-          pod_.getManager().modelObjectChanged(component);
+          Certificate cert = keyStore.getCertificate(alias);
+          
+          if(cert == null)
+          {
+            error("%20s is an unreadable Trusted Certificate", alias);
+          }
+          else
+          {
+            printfln("%20s is a Trusted Certificate", alias);
+            X509Certificate x509Cert = (X509Certificate) cert;
+            String dn = x509Cert.getSubjectX500Principal().getName();
+            String cn = getCommonName(x509Cert.getSubjectX500Principal());
+            
+            //        12345678901234567890 XXX
+            printfln("                     %20s %s", cn, dn);   
+          }
+        }
+        else if(keyStore.isKeyEntry(alias))
+        {
+          try
+          {
+            Key key = keyStore.getKey(alias, storepass);
+            
+            printfln("%20s is a %s Private Key", alias, key.getAlgorithm());
+            
+            Certificate[] certs = keyStore.getCertificateChain(alias);
+            
+            if(certs == null)
+            {
+              error("There are no certificates attached to this private key");
+            }
+            else
+            {
+              int i=0;
+              for(Certificate cert : certs)
+              {
+                X509Certificate x509Cert = (X509Certificate) cert;
+                String dn = x509Cert.getSubjectX500Principal().getName();
+                String cn = getCommonName(x509Cert.getSubjectX500Principal());
+                
+                //        12345678901234567890 XXX
+                printfln("        cert[%02d] %20s %s", i++, cn, dn);
+                
+                if(isKeyStore && clientCertCommonName_==null)
+                  clientCertCommonName_ = cn;
+              }   
+            }
+          }
+          catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e)
+          {
+           return printfln("%20s is an unreadable Private Key (%s)", alias, e.getMessage());
+          }
         }
       }
+      
+      if(!warn)
+      {
+        if(isKeyStore)
+          objective.setComponentStatus(ComponentStatus.OK, "Account Name: %s", clientCertCommonName_);
+        else
+          objective.setComponentStatusOK();
+      }
+      
+      return null;
     }
-    catch(IOException | CertificateParsingException e)
+    catch (KeyStoreException e)
     {
-      e.printStackTrace(getConsole().getErr());
+      objective.setComponentStatus(ComponentStatus.Failed, "Invalid keystore type \"%s\"", storetype);
+      return error(e, "Unable to validate keystore");
     }
+    finally 
+    {
+      println();
+    }
+  }
+
+  private String probe(String name, URL url, boolean authenticate, IObjective objective)
+  {
+    try
+    {
+      Builder builder = getJCurl()
+          .trustAllCertificates(true)
+          .trustAllHostnames(true)
+          ;
+      
+      if(authenticate)
+        builder.method(HttpMethod.POST);
+      
+      JCurl jCurl = builder
+          .build();
+      
+      HttpURLConnection connection = jCurl.connect(url);
+      
+      println(name + " is reachable bypasssing server cert checks, status: " + connection.getResponseCode());
+      
+      JCurl.Response jcr = jCurl.processResponse(connection);
+
+      Certificate[] certs = jcr.getServerCertificates();
+
+      println("Server cert chain is:");
+      for(Certificate cert : certs)
+      {
+        X509Certificate x509Cert = (X509Certificate) cert;
+        println(x509Cert.getSubjectX500Principal().getName());
+      }      
+    }
+    catch(SSLHandshakeException e)
+    {
+      if(authenticate)
+      {
+        // We already succeeded without client auth, so this is a client auth problem.
+        if(objective != null)
+          objective.setComponentStatus(ComponentStatus.Failed, CERTS_ARE_BAD_AUTH);
+        
+        return error("%s is NOT reachable - Client Cert Rejected%n%s%n", name, CERTS_ARE_BAD_AUTH);
+      }
+      
+      if(objective != null)
+        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+      
+      return error("%s is NOT reachable (SSL problem)%n%s%n", name, WE_CANT_TELL);
+    }
+    catch(IOException e)
+    {
+      if(objective != null)
+        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+      
+      return error(e, "%s is NOT reachable%n%s%n", name, WE_CANT_TELL);
+    }
+    catch (CertificateParsingException e)
+    {
+      if(objective != null)
+        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+      
+      return error(e, "%s is reachable but we can't parse their certificates.%n%s%n", name, WE_CANT_TELL);
+    }
+    
+    
+    try
+    {
+      Builder builder = getJCurl();
+      
+      if(authenticate)
+        builder.method(HttpMethod.POST);
+      
+      JCurl jCurl = builder
+          .build();
+      HttpURLConnection connection = jCurl.connect(url);
+      
+      if(authenticate)
+      {
+        if(connection.getResponseCode() == 200)
+        {
+          if(objective!= null)
+            objective.setComponentStatus(ComponentStatus.OK, AUTHENTICATED);
+          return printf("%s is reachable%n", name, CERTS_ARE_GOOD);
+        }
+        else if(connection.getResponseCode() == 401)
+        {
+          if(objective!= null)
+            objective.setComponentStatus(ComponentStatus.Failed, CERTS_ARE_BAD_ACCOUNT);
+          return printfln("%s is reachable, but authentication is rejected%nThe account \"%s\" probably does not exist in this pod.%n%s", name, clientCertCommonName_, CERTS_ARE_BAD_ACCOUNT);
+        }
+        else
+        {
+          if(objective!= null)
+            objective.setComponentStatus(ComponentStatus.Error, CERTS_ARE_BAD_UNKNOWN, connection.getResponseCode());
+          return error("%s is reachable, with unexpected status: %d", name, connection.getResponseCode());
+        }
+      }
+      if(objective!= null)
+        objective.setComponentStatus(ComponentStatus.OK, CERTS_ARE_GOOD_SERVER);
+      
+      return printf("%s is reachable, status: %d%n", name, connection.getResponseCode(), CERTS_ARE_GOOD_SERVER);
+    }
+    catch(SSLHandshakeException e)
+    {
+      if(objective!= null)
+        objective.setComponentStatus(ComponentStatus.Error, CERTS_ARE_BAD_TRUST);
+      
+      return error("%s is NOT reachable - SSL Problem%n%s%n", name, CERTS_ARE_BAD_TRUST);
+    }
+    catch(IOException e)
+    {
+      if(objective != null)
+        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+      
+      return error(e, "%s is NOT reachable.%n%s", name, WE_CANT_TELL);
+    }
+    
+    
+  }
+  
+  private static String getCommonName(X500Principal principal)
+  {
+    // parse the CN out from the DN (distinguished name)
+    Pattern p = Pattern.compile("(^|,)CN=([^,]*)(,|$)");
+    Matcher m = p.matcher(principal.getName());
+
+    m.find();
+
+    return m.group(2);
   }
 }

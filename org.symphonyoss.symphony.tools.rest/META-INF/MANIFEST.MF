@@ -7,6 +7,7 @@ Bundle-Vendor: Symphony Communication Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.symphonyoss.symphony.tools.rest,
  org.symphonyoss.symphony.tools.rest.command,
+ org.symphonyoss.symphony.tools.rest.console,
  org.symphonyoss.symphony.tools.rest.model,
  org.symphonyoss.symphony.tools.rest.model.osmosis,
  org.symphonyoss.symphony.tools.rest.probe,

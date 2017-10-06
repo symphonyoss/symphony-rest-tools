@@ -44,4 +44,5 @@ public class Srt
 
   public static final String   POD_CLIENT_PATH         = "/client/index.html";
   public static final String   POD_HEALTHCHECK_PATH    = "/webcontroller/HealthCheck";
+  public static final String   AUTHENTICATE_PATH       = "/v1/authenticate";
 }

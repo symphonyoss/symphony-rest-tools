@@ -37,6 +37,7 @@ public class TypeConverterFactory
   
   static
   {
+    converterMap_ = new HashMap<>();
     stringConverterMap_ = new HashMap<>();
     converterMap_.put(String.class, stringConverterMap_);
 

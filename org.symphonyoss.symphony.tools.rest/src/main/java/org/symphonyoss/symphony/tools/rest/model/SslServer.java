@@ -40,7 +40,6 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.symphonyoss.symphony.tools.rest.util.CertificateUtils;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 import com.fasterxml.jackson.databind.JsonNode;

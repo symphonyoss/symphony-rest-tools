@@ -56,17 +56,35 @@ public class Component implements IComponent
   {
    return status_;
   }
+  
+  protected void setComponentStatusOK()
+  {
+    setComponentStatus(ComponentStatus.OK, "");
+  }
 
-  protected synchronized void setComponentStatus(ComponentStatus status, String statusMessage)
+  protected synchronized void setComponentStatus(ComponentStatus status, String statusMessageFormat, Object ...args)
   {
     status_ = status;
-    statusMessage_ = statusMessage;
-    
+    if(statusMessageFormat == null)
+    {
+      statusMessage_ = "";
+    }
+    else
+    {
+      try
+      {
+        statusMessage_ = String.format(statusMessageFormat, args);
+      }
+      catch(RuntimeException e)
+      {
+        statusMessage_ = statusMessageFormat + " (formatting failed " + e + ")";
+      }
+    }
     notifyListeners();
   }
 
   /**
-   * Reset the status of this and any child components to null.
+   * Reset the status of this and any child components to UNKNOWN.
    */
   protected void resetStatus()
   {
@@ -77,7 +95,7 @@ public class Component implements IComponent
   public void notifyListeners()
   {
     for(IComponentListener listener : listeners_)
-      listener.componentStatusChanged(status_, statusMessage_);
+      listener.componentStatusChanged(this);
   }
 
   @Override

@@ -6,8 +6,6 @@
 
 package org.symphonyoss.symphony.tools.rest.util.command;
 
-import org.junit.Before;
-
 //import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -18,19 +16,23 @@ public class CommandLineParserTest
 {
   private ISetter<String> sink_ = (v) -> v=null;
   
-  private Flag flag_ = new Flag("Help me", sink_).withName("h");
+  private Flag<String> flag_ = new Flag<String>("Help me", String.class, sink_).withName("h");
+  private Flag<String> def_ = new Flag<String>("Prompt", String.class, sink_, () -> "defaultValue").withName("def");
   private Switch switch_ = new Switch('h', "Help", "Show help");
   private CommandLineParser clp_ = new CommandLineParser("testCommand")
       .withSwitch(switch_)
       .withSwitch(new Switch('q', "Quiet", "Quiet Mode."))
-      .withFlag(new Flag("Keystore File Name", sink_).withName("k").withName("keystore"))
-      .withFlag(new Flag("FileName", sink_))
+      .withFlag(new Flag<String>("Keystore File Name", String.class, sink_).withName("k").withName("keystore"))
+      .withFlag(new Flag<String>("FileName", String.class, sink_))
+      .withFlag(def_)
       ;
   
   @Test
   public void testArgs0()
   {
     clp_.process(new String[0]);
+    
+    assertEquals("defaultValue", def_.getValue());
   }
   
   @Test
@@ -78,7 +80,7 @@ public class CommandLineParserTest
   @Test(expected=ProgramFault.class)
   public void testMultiArgs()
   {
-    new CommandLineParser("testCommand").withFlag(new Flag("File names", sink_)).withFlag(new Flag("User names", sink_));
+    new CommandLineParser("testCommand").withFlag(new Flag<String>("File names", String.class, sink_)).withFlag(new Flag<String>("User names", String.class, sink_));
   }
   
   @Test
@@ -92,7 +94,7 @@ public class CommandLineParserTest
     
     assertEquals("Usage: testCommand [-q]", clp.getUsage());
     
-    Flag flag = new Flag("Keystore file name", sink_).withName("k").withName("keystore");
+    Flag<String> flag = new Flag<String>("Keystore file name", String.class, sink_).withName("k").withName("keystore");
     
     clp.withFlag(flag);
     
@@ -110,7 +112,7 @@ public class CommandLineParserTest
     
     assertEquals("Usage: testCommand [-qa] [-k | --keystore] Keystore_file_name...", clp.getUsage());
     
-    Flag arg = new Flag("Filename to process", sink_);
+    Flag<String> arg = new Flag<String>("Filename to process", String.class, sink_);
     
     clp.withFlag(arg);
     

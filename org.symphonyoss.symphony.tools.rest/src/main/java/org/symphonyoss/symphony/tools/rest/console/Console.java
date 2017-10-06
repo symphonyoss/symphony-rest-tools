@@ -21,7 +21,7 @@
  * under the License.
  */
 
-package org.symphonyoss.symphony.tools.rest.util;
+package org.symphonyoss.symphony.tools.rest.console;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,22 +29,30 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
+
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
+import org.symphonyoss.symphony.tools.rest.util.IObjective;
+import org.symphonyoss.symphony.tools.rest.util.Objective;
+import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
 import org.symphonyoss.symphony.tools.rest.util.home.IDefaultsProvider;
 import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
-public class Console
+public class Console implements IConsole
 {
   private final BufferedReader             in_;
   private final PrintWriter                out_;
   private final PrintWriter                err_;
   private IDefaultsProvider                defaultsProvider_;
   private CopyOnWriteArrayList<IObjective> objectives_ = new CopyOnWriteArrayList<>();
+  private String taskName_;
   
   public Console(InputStream in, OutputStream out, OutputStream err)
   {
@@ -65,11 +73,13 @@ public class Console
     return defaultsProvider_;
   }
 
+  @Override
   public void setDefaultsProvider(IDefaultsProvider defaultsProvider)
   {
     defaultsProvider_ = defaultsProvider;
   }
 
+  @Override
   public String  promptString(String prompt, String defaultValue)
   {
     String s = doPromptString(prompt + "[" + defaultValue + "]");
@@ -77,6 +87,7 @@ public class Console
     return s.equals("") ? defaultValue : s.trim();
   }
 
+  @Override
   public String  promptString(String prompt)
   {
     return doPromptString(prompt).trim();
@@ -105,6 +116,7 @@ public class Console
     return line;
   }
 
+  @Override
   public boolean  promptBoolean(String prompt)
   {
     while(true)
@@ -121,11 +133,13 @@ public class Console
     }
   }
 
+  @Override
   public PrintWriter getOut()
   {
     return out_;
   }
 
+  @Override
   public PrintWriter getErr()
   {
     return err_;
@@ -136,40 +150,147 @@ public class Console
     e.printStackTrace(err_);
   }
 
+  @Override
   public void println()
   {
     out_.println();
   }
 
-  public void println(String x)
+  @Override
+  public String println(Object obj)
   {
-    out_.println(x);
+    return doPrintf(true, obj.toString());
   }
 
-  public void println(Object x)
+  @Override
+  public String printf(String format, Object... args)
   {
-    out_.println(x);
+    return doPrintf(false, format, args);
   }
 
-  public PrintWriter printf(String format, Object... args)
+  @Override
+  public String printf(Locale l, String format, Object... args)
   {
-    return out_.printf(format, args);
-  }
-
-  public PrintWriter printf(Locale l, String format, Object... args)
-  {
-    return out_.printf(l, format, args);
+    return doPrintf(false, l, format, args);
   }
   
-  public void error(String format, Object ...args)
+  @Override
+  public String printfln(String format, Object... args)
   {
+    return doPrintf(true, format, args);
+  }
+  
+  @Override
+  public String title(Locale l, String format, Object... args)
+  {
+    println();
+    return doTitle(doPrintf(true, l, format, args));
+  }
+  
+  @Override
+  public String title(String format, Object... args)
+  {
+    println();
+    return doTitle(doPrintf(true, format, args));
+  }
+
+  private String doTitle(String s)
+  {
+    StringBuffer b = new StringBuffer();
+    
+    for(int i=0 ; i<s.length() ; i++)
+      b.append('=');
+    
+    println(b);
+    return s;
+  }
+
+  @Override
+  public String printfln(Locale l, String format, Object... args)
+  {
+    return doPrintf(true, l, format, args);
+  }
+  
+  public String doPrintf(boolean newLine, String format, Object... args)
+  {
+    return doPrint(newLine, format(format, args));
+  }
+  
+  public String doPrintf(boolean newLine, Locale l, String format, Object... args)
+  {
+    return doPrint(newLine, format(l, format, args));
+  }
+  
+  public String doPrint(boolean newLine, String message)
+  {
+    if(newLine)
+      out_.println(message);
+    else
+      out_.print(message);
+    
+    return message;
+  }
+  
+  @Override
+  public String error(@Nullable Throwable cause, @Nullable Locale l, String format, Object... args)
+  {
+    String message;
+    RuntimeException internalFault = null;
+    
+    try
+    {
+      message = l == null ? format(format, args) : format(l, format, args);
+    }
+    catch(RuntimeException e)
+    {
+      message = format;
+      internalFault = e;
+    }
     // The Eclipse console does strange things all this flushing seems to work for all cases....
     out_.flush();
     err_.flush();
-    err_.format(format, args);
+    err_.println(message);
+    if(cause != null)
+      cause.printStackTrace(err_);
+    
+    if(internalFault != null)
+    {
+      err_.println("Additionally this exception was thrown formatting the error message above from:");
+      err_.printf("Format   %s%n", format);
+      
+      for(int i=0 ; i<args.length ; i++)
+      {
+        err_.printf("arg[%2d] %s%n", args[i]);
+      }
+      
+      err_.printf("%d args in total%n", args.length);
+      
+      internalFault.printStackTrace(err_);
+    }
     err_.flush();
+    
+    return message;
   }
 
+  @Override
+  public String error(Locale l, String format, Object... args)
+  {
+    return error((Throwable)null, l, format, args);
+  }
+
+  @Override
+  public String error(@Nullable Throwable cause, String format, Object ...args)
+  {
+    return error(cause, (Locale)null, format, args);
+  }
+  
+  @Override
+  public String error(String format, Object ...args)
+  {
+    return error((Throwable)null, (Locale)null, format, args);
+  }
+
+  @Override
   public void close()
   {
     err_.close();
@@ -184,6 +305,7 @@ public class Console
     }
   }
 
+  @Override
   public void flush()
   {
     err_.flush();
@@ -195,14 +317,14 @@ public class Console
     boolean abort = false;
     boolean promptAll = false;
     
-    println("Press RETURN to accept default values");
-    println("Enter a space to clear the default value");
-    println("Leading and trailing whitespace are deleted");
+    printfln("Press RETURN to accept default values");
+    printfln("Enter a space to clear the default value");
+    printfln("Leading and trailing whitespace are deleted");
     
     switch(interactiveCount)
     {
       case 0:
-        for(Flag flag : parser.getFlags())
+        for(Flag<?> flag : parser.getFlags())
         {
           if(flag.isRequired() && flag.getCount()==0)
           {
@@ -217,7 +339,7 @@ public class Console
         // Fall through
         
       default:
-        for(Flag flag : parser.getFlags())
+        for(Flag<?> flag : parser.getFlags())
         {
           if(promptAll || flag.isRequired())
           {
@@ -254,7 +376,7 @@ public class Console
     
     if(!abort)
     {
-      for(Flag flag : parser.getFlags())
+      for(Flag<?> flag : parser.getFlags())
       {
         defaultsProvider_.setDefault(flag.getPrompt(), flag.getValue());
       }
@@ -263,56 +385,90 @@ public class Console
     return abort;
   }
 
+  @Override
   public void execute(SrtCommand srtCommand)
   {
-    boolean abort = setParameters(srtCommand.getParser(), srtCommand.getInteractive().getCount());
-    
-    if(abort)
+    try
     {
-      error("Aborted.");
+      boolean abort = setParameters(srtCommand.getParser(), srtCommand.getInteractive().getCount());
+      
+      if(abort)
+      {
+        error("Aborted.");
+      }
+      else
+      {
+        srtCommand.doExecute();
+
+        
+      }
     }
-    else
+    catch(Exception e)
     {
-      srtCommand.doExecute();
+      error(e, "Command \"%s\" terminated unexpectedly.", srtCommand.getName());
     }
   }
 
-  public void beginTask(String name, int totalWork)
+  @Override
+  public String beginTask(int totalWork, String format, Object... args)
   {
-    // TODO Auto-generated method stub
+    if(taskName_ != null)
+      throw new IllegalStateException("This method can be called only once per Console.");
     
+    taskName_ = format(format, args);
+    return title(taskName_);
   }
 
-  public void done()
+  @Override
+  public void taskDone()
   {
-    // TODO Auto-generated method stub
-    
   }
 
-  public boolean isCanceled()
+  @Override
+  public boolean isTaskCanceled()
   {
-    // TODO Auto-generated method stub
     return false;
   }
 
-  public void setTaskName(String name)
+  @Override
+  public String setTaskName(String format, Object... args)
   {
-    // TODO Auto-generated method stub
-    
+    taskName_ = format(format, args);
+    return title(taskName_);
   }
 
-  public void subTask(String name)
+  @Override
+  public String beginSubTask(String format, Object... args)
   {
-    // TODO Auto-generated method stub
+    if(taskName_ == null)
+      throw new IllegalStateException("You must call beginTask before this method.");
     
+    return title("%s: %s", taskName_, format(format, args));
   }
 
-  public void worked(int work)
+  private String format(Locale l, String format, Object...args)
   {
-    // TODO Auto-generated method stub
+    if(format == null)
+      return "";
     
+    return String.format(l, format, args);
   }
   
+  private String format(String format, Object...args)
+  {
+    if(format == null)
+      return "";
+    
+    return String.format(format, args);
+  }
+
+  @Override
+  public boolean taskWorked(int work)
+  {
+    return isTaskCanceled();
+  }
+  
+  @Override
   public IObjective createObjective(String name)
   {
     IObjective objective = new Objective(name);
@@ -322,16 +478,21 @@ public class Console
     return objective;
   }
 
-  public void printObjectives()
-  {
-    for(IObjective objective : objectives_)
-    {
-      printf("%20s %s\n", objective.getLabel(), objective.getStatus());
-    }
-  }
-
-  public CopyOnWriteArrayList<IObjective> getObjectives()
+  @Override
+  public Iterable<IObjective> getObjectives()
   {
     return objectives_;
+  }
+  
+  @Override
+  public Collection<IObjective> copyObjectives()
+  {
+    return Collections.unmodifiableList(objectives_);
+  }
+  
+  @Override
+  public boolean hasObjectives()
+  {
+    return !objectives_.isEmpty();
   }
 }

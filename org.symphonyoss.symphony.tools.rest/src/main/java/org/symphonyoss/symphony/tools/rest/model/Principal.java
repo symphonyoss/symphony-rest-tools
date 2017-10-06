@@ -30,8 +30,8 @@ import java.security.cert.CertificateParsingException;
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
 import org.symphonyoss.symphony.tools.rest.Srt;
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
-import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -150,13 +150,13 @@ public class Principal extends ModelObject
     }
   }
 
-  public static Principal newInstance(Console console, IPod pod, String skey, String kmsession) throws IOException
+  public static Principal newInstance(IConsole console, IPod pod, String skey, String kmsession) throws IOException
   {
     Builder builder = Principal.newBuilder()
     .setSkey(skey)
     .setKmsession(kmsession);
     
-    console.println("Validating session");
+    console.printfln("Validating session");
     
     JCurl jcurl = JCurl.builder()
         .header(Srt.SESSION_TOKEN, skey)
@@ -178,8 +178,7 @@ public class Principal extends ModelObject
     }
     catch(IOException | CertificateParsingException | InvalidConfigException  e)
     {
-      console.error("Unable to validate user");
-      e.printStackTrace(console.getErr());
+      console.error(e, "Unable to validate user");
     }
     
     Principal principal = pod.addPrincipal(builder);

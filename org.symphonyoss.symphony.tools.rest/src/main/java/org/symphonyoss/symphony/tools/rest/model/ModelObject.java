@@ -26,13 +26,13 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentProxy;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 import org.symphonyoss.symphony.tools.rest.util.IVisitor;
@@ -238,7 +238,7 @@ public class ModelObject extends ComponentProxy implements IModelObject
   }
  
   @Override
-  public void print(PrintWriter out)
+  public void print(IConsole console)
   {
     JsonFactory jsonFactory = new JsonFactory();
     jsonFactory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
@@ -246,8 +246,8 @@ public class ModelObject extends ComponentProxy implements IModelObject
     
     try
     {
-      mapper.writerWithDefaultPrettyPrinter().writeValue(out, toJson());
-      out.println();
+      mapper.writerWithDefaultPrettyPrinter().writeValue(console.getOut(), toJson());
+      console.println();
     }
     catch (IOException e)
     {

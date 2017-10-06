@@ -29,6 +29,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentListener;
 import org.symphonyoss.symphony.tools.rest.util.typeutils.ISetter;
 
@@ -89,8 +90,8 @@ public class DynamicComponentContainer extends ModelObjectContainer implements I
   }
 
   @Override
-  public void componentStatusChanged(ComponentStatus status, String statusMessage)
+  public void componentStatusChanged(IComponent component)
   {
-    setComponentStatusIfMoreSevere(status, statusMessage);
+    setComponentStatusIfMoreSevere(component.getComponentStatus(), component.getComponentStatusMessage());
   }
 }

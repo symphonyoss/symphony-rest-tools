@@ -26,8 +26,7 @@ package org.symphonyoss.symphony.tools.rest.model.osmosis;
 import javax.annotation.Nonnull;
 
 /**
- * Represents an application component, which has a lifecycle phase in addition
- * (as a sub-class of IComponentPart) to a status.
+ * Represents an application component.
  *  
  * @author Bruce Skingle
  *

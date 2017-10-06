@@ -23,51 +23,39 @@
 
 package org.symphonyoss.symphony.tools.rest.util;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-
+import org.symphonyoss.symphony.tools.rest.model.osmosis.Component;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 
-public class Objective implements IObjective
+public class Objective extends Component implements IObjective
 {
   private final String                             label_;
-  private ComponentStatus                          status_    = ComponentStatus.Initializing;
-  private CopyOnWriteArrayList<IObjectiveListener> listeners_ = new CopyOnWriteArrayList<>();
-  
+    
   public Objective(String label)
   {
     label_ = label;
   }
-  
+
   @Override
-  public void setStatus(ComponentStatus status)
+  public void setComponentStatusOK()
   {
-    status_ = status;
-    
-    for(IObjectiveListener listener : listeners_)
-      listener.objectiveChanged(this);
+    super.setComponentStatusOK();
   }
-  
+
   @Override
-  public void addListener(IObjectiveListener listener)
+  public void setComponentStatus(ComponentStatus status, String statusMessageFormat, Object ...args)
   {
-    listeners_.add(listener);
+    super.setComponentStatus(status, statusMessageFormat, args);
   }
-  
+
   @Override
-  public void removeListener(IObjectiveListener listener)
+  public void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessage)
   {
-    listeners_.remove(listener);
+    super.setComponentStatusIfMoreSevere(status, statusMessage);
   }
 
   @Override
   public String getLabel()
   {
     return label_;
-  }
-
-  @Override
-  public ComponentStatus getStatus()
-  {
-    return status_;
   }
 }

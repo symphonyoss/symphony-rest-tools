@@ -38,29 +38,29 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;
 import java.util.Properties;
 
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.IPodManager;
 import org.symphonyoss.symphony.tools.rest.model.PodManager;
-import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault;
 
 public class SrtHome implements ISrtHome
 {
-  private final File       home_;
-  private final String     setBy_;
-  private final File       configDir_;
-  private final File       sessionDir_;
-  private final Console    console_;
+  private final File        home_;
+  private final String      setBy_;
+  private final File        configDir_;
+  private final File        sessionDir_;
+  private final IConsole     console_;
   private final IPodManager podManager_;
-  private File defaultsFile_;
-  private Properties defaultsProps_;
+  private File              defaultsFile_;
+  private Properties        defaultsProps_; //TODO: switch to JSON
 
-  public SrtHome(Console console)
+  public SrtHome(IConsole console)
   {
     this(console, null, null);
   }
   
-  public SrtHome(Console console, String homeStr, String setBy)
+  public SrtHome(IConsole console, String homeStr, String setBy)
   {
     console_ = console;
     console_.setDefaultsProvider(this);
@@ -70,7 +70,7 @@ public class SrtHome implements ISrtHome
     home_ = builder.builderHome_;
     setBy_ = builder.setBy_;
     
-    console_.println(SRT_HOME + " set by " + setBy_);
+    console_.printfln(SRT_HOME + " set by " + setBy_);
     
     if (!home_.exists())
       throw new CommandLineParserFault(SRT_HOME + " \"" +
@@ -137,7 +137,7 @@ public class SrtHome implements ISrtHome
                             PosixFilePermission.OWNER_WRITE,
                             PosixFilePermission.OWNER_EXECUTE));
             
-            console_.println("Default home area \"" +
+            console_.printfln("Default home area \"" +
                 builderHome_.getAbsolutePath() + "\" created.");
           }
           catch (IOException e)

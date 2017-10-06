@@ -23,7 +23,7 @@
 
 package org.symphonyoss.symphony.tools.rest.util.home;
 
-import org.symphonyoss.symphony.tools.rest.util.Console;
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.util.command.CommandLineParser;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
 import org.symphonyoss.symphony.tools.rest.util.command.Switch;
@@ -36,12 +36,12 @@ public class SrtCommandLineHome extends CommandLineParser
   {
     super(commandName);
     withFlag(
-      new Flag("Location of SRT home", (v) -> home_ = v)
+      new Flag<String>("Location of SRT home", String.class, (v) -> home_ = v)
         .withName(ISrtHome.SRT_HOME));
   }
 
 
-  public ISrtHome createSrtHome(Console console)
+  public ISrtHome createSrtHome(IConsole console)
   {
     return new SrtHome(console, home_, "Command Line Flag");
   }
@@ -57,7 +57,7 @@ public class SrtCommandLineHome extends CommandLineParser
 
 
   @Override
-  public SrtCommandLineHome withFlag(Flag flag)
+  public SrtCommandLineHome withFlag(Flag<?> flag)
   {
     super.withFlag(flag);
     

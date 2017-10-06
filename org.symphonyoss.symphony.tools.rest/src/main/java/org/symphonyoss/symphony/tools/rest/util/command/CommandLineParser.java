@@ -32,14 +32,14 @@ import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 
 public class CommandLineParser
 {
-  private static final String EM_DASH = "\u2014";
-  
-  private String            commandName_;
-  private Map<String, Flag> flagMap_  = new HashMap<>();
-  private List<Flag>        flags_  = new ArrayList<>();
-  private Flag              argSetter_;
-  private int               argc_;
-  private Map<Character, Switch>       switches_ = new HashMap<>();
+  private static final String    EM_DASH   = "\u2014";
+
+  private String                 commandName_;
+  private Map<String, Flag<?>>   flagMap_  = new HashMap<>();
+  private List<Flag<?>>          flags_    = new ArrayList<>();
+  private Flag<?>                argSetter_;
+  private int                    argc_;
+  private Map<Character, Switch> switches_ = new HashMap<>();
   
   public CommandLineParser(String commandName)
   {
@@ -57,7 +57,7 @@ public class CommandLineParser
     return this;
   }
   
-  public CommandLineParser  withFlag(Flag flag)
+  public CommandLineParser  withFlag(Flag<?> flag)
   {
     if(flag.getNames().isEmpty())
     {
@@ -98,7 +98,7 @@ public class CommandLineParser
       s.append("]");
     }
     
-    for(Flag flag : flags_)
+    for(Flag<?> flag : flags_)
     {
       String close = "";
       String sep = "";
@@ -204,7 +204,7 @@ public class CommandLineParser
 
   private void handleFlag(String flagName, String arg, String[] argv)
   {
-    Flag flag = flagMap_.get(flagName);
+    Flag<?> flag = flagMap_.get(flagName);
     
     if(flag == null)
     {
@@ -214,7 +214,7 @@ public class CommandLineParser
     set(arg, flag, argv);
   }
 
-  private void set(String flagName, Flag flag, String[] argv)
+  private void set(String flagName, Flag<?> flag, String[] argv)
   {
     if(!flag.checkCount())
     {
@@ -237,7 +237,7 @@ public class CommandLineParser
     return commandName_;
   }
 
-  public List<Flag> getFlags()
+  public List<Flag<?>> getFlags()
   {
     return flags_;
   }

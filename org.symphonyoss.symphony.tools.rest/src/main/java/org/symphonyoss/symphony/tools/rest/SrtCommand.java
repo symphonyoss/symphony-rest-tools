@@ -23,25 +23,26 @@
 
 package org.symphonyoss.symphony.tools.rest;
 
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
+import org.symphonyoss.symphony.tools.rest.console.Console;
+import org.symphonyoss.symphony.tools.rest.console.ConsoleDelegate;
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.NoSuchObjectException;
-import org.symphonyoss.symphony.tools.rest.util.Console;
+import org.symphonyoss.symphony.tools.rest.util.IObjective;
 import org.symphonyoss.symphony.tools.rest.util.ProgramFault;
 import org.symphonyoss.symphony.tools.rest.util.command.Flag;
 import org.symphonyoss.symphony.tools.rest.util.command.Switch;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
-public abstract class SrtCommand extends Srt
+public abstract class SrtCommand extends ConsoleDelegate
 {
   private final String  programName_;
-  private final Console console_;
   private String        name_;
   private String        domain_;
   private String        fqdn_;
@@ -49,10 +50,10 @@ public abstract class SrtCommand extends Srt
   private int           readTimeoutMillis_    = 0;
 
   private ISrtHome      srtHome_;
-  private String        keystore_;
+  private String        keystore_             = "";
   private String        storepass_            = "changeit";
   private String        storetype_            = Srt.DEFAULT_KEYSTORE_TYPE;
-  private String        truststore_;
+  private String        truststore_           = "";
   private String        trustpass_            = "changeit";
   private String        trusttype_            = Srt.DEFAULT_TRUSTSTORE_TYPE;
   //private List<>
@@ -74,10 +75,10 @@ public abstract class SrtCommand extends Srt
     parser_.process(argv);
   }
   
-  public SrtCommand(String programName, Console console, ISrtHome srtHome)
+  public SrtCommand(String programName, IConsole console, ISrtHome srtHome)
   {
+    super(console);
     programName_ = programName;
-    console_ = console;
     
     parser_ = new SrtCommandLineHome(programName)
         .withSwitch(verbose_)
@@ -85,12 +86,12 @@ public abstract class SrtCommand extends Srt
     
     init();
     
-    srtHome_ = srtHome == null ? parser_.createSrtHome(console_) : srtHome;
+    srtHome_ = srtHome == null ? parser_.createSrtHome(getConsole()) : srtHome;
   }
   
   protected void withHostName(boolean required)
   {
-    parser_.withFlag(new Flag("Host Name", (v) -> name_ = v)
+    parser_.withFlag(new Flag<String>("Host Name", String.class, (v) -> name_ = v)
         .withRequired(required)
         .withSelectionType(IPod.class))
         ;
@@ -100,12 +101,13 @@ public abstract class SrtCommand extends Srt
   protected void withKeystore(boolean required)
   {
     parser_
-      .withFlag(new Flag("Keystore File Name", (v) -> keystore_ = v)
+      .withFlag(new Flag<String>("Keystore File Name", String.class, (v) -> keystore_ = v)
         .withName("keystore")
         .withRequired(required))
-      .withFlag(new Flag("Keystore Type", (v) -> storetype_ = v)
+      .withFlag(new Flag<String>("Keystore Type", String.class, (v) -> storetype_ = v, () ->
+      getStoreTypeFromName(truststore_, Srt.DEFAULT_KEYSTORE_TYPE))
           .withName("storetype"))
-      .withFlag(new Flag("Keystore Password", (v) -> storepass_ = v)
+      .withFlag(new Flag<String>("Keystore Password", String.class, (v) -> storepass_ = v, () -> "changeit")
           .withName("storepass"))
     ;
   }
@@ -113,14 +115,36 @@ public abstract class SrtCommand extends Srt
   protected void withTruststore(boolean required)
   {
     parser_
-      .withFlag(new Flag("Truststore File Name", (v) -> truststore_ = v)
+      .withFlag(new Flag<String>("Truststore File Name", String.class, (v) -> truststore_ = v)
          .withName("truststore")
         .withRequired(required))
-      .withFlag(new Flag("Truststore Type", (v) -> trusttype_ = v)
+      .withFlag(new Flag<String>("Truststore Type", String.class, (v) -> trusttype_ = v, () ->
+      getStoreTypeFromName(truststore_, Srt.DEFAULT_TRUSTSTORE_TYPE))
           .withName("trusttype"))
-      .withFlag(new Flag("Truststore Type", (v) -> trustpass_ = v)
+      .withFlag(new Flag<String>("Truststore Type", String.class, (v) -> trustpass_ = v, () -> "changeit")
           .withName("trustpass"))
     ;
+  }
+  
+  private String getStoreTypeFromName(String fileName, String defaultValue)
+  {
+    int i = fileName.lastIndexOf('.');
+    
+    if(i>0)
+    {
+      String suffix = fileName.substring(i).toLowerCase();
+      
+      switch(suffix)
+      {
+        case ".p12":
+        case ".pkcs12":
+          return "pkcs12";
+          
+        case "jks":
+          return "jks";
+      }
+    }
+    return defaultValue;
   }
   
   protected void init()
@@ -135,8 +159,11 @@ public abstract class SrtCommand extends Srt
       name_ = getDefaultName();
     }
     
-    console_.execute(this);
-    console_.close();
+    execute(this);
+    println();
+    getErr().println();
+    
+    flush();
    }
    
   public void doExecute()
@@ -155,9 +182,9 @@ public abstract class SrtCommand extends Srt
   
       fqdn_ = name_ + domain_;
   
-      console_.println("name=" + name_);
-      console_.println("domain=" + domain_);
-      console_.println();
+      printfln("name=" + name_);
+      printfln("domain=" + domain_);
+      println();
     }
     
     try
@@ -166,16 +193,24 @@ public abstract class SrtCommand extends Srt
     }
     catch(ProgramFault e)
     {
-      getConsole().error("PROGRAM FAULT");
-      e.printStackTrace(getConsole().getErr());
+      error(e, "Command \"%s\" terminated unexpectedly PROGRAM FAULT.", name_);
     }
     catch(Throwable e)
     {
-      e.printStackTrace(getConsole().getErr());
+      error(e, "Command \"%s\" terminated unexpectedly.", name_);
     }
     finally
     {
-      getConsole().close();
+      if(getConsole().hasObjectives())
+      {
+        title("Objectives");
+        for(IObjective objective : getConsole().getObjectives())
+        {
+          printfln("%-20s %-10s %s", objective.getLabel(), objective.getComponentStatus(), objective.getComponentStatusMessage());
+        }
+      }
+      
+      getConsole().flush();
     }
   }
   
@@ -228,9 +263,7 @@ public abstract class SrtCommand extends Srt
   protected Builder getJCurl()
   {
     Builder builder = JCurl.builder()
-        .extract(TOKEN, TOKEN)  // force JCurl to parse JSON
-        .trustAllHostnames(true)
-        .trustAllCertificates(true)
+        .extract(Srt.TOKEN, Srt.TOKEN)  // force JCurl to parse JSON
         .header("User-Agent", programName_ + " / 0.1.0 https://github.com/bruceskingle/symphony-rest-tools");
 
     if (getConnectTimeoutMillis() > 0)
@@ -248,16 +281,20 @@ public abstract class SrtCommand extends Srt
         builder.storetype(getStoretype());
     }
     
+    if(getTruststore() != null)
+    {
+      builder.truststore(getTruststore());
+      builder.trustpass(getTrustpass());
+    
+      if(getTrusttype() != null)
+        builder.storetype(getTrusttype());
+    }
+    
     if(verbose_.getCount()>0)
     {
       builder.verbosity(verbose_.getCount());
     }
     return builder;
-  }
-
-  public Console getConsole()
-  {
-    return console_;
   }
 
   public String getName()
@@ -305,24 +342,19 @@ public abstract class SrtCommand extends Srt
     return storetype_;
   }
 
-  public void println()
+  public String getTruststore()
   {
-    console_.println();
+    return truststore_;
   }
 
-  public void println(String x)
+  public String getTrustpass()
   {
-    console_.println(x);
+    return trustpass_;
   }
 
-  public void println(Object x)
+  public String getTrusttype()
   {
-    console_.println(x);
-  }
-
-  public PrintWriter printf(String format, Object... args)
-  {
-    return console_.printf(format, args);
+    return trusttype_;
   }
 
   public String getProgramName()

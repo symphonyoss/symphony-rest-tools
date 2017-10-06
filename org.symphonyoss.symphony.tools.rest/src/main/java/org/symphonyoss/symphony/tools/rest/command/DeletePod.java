@@ -26,8 +26,8 @@ package org.symphonyoss.symphony.tools.rest.command;
 import java.io.IOException;
 
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.IPod;
-import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
 public class DeletePod extends SrtCommand
@@ -41,7 +41,7 @@ public class DeletePod extends SrtCommand
     new DeletePod(argv).run();
   }
 
-  public DeletePod(Console console, ISrtHome srtHome)
+  public DeletePod(IConsole console, ISrtHome srtHome)
   {
     super(PROGRAM_NAME, console, srtHome);
   }
@@ -72,20 +72,19 @@ public class DeletePod extends SrtCommand
     }
 
     int totalWork = 1;
-    getConsole().beginTask("Deleting " + getFqdn(), totalWork);
+    getConsole().beginTask(totalWork, "Deleting %s", getFqdn());
 
     
     try
     {
       pod_.delete();
-      getConsole().println("Pod deleted.");
+      getConsole().printfln("Pod deleted.");
     }
     catch (IOException e)
     {
-      getConsole().error("Failed to delete: %s", e.getMessage());
-      e.printStackTrace(getConsole().getErr());
+      getConsole().error(e, "Failed to delete: %s", e.getMessage());
     }
     
-    getConsole().worked(1);
+    getConsole().taskWorked(1);
   }
 }

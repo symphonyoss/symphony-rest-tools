@@ -23,27 +23,29 @@
 
 package org.symphonyoss.symphony.tools.rest.util;
 
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
+
 public class SubTaskMonitor
 {
-  private Console console_;
-  private int     remainingWork_;
-  private int     totalWork_;
+  private IConsole console_;
+  private int      remainingWork_;
+  private int      totalWork_;
 
-  public SubTaskMonitor(Console console, String name, int totalWork)
+  public SubTaskMonitor(IConsole console, String name, int totalWork)
   {
     console_ = console;
     remainingWork_ = totalWork;
     
-    console_.subTask(name);
+    console_.beginSubTask(name);
   }
 
   public boolean worked(int work)
   {
     remainingWork_ -= work;
     totalWork_ += work;
-    console_.worked(work);
+    console_.taskWorked(work);
     
-    return console_.isCanceled();
+    return console_.isTaskCanceled();
   }
 
   public int getRemainingWork()
@@ -58,7 +60,7 @@ public class SubTaskMonitor
   
   public void done()
   {
-    console_.worked(remainingWork_);
+    console_.taskWorked(remainingWork_);
     totalWork_ = -1;
   }
 }

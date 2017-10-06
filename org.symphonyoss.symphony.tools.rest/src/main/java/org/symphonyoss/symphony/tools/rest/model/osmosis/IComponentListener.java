@@ -23,10 +23,7 @@
 
 package org.symphonyoss.symphony.tools.rest.model.osmosis;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 public interface IComponentListener
 {
-  void componentStatusChanged(@Nullable ComponentStatus status, @Nonnull String statusMessage);
+  void componentStatusChanged(IComponent component);
 }

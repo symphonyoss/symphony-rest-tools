@@ -24,18 +24,15 @@
 package org.symphonyoss.symphony.tools.rest.util;
 
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
+import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
 
-public interface IObjective
+public interface IObjective extends IComponent
 {
-
-  void setStatus(ComponentStatus status);
-
-  void addListener(IObjectiveListener listener);
-
-  void removeListener(IObjectiveListener listener);
+  public void setComponentStatusOK();
+  
+  void setComponentStatus(ComponentStatus status, String statusMessageFormat, Object ...args);
+  
+  void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessage);
 
   String getLabel();
-
-  ComponentStatus getStatus();
-
 }

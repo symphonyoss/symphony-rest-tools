@@ -25,10 +25,10 @@ package org.symphonyoss.symphony.tools.rest.model;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.annotation.Nullable;
 
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponentProxy;
 import org.symphonyoss.symphony.tools.rest.util.IVisitor;
 
@@ -53,7 +53,7 @@ public interface IModelObject extends IComponentProxy
   String                  getTypeName();
   String                  getName();
   String                  getErrorText();
-  void                    print(PrintWriter out);
+  void                    print(IConsole console);
   ObjectNode              toJson();
   void store(File configDir, String fileName) throws IOException;
   void store(File configDir) throws IOException;

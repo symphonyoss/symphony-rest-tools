@@ -24,7 +24,6 @@
 package org.symphonyoss.symphony.tools.rest.probe;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.CertificateParsingException;
@@ -34,13 +33,14 @@ import java.util.Set;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Response;
+import org.symphonyoss.symphony.tools.rest.Srt;
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
-import org.symphonyoss.symphony.tools.rest.model.IPod;
+import org.symphonyoss.symphony.tools.rest.console.IConsole;
 import org.symphonyoss.symphony.tools.rest.model.IModelObject;
+import org.symphonyoss.symphony.tools.rest.model.IPod;
 import org.symphonyoss.symphony.tools.rest.model.ModelObject;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
-import org.symphonyoss.symphony.tools.rest.util.Console;
 import org.symphonyoss.symphony.tools.rest.util.IObjective;
 import org.symphonyoss.symphony.tools.rest.util.home.ISrtHome;
 
@@ -48,21 +48,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class CheckPod extends SrtCommand
 {
-  private static final String      PROGRAM_NAME                = "CheckPod";
+  private static final String PROGRAM_NAME       = "CheckPod";
+  private static final String CANNOT_CONNECT     = "Cannot Connect";
 
-  private IPod                     pod_;
-  private boolean                  structureChange_;
-  private Set<IModelObject> changedComponents_          = new HashSet<>();
+  private IPod                pod_;
+  private boolean             structureChange_;
+  private Set<IModelObject>   changedComponents_ = new HashSet<>();
 
   private IObjective podObjective_;
-//  private Set<IModelObject> structureChangedComponents_ = new HashSet<>();
   
   public static void main(String[] argv) throws IOException
   {
     new CheckPod(argv).run();
   }
 
-  public CheckPod(Console console, ISrtHome srtHome)
+  public CheckPod(IConsole console, ISrtHome srtHome)
   {
     super(PROGRAM_NAME, console, srtHome);
   }
@@ -76,13 +76,12 @@ public class CheckPod extends SrtCommand
   protected void init()
   {
     super.init();
-    interactive_.setCount(0);
 
     withHostName(true);
     withKeystore(false);
     withTruststore(false);
     
-    podObjective_ = getConsole().createObjective("Check Pod");
+    podObjective_ = createObjective("Check Pod");
   }
 
   @Override
@@ -92,26 +91,24 @@ public class CheckPod extends SrtCommand
 
     if(pod_ == null)
     {
-      getConsole().flush();
-      getConsole().error(getFqdn() + " is not a known pod. Try probe instead?");
+      flush();
+      error(getFqdn() + " is not a known pod. Try probe instead?");
       return;
     }
     
     println("Pod Configuration");
     println("=================");
     
-    pod_.print(getConsole().getOut());
+    pod_.print(getConsole());
 
     println();
     
     int totalWork = 1;
-    getConsole().beginTask("Checking " + getFqdn(), totalWork);
+    beginTask(totalWork, "Checking %s", getFqdn());
     
     probePod();
     
-    getConsole().worked(1);
-    
-    getConsole().printObjectives();
+    taskWorked(1);
   }
 
   
@@ -130,7 +127,7 @@ public class CheckPod extends SrtCommand
       });
       
       URL url = createURL(pod_.getPodUrl(),
-          POD_HEALTHCHECK_PATH);
+          Srt.POD_HEALTHCHECK_PATH);
       
       JCurl jCurl = getJCurl().build();
       HttpURLConnection connection = jCurl.connect(url);
@@ -206,27 +203,29 @@ public class CheckPod extends SrtCommand
           if(failedComponents == 0)
           {
             pod_.setComponentStatus(ComponentStatus.OK, "Healthcheck OK");
-            podObjective_.setStatus(ComponentStatus.OK);
+            podObjective_.setComponentStatusOK();
           }
           else
           {
-            pod_.setComponentStatus(ComponentStatus.Error, 
-                String.format("Healthcheck OK but %d of %d non-critical components failed", failedComponents, totalComponents));
-            podObjective_.setStatus(ComponentStatus.Error);
+            String msg = String.format("Healthcheck OK but %d of %d non-critical components failed", failedComponents, totalComponents);
+            pod_.setComponentStatus(ComponentStatus.Error, msg);
+            podObjective_.setComponentStatus(ComponentStatus.Error, msg);
           }
           break;
           
         case 500:
           println("Pod is unwell.");
-          pod_.setComponentStatus(ComponentStatus.Failed, 
-              String.format("Healthcheck FAILED (%d of %d components failed)", failedComponents, totalComponents));
-          podObjective_.setStatus(ComponentStatus.Failed);
+          String msg = String.format("Healthcheck FAILED (%d of %d components failed)", failedComponents, totalComponents);
+          
+          pod_.setComponentStatus(ComponentStatus.Failed, msg);
+          podObjective_.setComponentStatus(ComponentStatus.Failed, msg);
           break;
           
-          default:
-            pod_.setComponentStatus(ComponentStatus.Failed, "Unexpected Error " + responseCode);
-            podObjective_.setStatus(ComponentStatus.Failed);
-            return;
+        default:
+          msg = "Unexpected Error " + responseCode;
+          pod_.setComponentStatus(ComponentStatus.Failed, msg);
+          podObjective_.setComponentStatus(ComponentStatus.Failed, msg);
+          return;
       }
       
       
@@ -248,17 +247,11 @@ public class CheckPod extends SrtCommand
         }
       }
     }
-    catch(ConnectException e)
-    {
-      getConsole().error("Cannot connect to pod");
-      pod_.setComponentStatus(ComponentStatus.Stopped, "Cannot Connect");
-      podObjective_.setStatus(ComponentStatus.Stopped);
-      pod_.getManager().modelObjectChanged(pod_);
-    }
     catch(IOException | CertificateParsingException e)
     {
-      e.printStackTrace(getConsole().getErr());
-      podObjective_.setStatus(ComponentStatus.Stopped);
+      error(e, "Cannot connect to pod");
+      pod_.setComponentStatus(ComponentStatus.Stopped, CANNOT_CONNECT);
+      podObjective_.setComponentStatus(ComponentStatus.Stopped, CANNOT_CONNECT);
       pod_.getManager().modelObjectChanged(pod_);
     }
   }
