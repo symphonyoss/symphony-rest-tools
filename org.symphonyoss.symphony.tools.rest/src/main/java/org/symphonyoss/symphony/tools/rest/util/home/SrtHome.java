@@ -132,13 +132,21 @@ public class SrtHome implements ISrtHome
             Path dir = builderHome_.toPath();
   
             Files.createDirectory(dir);
-            Files.setPosixFilePermissions(dir, 
-                EnumSet.of( PosixFilePermission.OWNER_READ,
-                            PosixFilePermission.OWNER_WRITE,
-                            PosixFilePermission.OWNER_EXECUTE));
             
             console_.printfln("Default home area \"" +
                 builderHome_.getAbsolutePath() + "\" created.");
+            
+            try
+            {
+              Files.setPosixFilePermissions(dir, 
+                EnumSet.of( PosixFilePermission.OWNER_READ,
+                            PosixFilePermission.OWNER_WRITE,
+                            PosixFilePermission.OWNER_EXECUTE));
+            }
+            catch(UnsupportedOperationException e)
+            {
+              console_.printfln("But we are unable to make this drectory read only to the owner, this is expected when running on Windows.");
+            }
           }
           catch (IOException e)
           {
