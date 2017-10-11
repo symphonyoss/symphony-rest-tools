@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 <!--
 ~
 ~ Copyright 2017 Symphony Communication Services, LLC.
@@ -33,7 +32,7 @@
 	
 	<groupId>org.symphonyoss.symphony.tools.rest</groupId>
 	<artifactId>symphony-rest-tools</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.1.1</version>
 	<name>Symphony REST tools</name>
 	<description>Low level tools for use with the Symphony public REST API</description>
 	<url>https://github.com/symphonyoss/symphony-rest-tools</url>
@@ -57,7 +56,8 @@
 		<connection>scm:git:git://github.com/symphonyoss/symphony-rest-tools.git</connection>
 		<developerConnection>scm:git:git@github.com:symphonyoss/symphony-rest-tools.git</developerConnection>
 		<url>https://github.com/symphonyoss/symphony-rest-tools</url>
-	</scm>
+	  <tag>symphony-rest-tools-0.1.1</tag>
+  </scm>
 	
 	<developers>
         <developer>
