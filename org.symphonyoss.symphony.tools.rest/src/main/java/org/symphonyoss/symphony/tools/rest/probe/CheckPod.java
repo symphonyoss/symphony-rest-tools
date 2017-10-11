@@ -203,13 +203,13 @@ public class CheckPod extends SrtCommand
           if(failedComponents == 0)
           {
             pod_.setComponentStatus(ComponentStatus.OK, "Healthcheck OK");
-            podObjective_.setComponentStatusOK();
+            podObjective_.setObjectiveStatusOK();
           }
           else
           {
             String msg = String.format("Healthcheck OK but %d of %d non-critical components failed", failedComponents, totalComponents);
             pod_.setComponentStatus(ComponentStatus.Error, msg);
-            podObjective_.setComponentStatus(ComponentStatus.Error, msg);
+            podObjective_.setObjectiveStatus(ComponentStatus.Error, msg);
           }
           break;
           
@@ -218,13 +218,13 @@ public class CheckPod extends SrtCommand
           String msg = String.format("Healthcheck FAILED (%d of %d components failed)", failedComponents, totalComponents);
           
           pod_.setComponentStatus(ComponentStatus.Failed, msg);
-          podObjective_.setComponentStatus(ComponentStatus.Failed, msg);
+          podObjective_.setObjectiveStatus(ComponentStatus.Failed, msg);
           break;
           
         default:
           msg = "Unexpected Error " + responseCode;
           pod_.setComponentStatus(ComponentStatus.Failed, msg);
-          podObjective_.setComponentStatus(ComponentStatus.Failed, msg);
+          podObjective_.setObjectiveStatus(ComponentStatus.Failed, msg);
           return;
       }
       
@@ -251,7 +251,7 @@ public class CheckPod extends SrtCommand
     {
       error(e, "Cannot connect to pod");
       pod_.setComponentStatus(ComponentStatus.Stopped, CANNOT_CONNECT);
-      podObjective_.setComponentStatus(ComponentStatus.Stopped, CANNOT_CONNECT);
+      podObjective_.setObjectiveStatus(ComponentStatus.Stopped, CANNOT_CONNECT);
       pod_.getManager().modelObjectChanged(pod_);
     }
   }

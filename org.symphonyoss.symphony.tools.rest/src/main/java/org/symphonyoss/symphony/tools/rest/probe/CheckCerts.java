@@ -39,6 +39,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -71,6 +72,8 @@ public class CheckCerts extends SrtCommand
   private static final String BAD_CERT              = "Received fatal alert: bad_unknown";
   private static final String AUTHENTICATED         = "Authenticated OK";
   private static final String CERTS_ARE_BAD_UNKNOWN = "Client cert is valid, auth failed %d.";
+  private static final Object ERROR                 = "ERROR";
+  private static final Object WARNING               = "WARNING";
 
   private IPod                pod_;
   private String              clientCertCommonName_;
@@ -175,7 +178,7 @@ public class CheckCerts extends SrtCommand
     
     if(pod_.getPodUrl() == null)
     {
-      sessionAuthObjective_.setComponentStatus(ComponentStatus.Failed,
+      sessionAuthObjective_.setObjectiveStatus(ComponentStatus.Failed,
           error("No key manager URL for this pod."));
     }
     else
@@ -190,7 +193,7 @@ public class CheckCerts extends SrtCommand
     
     if(pod_.getKeyAuthUrl() == null)
     {
-      keyAuthObjective_.setComponentStatus(ComponentStatus.Failed,
+      keyAuthObjective_.setObjectiveStatus(ComponentStatus.Failed,
           error("No key auth URL for this pod."));
     }
     else
@@ -216,13 +219,13 @@ public class CheckCerts extends SrtCommand
       
       if(!keyStoreFile.isFile())
       {
-        objective.setComponentStatus(ComponentStatus.Failed, "Not a file");
+        objective.setObjectiveStatus(ComponentStatus.Failed, "Not a file");
         return error("%s is not a valid file", name);
       }
       
       if(!keyStoreFile.canRead())
       {
-        objective.setComponentStatus(ComponentStatus.Failed, "Not readable");
+        objective.setObjectiveStatus(ComponentStatus.Failed, "Not readable");
         return error("%s is not readable", name);
       }
       
@@ -241,7 +244,7 @@ public class CheckCerts extends SrtCommand
       }
       catch (NoSuchAlgorithmException | CertificateException | IOException e)
       {
-        objective.setComponentStatus(ComponentStatus.Failed, "Not valid keystore file (%s)", e);
+        objective.setObjectiveStatus(ComponentStatus.Failed, "Not valid keystore file (%s)", e);
         return error(e, "%s is not readable", name);
       }
       
@@ -253,14 +256,14 @@ public class CheckCerts extends SrtCommand
       
       if(aliases.isEmpty())
       {
-        objective.setComponentStatus(ComponentStatus.Failed, "Empty Keystore");
+        objective.setObjectiveStatus(ComponentStatus.Failed, "Empty Keystore");
         return error("%s is empty", name);
       }
       
       if(isKeyStore && aliases.size() != 1)
       {
         warn = true;
-        objective.setComponentStatus(ComponentStatus.Warning, "Keystore has multiple entries");
+        objective.setObjectiveStatus(ComponentStatus.Warning, "Keystore has multiple entries");
         error("%s has %d entries", name, aliases.size());
       }
       else
@@ -276,17 +279,19 @@ public class CheckCerts extends SrtCommand
           
           if(cert == null)
           {
-            error("%20s is an unreadable Trusted Certificate", alias);
+            error("%-20s is an unreadable Trusted Certificate", alias);
           }
           else
           {
-            printfln("%20s is a Trusted Certificate", alias);
+            printfln("%-20s is a Trusted Certificate", alias);
             X509Certificate x509Cert = (X509Certificate) cert;
             String dn = x509Cert.getSubjectX500Principal().getName();
             String cn = getCommonName(x509Cert.getSubjectX500Principal());
             
+            
             //        12345678901234567890 XXX
-            printfln("                     %20s %s", cn, dn);   
+            printfln("                     %-20s %s", cn, dn);
+            validateCert(alias, x509Cert, objective);
           }
         }
         else if(keyStore.isKeyEntry(alias))
@@ -295,7 +300,7 @@ public class CheckCerts extends SrtCommand
           {
             Key key = keyStore.getKey(alias, storepass);
             
-            printfln("%20s is a %s Private Key", alias, key.getAlgorithm());
+            printfln("%-20s is a %s Private Key", alias, key.getAlgorithm());
             
             Certificate[] certs = keyStore.getCertificateChain(alias);
             
@@ -313,7 +318,8 @@ public class CheckCerts extends SrtCommand
                 String cn = getCommonName(x509Cert.getSubjectX500Principal());
                 
                 //        12345678901234567890 XXX
-                printfln("        cert[%02d] %20s %s", i++, cn, dn);
+                printfln("        cert[%02d] %-20s %s", i++, cn, dn);
+                validateCert(alias, x509Cert, objective);
                 
                 if(isKeyStore && clientCertCommonName_==null)
                   clientCertCommonName_ = cn;
@@ -322,7 +328,7 @@ public class CheckCerts extends SrtCommand
           }
           catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e)
           {
-           return printfln("%20s is an unreadable Private Key (%s)", alias, e.getMessage());
+           return printfln("%-20s is an unreadable Private Key (%s)", alias, e.getMessage());
           }
         }
       }
@@ -330,22 +336,51 @@ public class CheckCerts extends SrtCommand
       if(!warn)
       {
         if(isKeyStore)
-          objective.setComponentStatus(ComponentStatus.OK, "Account Name: %s", clientCertCommonName_);
+          objective.setObjectiveStatus(ComponentStatus.OK, "Account Name: %s", clientCertCommonName_);
         else
-          objective.setComponentStatusOK();
+          objective.setObjectiveStatusOK();
       }
       
       return null;
     }
     catch (KeyStoreException e)
     {
-      objective.setComponentStatus(ComponentStatus.Failed, "Invalid keystore type \"%s\"", storetype);
+      objective.setObjectiveStatus(ComponentStatus.Failed, "Invalid keystore type \"%s\"", storetype);
       return error(e, "Unable to validate keystore");
     }
     finally 
     {
       println();
     }
+  }
+
+  private void validateCert(X509Certificate x509Cert, IObjective objective)
+  {
+    String dn = x509Cert.getSubjectX500Principal().getName();
+    String cn = getCommonName(x509Cert.getSubjectX500Principal());
+    
+    validateCert(cn, x509Cert, objective);
+  }
+
+  private void validateCert(String alias, X509Certificate x509Cert, IObjective objective)
+  {
+    Date now = new Date();
+    
+    if(x509Cert.getNotBefore().after(now))
+    {
+      printfln("                     %-20s %s", ERROR, "Certificate is not valid until " + x509Cert.getNotBefore());
+      if(objective != null)
+        objective.setObjectiveStatus(ComponentStatus.Error, "Certificate \"%s\" is not valid until %s", alias, x509Cert.getNotBefore());
+    }
+    
+    if(x509Cert.getNotAfter().before(now))
+    {
+      printfln("                     %-20s %s", ERROR, "Certificate expired on " + x509Cert.getNotBefore());
+      if(objective != null)
+        objective.setObjectiveStatus(ComponentStatus.Error, "Certificate \"%s\" expired on %s", alias, x509Cert.getNotAfter());
+
+    }
+
   }
 
   private String probe(String name, URL url, boolean authenticate, IObjective objective)
@@ -376,6 +411,7 @@ public class CheckCerts extends SrtCommand
       {
         X509Certificate x509Cert = (X509Certificate) cert;
         println(x509Cert.getSubjectX500Principal().getName());
+        validateCert(x509Cert, objective);
       }      
     }
     catch(SSLHandshakeException e)
@@ -384,27 +420,27 @@ public class CheckCerts extends SrtCommand
       {
         // We already succeeded without client auth, so this is a client auth problem.
         if(objective != null)
-          objective.setComponentStatus(ComponentStatus.Failed, CERTS_ARE_BAD_AUTH);
+          objective.setObjectiveStatus(ComponentStatus.Failed, CERTS_ARE_BAD_AUTH);
         
         return error("%s is NOT reachable - Client Cert Rejected%n%s%n", name, CERTS_ARE_BAD_AUTH);
       }
       
       if(objective != null)
-        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+        objective.setObjectiveStatus(ComponentStatus.Failed, WE_CANT_TELL);
       
       return error("%s is NOT reachable (SSL problem)%n%s%n", name, WE_CANT_TELL);
     }
     catch(IOException e)
     {
       if(objective != null)
-        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+        objective.setObjectiveStatus(ComponentStatus.Failed, WE_CANT_TELL);
       
       return error(e, "%s is NOT reachable%n%s%n", name, WE_CANT_TELL);
     }
     catch (CertificateParsingException e)
     {
       if(objective != null)
-        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+        objective.setObjectiveStatus(ComponentStatus.Failed, WE_CANT_TELL);
       
       return error(e, "%s is reachable but we can't parse their certificates.%n%s%n", name, WE_CANT_TELL);
     }
@@ -426,38 +462,38 @@ public class CheckCerts extends SrtCommand
         if(connection.getResponseCode() == 200)
         {
           if(objective!= null)
-            objective.setComponentStatus(ComponentStatus.OK, AUTHENTICATED);
+            objective.setObjectiveStatus(ComponentStatus.OK, AUTHENTICATED);
           return printf("%s is reachable%n", name, CERTS_ARE_GOOD);
         }
         else if(connection.getResponseCode() == 401)
         {
           if(objective!= null)
-            objective.setComponentStatus(ComponentStatus.Failed, CERTS_ARE_BAD_ACCOUNT);
+            objective.setObjectiveStatus(ComponentStatus.Failed, CERTS_ARE_BAD_ACCOUNT);
           return printfln("%s is reachable, but authentication is rejected%nThe account \"%s\" probably does not exist in this pod.%n%s", name, clientCertCommonName_, CERTS_ARE_BAD_ACCOUNT);
         }
         else
         {
           if(objective!= null)
-            objective.setComponentStatus(ComponentStatus.Error, CERTS_ARE_BAD_UNKNOWN, connection.getResponseCode());
+            objective.setObjectiveStatus(ComponentStatus.Error, CERTS_ARE_BAD_UNKNOWN, connection.getResponseCode());
           return error("%s is reachable, with unexpected status: %d", name, connection.getResponseCode());
         }
       }
       if(objective!= null)
-        objective.setComponentStatus(ComponentStatus.OK, CERTS_ARE_GOOD_SERVER);
+        objective.setObjectiveStatus(ComponentStatus.OK, CERTS_ARE_GOOD_SERVER);
       
       return printf("%s is reachable, status: %d%n", name, connection.getResponseCode(), CERTS_ARE_GOOD_SERVER);
     }
     catch(SSLHandshakeException e)
     {
       if(objective!= null)
-        objective.setComponentStatus(ComponentStatus.Error, CERTS_ARE_BAD_TRUST);
+        objective.setObjectiveStatus(ComponentStatus.Error, CERTS_ARE_BAD_TRUST);
       
       return error("%s is NOT reachable - SSL Problem%n%s%n", name, CERTS_ARE_BAD_TRUST);
     }
     catch(IOException e)
     {
       if(objective != null)
-        objective.setComponentStatus(ComponentStatus.Failed, WE_CANT_TELL);
+        objective.setObjectiveStatus(ComponentStatus.Failed, WE_CANT_TELL);
       
       return error(e, "%s is NOT reachable.%n%s", name, WE_CANT_TELL);
     }
@@ -473,6 +509,13 @@ public class CheckCerts extends SrtCommand
 
     m.find();
 
-    return m.group(2);
+    try
+    {
+      return m.group(2);
+    }
+    catch(IllegalStateException e)
+    {
+      return principal.getName();
+    }
   }
 }

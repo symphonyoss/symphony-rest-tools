@@ -12,17 +12,9 @@
         <fileSet>
             <directory>src/main/bash</directory>
             <outputDirectory>bin</outputDirectory>
-            <includes>
-                <include>**/*.sh</include>
-            </includes>
             <excludes>
                 <exclude>**/environment.sh</exclude>
             </excludes>
-            <!-- <includes>
-                <include>examples/**</include>
-                <include>util/**</include>
-            </includes>
-             -->
             <fileMode>555</fileMode>
             <directoryMode>755</directoryMode>
         </fileSet>
@@ -35,30 +27,12 @@
             <fileMode>555</fileMode>
             <directoryMode>755</directoryMode>
         </fileSet>
-        <!--<fileSet>
-             <directory>src/bash/sources</directory>
-            <outputDirectory>${dist.base}/sources</outputDirectory>
-            <includes>
-                <include>*.sh</include>
-            </includes>
-            <fileMode>555</fileMode>
-            <directoryMode>755</directoryMode>
-        </fileSet> -->
-        <!-- <fileSet>
-            <directory>src/docs</directory>
-            <outputDirectory>${dist.base}/docs</outputDirectory>
-            <includes>
-                <include>**/*.pdf</include>
-            </includes>
+        <fileSet>
+            <directory>src/main/certs</directory>
+            <outputDirectory>certs</outputDirectory>
             <fileMode>444</fileMode>
             <directoryMode>755</directoryMode>
-        </fileSet> -->
-        <!-- <fileSet>
-            <directory>src/root</directory>
-            <outputDirectory>${dist.base}</outputDirectory>
-            <fileMode>444</fileMode>
-            <directoryMode>755</directoryMode>
-        </fileSet> -->
+        </fileSet>
         <fileSet>
             <directory>${project.build.directory}/lib</directory>
             <outputDirectory>lib</outputDirectory>

@@ -26,13 +26,21 @@ package org.symphonyoss.symphony.tools.rest.util;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.ComponentStatus;
 import org.symphonyoss.symphony.tools.rest.model.osmosis.IComponent;
 
+/**
+ * Represents an objective.
+ * 
+ * All of the setObjective... methods can be called multiple times and the result status
+ * will be the most severe of all the values passed. All worse than OK states will be 
+ * recorded and may be recalled.
+ * 
+ * @author Bruce Skingle
+ *
+ */
 public interface IObjective extends IComponent
 {
-  public void setComponentStatusOK();
+  public void setObjectiveStatusOK();
   
-  void setComponentStatus(ComponentStatus status, String statusMessageFormat, Object ...args);
-  
-  void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessage);
+  void setObjectiveStatus(ComponentStatus status, String statusMessageFormat, Object ...args);
 
   String getLabel();
 }

@@ -36,21 +36,15 @@ public class Objective extends Component implements IObjective
   }
 
   @Override
-  public void setComponentStatusOK()
+  public void setObjectiveStatusOK()
   {
-    super.setComponentStatusOK();
+    super.setComponentStatusIfMoreSevere(ComponentStatus.OK, "");
   }
 
   @Override
-  public void setComponentStatus(ComponentStatus status, String statusMessageFormat, Object ...args)
+  public void setObjectiveStatus(ComponentStatus status, String statusMessageFormat, Object ...args)
   {
-    super.setComponentStatus(status, statusMessageFormat, args);
-  }
-
-  @Override
-  public void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessage)
-  {
-    super.setComponentStatusIfMoreSevere(status, statusMessage);
+    super.setComponentStatusIfMoreSevere(status, statusMessageFormat, args);
   }
 
   @Override

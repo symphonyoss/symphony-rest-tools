@@ -111,13 +111,11 @@ public class Component implements IComponent
     listeners_.remove(listener);
   }
   
-  public synchronized void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessage)
+  protected synchronized void setComponentStatusIfMoreSevere(ComponentStatus status, String statusMessageFormat, Object ...args)
   {
     if(status.isMoreSevereThan(status_))
     {
-      status_ = status;
-      statusMessage_ = statusMessage;
-      notifyListeners();
+      setComponentStatus(status, statusMessageFormat, args);
     }
   }
 }

@@ -28,7 +28,7 @@
 	<parent>
 		<groupId>org.symphonyoss.s2</groupId>
 		<artifactId>S2-super-pom</artifactId>
-		<version>0.1.1-SNAPSHOT</version>
+		<version>0.1.1</version>
 	</parent>
 	
 	<groupId>org.symphonyoss.symphony.tools.rest</groupId>
@@ -42,11 +42,8 @@
 	<modules>
 		<module>org.symphonyoss.symphony.tools.rest</module>
 		<module>symphony-rest-tools-samples</module>
-		<module>
-			org.symphonyoss.symphony.tools.rest.dependencies
-		</module>
+		<module>org.symphonyoss.symphony.tools.rest.dependencies</module>
 		<module>org.symphonyoss.symphony.tools.rest.test</module>
-		<module>symphony-rest-tools-package</module>
 	</modules>
 
 	<licenses>

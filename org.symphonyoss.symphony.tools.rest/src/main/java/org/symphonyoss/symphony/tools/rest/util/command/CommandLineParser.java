@@ -169,7 +169,7 @@ public class CommandLineParser
       {
         handleFlag(arg.substring(2), arg, argv);
       }
-      if(arg.startsWith(EM_DASH))
+      else if(arg.startsWith(EM_DASH))
       {
         handleFlag(arg.substring(1), arg, argv);
       }
