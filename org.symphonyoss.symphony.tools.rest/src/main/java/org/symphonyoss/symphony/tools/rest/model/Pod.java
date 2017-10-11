@@ -448,7 +448,7 @@ public class Pod extends SslServer implements IPod, ISrtSelectable
   {
     if(dynamicContainer_ == null)
     {
-      dynamicContainer_ = new DynamicComponentContainer(this, "Pod Components");
+      dynamicContainer_ = new DynamicComponentContainer(this, "PodServer", "Pod Components");
       addChild(dynamicContainer_);
     }
     return dynamicContainer_;

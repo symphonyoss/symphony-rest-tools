@@ -50,6 +50,11 @@ public class DynamicComponentContainer extends ModelObjectContainer implements I
     super(parent, TYPE_NAME, name);
   }
 
+  public DynamicComponentContainer(IModelObjectContainer parent, String typeName, String name)
+  {
+    super(parent, typeName, name);
+  }
+
   @Override
   public IModelObject getComponent(String name)
   {
