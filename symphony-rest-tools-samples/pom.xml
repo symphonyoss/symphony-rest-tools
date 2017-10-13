@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.symphonyoss.symphony.tools.rest</groupId>
     <artifactId>symphony-rest-tools</artifactId>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.1.3</version>
   </parent>
   <artifactId>symphony-rest-tools-samples</artifactId>
   
