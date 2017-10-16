@@ -21,19 +21,21 @@ with the [Symphony Java Client](https://github.com/symphonyoss/symphony-java-cli
 
 ### Usage:
 
-probePod.sh [-keystore certFile] [-storepass password] [-storetype keystoreType] [hostname]
+```
+probePod [--keystore certFile] [--storepass password] [--storetype keystoreType] [hostname]
 
- -keystore certFile
+```
+--keystore certFile
 
 The path to a file containing a client certificate, usually in
 PKCS#12 format with a .p12 extension, if absent then no authentication
 is attempted.
 
- -storepass password
+ --storepass password
 
 The password for the provided keystore, default "changeit"
 
- -storetype keystoreType
+ --storetype keystoreType
  
  The format of the provided certificate file, default "pkcs12".
  
@@ -49,7 +51,7 @@ The password for the provided keystore, default "changeit"
 ### Example:
 
 ```
-$ probePod.sh -keystore bot.user5.p12 nexus2
+$ probePod.sh --keystore bot.user5.p12 nexus2
 name=nexus2
 domain=.symphony.com
 
