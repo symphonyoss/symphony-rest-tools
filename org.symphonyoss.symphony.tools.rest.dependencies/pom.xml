@@ -10,13 +10,20 @@
   
   <dependencies>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-	    <artifactId>org.symphonyoss.symphony.tools.rest</artifactId>
-	    <version>${project.version}</version>
-  	</dependency>
- 		<dependency>
 			<groupId>org.symphonyoss.symphony</groupId>
 			<artifactId>jcurl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -24,7 +31,7 @@
 		</dependency>
 	</dependencies>
 
-<build>
+	<build>
 		<plugins>
 			<plugin>
 		    <groupId>org.apache.maven.plugins</groupId>
