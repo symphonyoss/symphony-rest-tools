@@ -41,13 +41,10 @@ _example -vvv_
 
 The following common switches can be applied to most commands:
 
-|------|------------------|--------------------------------------------------------------------------|
 | Flag | Multiple Allowed | Meaning																																 |
 |------|------------------|--------------------------------------------------------------------------|
-| v    | Yes							 | Verbose mode																			|
-| i    | Yes							 | Interactive mode, once causes all required parameters to be prompted for |
-|			 |									 | twice causes optional parameters to be prompted as well.								 | 
-|------|------------------|--------------------------------------------------------------------------|
+| v    | Yes							 | 	Verbose mode |
+| i    | Yes							 | 	Interactive mode, once causes all required parameters to be prompted for twice causes optional parameters to be prompted as well. | 
 
 ### Flags
 A Flag is a named parameter. From the command line flags are entered as a parameter with double hyphen or a Unicode em-dash as an introducer and a variable length name, followed by a separate parameter containing the flag value. So a command which has a flag called storetype which also takes the switches above, could be entered as:
