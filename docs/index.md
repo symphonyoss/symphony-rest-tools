@@ -54,7 +54,7 @@ _example -qa --storetype pkcs12_
 ### Objectives
 An objective is a named item which describes one of the purposes of a command. Each Objective has a state and one or more messages associated with it. At the completion of a command all of the objectives are reported along with the overall status of that objective.
 
-The **Component Status** page describes the varios status values and their meaning.
+The [Component Status](ComponentStatus.md) page describes the varios status values and their meaning.
 
 ## Configuration
 A configuration directory, referred to as **SRT_HOME** is used to store configuration
