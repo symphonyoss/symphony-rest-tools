@@ -32,7 +32,7 @@
 	
 	<groupId>org.symphonyoss.symphony.tools.rest</groupId>
 	<artifactId>symphony-rest-tools</artifactId>
-	<version>0.1.4</version>
+	<version>0.1.5-SNAPSHOT</version>
 	<name>Symphony REST tools</name>
 	<description>Low level tools for use with the Symphony public REST API</description>
 	<url>https://github.com/symphonyoss/symphony-rest-tools</url>
@@ -56,7 +56,7 @@
 		<connection>scm:git:git://github.com/symphonyoss/symphony-rest-tools.git</connection>
 		<developerConnection>scm:git:git@github.com:symphonyoss/symphony-rest-tools.git</developerConnection>
 		<url>https://github.com/symphonyoss/symphony-rest-tools</url>
-	  <tag>symphony-rest-tools-0.1.4</tag>
+	  <tag>HEAD</tag>
   </scm>
 	
 	<developers>
