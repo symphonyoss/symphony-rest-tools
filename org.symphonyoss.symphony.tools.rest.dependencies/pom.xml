@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.symphonyoss.symphony.tools.rest</groupId>
     <artifactId>symphony-rest-tools</artifactId>
-    <version>0.1.5</version>
+    <version>0.1.6-SNAPSHOT</version>
   </parent>
   <artifactId>org.symphonyoss.symphony.tools.rest.dependencies</artifactId>
   <packaging>eclipse-plugin</packaging>
