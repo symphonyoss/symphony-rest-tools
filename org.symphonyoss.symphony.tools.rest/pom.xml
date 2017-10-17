@@ -3,9 +3,10 @@
 	<parent>
 		<groupId>org.symphonyoss.symphony.tools.rest</groupId>
 		<artifactId>symphony-rest-tools</artifactId>
-		<version>0.1.2-SNAPSHOT</version>
+		<version>0.1.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>org.symphonyoss.symphony.tools.rest</artifactId>
+	<packaging>eclipse-plugin</packaging>
 
 	<build>
 		<plugins>
@@ -47,24 +48,9 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>org.symphonyoss.symphony</groupId>
-			<artifactId>jcurl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-		</dependency>
-		<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-			</dependency>
+			<groupId>${project.groupId}</groupId>
+	    <artifactId>org.symphonyoss.symphony.tools.rest.dependencies</artifactId>
+	    <version>${project.version}</version>
+  	</dependency>
 	</dependencies>
 </project>
