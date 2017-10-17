@@ -84,6 +84,11 @@ public class CheckPod extends SrtCommand
     podObjective_ = createObjective("Check Pod");
   }
 
+  public IObjective getPodObjective()
+  {
+    return podObjective_;
+  }
+
   @Override
   public void execute()
   {
@@ -96,12 +101,15 @@ public class CheckPod extends SrtCommand
       return;
     }
     
-    println("Pod Configuration");
-    println("=================");
-    
-    pod_.print(getConsole());
-
-    println();
+    if(getQuiet().getCount()==0)
+    {
+      println("Pod Configuration");
+      println("=================");
+      
+      pod_.print(getConsole());
+  
+      println();
+    }
     
     int totalWork = 1;
     beginTask(totalWork, "Checking %s", getFqdn());

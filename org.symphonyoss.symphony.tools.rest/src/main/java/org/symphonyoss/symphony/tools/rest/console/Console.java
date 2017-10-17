@@ -495,4 +495,14 @@ public class Console implements IConsole
   {
     return !objectives_.isEmpty();
   }
+
+  /**
+   * Allow this console to be re-used to support composite commands in command line mode.
+   * 
+   * This is not supported in a UI context and this method is not present in IConsole.
+   */
+  public void reset()
+  {
+    taskName_ = null;
+  }
 }

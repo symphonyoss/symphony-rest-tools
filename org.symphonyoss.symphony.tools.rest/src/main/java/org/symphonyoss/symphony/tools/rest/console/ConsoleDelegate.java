@@ -29,6 +29,7 @@ import java.util.Locale;
 
 import org.symphonyoss.symphony.tools.rest.SrtCommand;
 import org.symphonyoss.symphony.tools.rest.util.IObjective;
+import org.symphonyoss.symphony.tools.rest.util.command.Switch;
 import org.symphonyoss.symphony.tools.rest.util.home.IDefaultsProvider;
 
 /**
@@ -42,6 +43,8 @@ import org.symphonyoss.symphony.tools.rest.util.home.IDefaultsProvider;
 public class ConsoleDelegate implements IConsole
 {
   private final IConsole  console_;
+  private final Switch    quiet_                = new Switch('q', "Quiet", "Set quiet Mode", 1);
+
 
   public ConsoleDelegate(IConsole console)
   {
@@ -51,6 +54,11 @@ public class ConsoleDelegate implements IConsole
   public IConsole getConsole()
   {
     return console_;
+  }
+
+  public Switch getQuiet()
+  {
+    return quiet_;
   }
 
   @Override
@@ -74,37 +82,53 @@ public class ConsoleDelegate implements IConsole
   @Override
   public void println()
   {
-    console_.println();
+    if(quiet_.getCount()==0)
+      console_.println();
   }
 
   @Override
   public String println(Object object)
   {
-    return console_.println(object);
+    if(quiet_.getCount()==0)
+      return console_.println(object);
+    else
+      return "";
   }
 
   @Override
   public String printf(String format, Object... args)
   {
-    return console_.printf(format, args);
+    if(quiet_.getCount()==0)
+      return console_.printf(format, args);
+    else
+      return "";
   }
 
   @Override
   public String printf(Locale l, String format, Object... args)
   {
-    return console_.printf(l, format, args);
+    if(quiet_.getCount()==0)
+      return console_.printf(l, format, args);
+    else
+      return "";
   }
 
   @Override
   public String printfln(String format, Object... args)
   {
-    return console_.printfln(format, args);
+    if(quiet_.getCount()==0)
+      return console_.printfln(format, args);
+    else
+      return "";
   }
 
   @Override
   public String printfln(Locale l, String format, Object... args)
   {
-    return console_.printfln(l, format, args);
+    if(quiet_.getCount()==0)
+      return console_.printfln(l, format, args);
+    else
+      return "";
   }
 
   @Override
@@ -152,7 +176,8 @@ public class ConsoleDelegate implements IConsole
   @Override
   public void taskDone()
   {
-    console_.taskDone();
+    if(quiet_.getCount()==0)
+      console_.taskDone();
   }
 
   @Override
@@ -164,37 +189,55 @@ public class ConsoleDelegate implements IConsole
   @Override
   public String title(Locale l, String format, Object... args)
   {
-    return console_.title(l, format, args);
+    if(quiet_.getCount()==0)
+      return console_.title(l, format, args);
+    else
+      return "";
   }
 
   @Override
   public String title(String format, Object... args)
   {
-    return console_.title(format, args);
+    if(quiet_.getCount()==0)
+      return console_.title(format, args);
+    else
+      return "";
   }
 
   @Override
   public String beginTask(int totalWork, String format, Object... args)
   {
-    return console_.beginTask(totalWork, format, args);
+    if(quiet_.getCount()==0)
+      return console_.beginTask(totalWork, format, args);
+    else
+      return "";
   }
 
   @Override
   public String setTaskName(String format, Object... args)
   {
-    return console_.setTaskName(format, args);
+    if(quiet_.getCount()==0)
+      return console_.setTaskName(format, args);
+    else
+      return "";
   }
 
   @Override
   public String beginSubTask(String format, Object... args)
   {
-    return console_.beginSubTask(format, args);
+    if(quiet_.getCount()==0)
+      return console_.beginSubTask(format, args);
+    else
+      return "";
   }
 
   @Override
   public boolean taskWorked(int work)
   {
-    return console_.taskWorked(work);
+    if(quiet_.getCount()==0)
+      return console_.taskWorked(work);
+    else
+      return console_.isTaskCanceled();
   }
 
   @Override

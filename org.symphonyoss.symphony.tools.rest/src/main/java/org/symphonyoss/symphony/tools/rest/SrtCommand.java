@@ -25,6 +25,9 @@ package org.symphonyoss.symphony.tools.rest;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.symphonyoss.symphony.jcurl.JCurl;
 import org.symphonyoss.symphony.jcurl.JCurl.Builder;
@@ -41,26 +44,25 @@ import org.symphonyoss.symphony.tools.rest.util.home.SrtCommandLineHome;
 
 public abstract class SrtCommand extends ConsoleDelegate
 {
-  private final String  programName_;
-  private String        name_;
-  private String        domain_;
-  private String        fqdn_;
-  private int           connectTimeoutMillis_ = 2000;
-  private int           readTimeoutMillis_    = 0;
+  private final String       programName_;
+  private String             name_;
+  private String             domain_;
+  private String             fqdn_;
+  private int                connectTimeoutMillis_ = 2000;
+  private int                readTimeoutMillis_    = 0;
 
-  private ISrtHome      srtHome_;
-  private String        keystore_             = "";
-  private String        storepass_            = "changeit";
-  private String        storetype_            = Srt.DEFAULT_KEYSTORE_TYPE;
-  private String        truststore_           = "";
-  private String        trustpass_            = "changeit";
-  private String        trusttype_            = Srt.DEFAULT_TRUSTSTORE_TYPE;
-  //private List<>
+  private ISrtHome           srtHome_;
+  private String             keystore_             = "";
+  private String             storepass_            = "changeit";
+  private String             storetype_            = Srt.DEFAULT_KEYSTORE_TYPE;
+  private String             truststore_           = "";
+  private String             trustpass_            = "changeit";
+  private String             trusttype_            = Srt.DEFAULT_TRUSTSTORE_TYPE;
   private SrtCommandLineHome parser_;
-  
-  protected final  Switch verbose_ = new Switch('v', "Verbose", "Set verbose Mode", 3);
-  protected final  Switch interactive_ = new Switch('i', "Interactive", "Set interactive Mode", 2);
-  private boolean withHostName_;
+
+  protected final Switch     verbose_              = new Switch('v', "Verbose", "Set verbose Mode", 3);
+  protected final Switch     interactive_          = new Switch('i', "Interactive", "Set interactive Mode", 2);
+  private boolean            withHostName_;
   
   /**
    * Create an instance with a Console connected to standard I/O.
@@ -81,7 +83,8 @@ public abstract class SrtCommand extends ConsoleDelegate
     
     parser_ = new SrtCommandLineHome(programName)
         .withSwitch(verbose_)
-        .withSwitch(interactive_);
+        .withSwitch(interactive_)
+        .withSwitch(getQuiet());
     
     init();
     
@@ -167,24 +170,7 @@ public abstract class SrtCommand extends ConsoleDelegate
    
   public void doExecute()
   {
-    if(withHostName_)
-    {
-      int i = name_.indexOf('.');
-  
-      if (i == -1)
-        domain_ = Srt.DEFAULT_DOMAIN;
-      else
-      {
-        domain_ = name_.substring(i);
-        name_ = name_.substring(0, i);
-      }
-  
-      fqdn_ = name_ + domain_;
-  
-      printfln("name=" + name_);
-      printfln("domain=" + domain_);
-      println();
-    }
+    prepareToExecute();
     
     try
     {
@@ -213,6 +199,28 @@ public abstract class SrtCommand extends ConsoleDelegate
     }
   }
   
+  public void prepareToExecute()
+  {
+    if(withHostName_)
+    {
+      int i = name_.indexOf('.');
+  
+      if (i == -1)
+        domain_ = Srt.DEFAULT_DOMAIN;
+      else
+      {
+        domain_ = name_.substring(i);
+        name_ = name_.substring(0, i);
+      }
+  
+      fqdn_ = name_ + domain_;
+  
+      printfln("name=" + name_);
+      printfln("domain=" + domain_);
+      println();
+    }
+  }
+
   protected String getDefaultName()
   {
     String name = getSrtHome().getPodManager().getDefaultPodName();
@@ -221,6 +229,54 @@ public abstract class SrtCommand extends ConsoleDelegate
   }
 
   public abstract void execute();
+  
+  /**
+   * For each of the given switches, if the given command has a switch of the same name,
+   * set the value of the switch in the given command to the value of the given switch.
+   * 
+   * @param childCommand  A command whose switches are to be set
+   * @param switches      One or more values to set in the given childCommand.
+   */
+  public void setSwitches(SrtCommand childCommand, Switch ...switches)
+  {
+    Map<Character, Switch> switchMap = childCommand.getParser().getSwitches();
+    
+    for(Switch sw : switches)
+    {
+      Switch childSwitch = switchMap.get(sw.getName());
+      
+      if(childSwitch != null)
+        childSwitch.setCount(sw.getCount());
+    }
+  }
+  
+  public void setSwitch(SrtCommand childCommand, int value, Switch sw)
+  {
+    Map<Character, Switch> switchMap = childCommand.getParser().getSwitches();
+    
+    Switch childSwitch = switchMap.get(sw.getName());
+      
+    if(childSwitch != null)
+      childSwitch.setCount(value);
+  }
+
+  public void setAllFlags(SrtCommand childCommand)
+  {
+    setFlags(childCommand, getParser().getFlags());
+  }
+
+  public void setFlags(SrtCommand childCommand, Collection<Flag<?>> flags)
+  {
+    for(Flag<?> flag : flags)
+    {
+      List<String> names = flag.getNames();
+      
+      Flag<?> childFlag = names.isEmpty() ? childCommand.getParser().getArgSetter() : childCommand.getParser().getFlag(names.get(0));
+      
+      if(childFlag != null)
+        childFlag.set(flag.getValue());
+    }
+  }
   
   public URL createURL(String url)
   {

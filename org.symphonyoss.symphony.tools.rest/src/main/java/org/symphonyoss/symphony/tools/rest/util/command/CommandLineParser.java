@@ -241,6 +241,16 @@ public class CommandLineParser
   {
     return flags_;
   }
+  
+  public Flag<?> getFlag(String name)
+  {
+    return flagMap_.get(name);
+  }
+
+  public Flag<?> getArgSetter()
+  {
+    return argSetter_;
+  }
 
   public Map<Character, Switch> getSwitches()
   {
