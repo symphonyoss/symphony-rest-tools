@@ -18,7 +18,7 @@ $ ls
 bash	bat	certs	lib
 ```
 
-The **bash** directory contains shell scripts for Unix based systems, the **bat*** directory contains Windows batch file scripts which do the same thing for that platform.
+The **bash** directory contains shell scripts for Unix based systems, the **bat** directory contains Windows batch file scripts which do the same thing for that platform.
 
 The **probePod** command requires a host name and will attempt to discover the configuration of a pod on that host. Launch this script, enter a host name (.symphony.com is applied as a suffix if the entered value has no dots) and hit RETURN to accept the defaults for all other parameters:
 
