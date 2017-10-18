@@ -27,7 +27,7 @@
 	<parent>
     <groupId>org.symphonyoss.symphony.tools.rest</groupId>
     <artifactId>symphony-rest-tools-bundles</artifactId>
-    <version>0.1.6-SNAPSHOT</version>
+    <version>0.1.6</version>
   </parent>
   
   <artifactId>org.symphonyoss.symphony.tools.rest.ui</artifactId>
