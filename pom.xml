@@ -192,7 +192,7 @@
 		         <goal>checkin</goal>
 		       </goals>
 		       <configuration>
-		         <includes>**/META-INF/MANIFEST.MF,**/feature.xml,**/*.product</includes>
+		         <includes>**/META-INF/MANIFEST.MF,**/feature.xml,**/*.product,**/category.xml</includes>
 		         <excludes>**/target/**</excludes>
 		       <message>Changing the version to reflect the pom versions for the release</message>
 		       </configuration>
