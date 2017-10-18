@@ -9,8 +9,7 @@ This project uses JCurl as the HTTP client and leverages the JSON parsing capabi
 of that project. This project provides a binary distribution with convenience scripts to 
 allow of the ad hoc exercising of various API endpoints from the command line.
 
-The **symphony-rest-tools-ui** sister project provides an Eclipse based UI for this
-project which allows capabilities of this project to be exercised in a UI context.
+It also provides an Eclipse based UI which allows capabilities of this project to be exercised in a UI context.
 
 ## Architecture
 In order to facilitate the implementation of REST Tools capabilities across the command
