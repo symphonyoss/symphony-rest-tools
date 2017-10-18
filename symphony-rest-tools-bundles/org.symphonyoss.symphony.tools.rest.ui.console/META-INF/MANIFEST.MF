@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: E4 Console View
+Bundle-SymbolicName: org.symphonyoss.symphony.tools.rest.ui.console
+Bundle-Version: 0.1.7.qualifier
+Bundle-Vendor: Symphony Communication Services, LLC
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.eclipse.jface;bundle-version="3.13.0",
+ org.eclipse.jface.text;bundle-version="3.12.0",
+ org.eclipse.e4.ui.workbench.swt;bundle-version="0.14.100",
+ org.eclipse.e4.ui.services;bundle-version="1.3.0",
+ org.eclipse.osgi;bundle-version="3.12.0",
+ org.eclipse.e4.core.di;bundle-version="1.6.100",
+ org.eclipse.e4.core.contexts;bundle-version="1.6.0"
+Export-Package: org.symphonyoss.symphony.tools.rest.ui.console
+Import-Package: javax.inject,
+ org.eclipse.e4.core.services.log,
+ org.eclipse.e4.ui.di

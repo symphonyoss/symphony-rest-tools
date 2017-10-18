@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.symphonyoss.symphony.tools.rest.ui.console.feature_0.1.7.qualifier.jar" id="org.symphonyoss.symphony.tools.rest.ui.console.feature" version="0.1.7.qualifier">
+      <category name="srt"/>
+   </feature>
+   <feature url="features/org.symphonyoss.symphony.tools.rest.ui.feature_0.1.7.qualifier.jar" id="org.symphonyoss.symphony.tools.rest.ui.feature" version="0.1.7.qualifier">
+      <category name="srt"/>
+   </feature>
+   <category-def name="srt" label="Symphony REST Tools UI"/>
+</site>

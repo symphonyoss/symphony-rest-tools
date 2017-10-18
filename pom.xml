@@ -32,17 +32,17 @@
 	
 	<groupId>org.symphonyoss.symphony.tools.rest</groupId>
 	<artifactId>symphony-rest-tools</artifactId>
-	<version>0.1.6-SNAPSHOT</version>
+	<version>0.1.7-SNAPSHOT</version>
 	<name>Symphony REST tools</name>
 	<description>Low level tools for use with the Symphony public REST API</description>
 	<url>https://github.com/symphonyoss/symphony-rest-tools</url>
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>org.symphonyoss.symphony.tools.rest</module>
-		<module>symphony-rest-tools-samples</module>
-		<module>org.symphonyoss.symphony.tools.rest.dependencies</module>
-		<module>org.symphonyoss.symphony.tools.rest.test</module>
+		<module>symphony-rest-tools-bundles</module>
+		<module>symphony-rest-tools-features</module>
+		<module>symphony-rest-tools-products</module>
+		<module>symphony-rest-tools-update</module>
 	</modules>
 
 	<licenses>
@@ -192,7 +192,7 @@
 		         <goal>checkin</goal>
 		       </goals>
 		       <configuration>
-		         <includes>**/META-INF/MANIFEST.MF,**/feature.xml,**/*.product</includes>
+		         <includes>**/META-INF/MANIFEST.MF,**/feature.xml,**/*.product,**/category.xml</includes>
 		         <excludes>**/target/**</excludes>
 		       <message>Changing the version to reflect the pom versions for the release</message>
 		       </configuration>

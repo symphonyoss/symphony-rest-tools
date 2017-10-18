@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Symphony REST Tools
+Bundle-SymbolicName: org.symphonyoss.symphony.tools.rest;singleton:=true
+Bundle-Version: 0.1.7.qualifier
+Bundle-Vendor: Symphony Communication Services
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.symphonyoss.symphony.tools.rest,
+ org.symphonyoss.symphony.tools.rest.command,
+ org.symphonyoss.symphony.tools.rest.console,
+ org.symphonyoss.symphony.tools.rest.model,
+ org.symphonyoss.symphony.tools.rest.model.osmosis,
+ org.symphonyoss.symphony.tools.rest.probe,
+ org.symphonyoss.symphony.tools.rest.util,
+ org.symphonyoss.symphony.tools.rest.util.command,
+ org.symphonyoss.symphony.tools.rest.util.home,
+ org.symphonyoss.symphony.tools.rest.util.typeutils
+Import-Package: com.fasterxml.jackson.core,
+ com.fasterxml.jackson.databind,
+ com.fasterxml.jackson.databind.node,
+ javax.annotation,
+ javax.annotation.concurrent,
+ org.bouncycastle.cert,
+ org.bouncycastle.cert.jcajce,
+ org.bouncycastle.openssl,
+ org.bouncycastle.openssl.jcajce,
+ org.symphonyoss.symphony.jcurl

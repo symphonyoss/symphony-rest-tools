@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?pde version="3.5"?>
+
+<product name="SRT" uid="srt" id="org.symphonyoss.symphony.tools.rest.ui.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="0.1.7.qualifier" useFeatures="true" includeLaunchers="true">
+
+   <aboutInfo>
+      <image path="/org.symphonyoss.symphony.tools.rest.ui/icons/product_lg.gif"/>
+   </aboutInfo>
+
+   <configIni use="default">
+   </configIni>
+
+   <launcherArgs>
+      <programArgs>-clearPersistedState
+      </programArgs>
+      <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
+      </vmArgsMac>
+   </launcherArgs>
+
+   <windowImages i16="/org.symphonyoss.symphony.tools.rest.ui/icons/window/window-16.gif" i32="/org.symphonyoss.symphony.tools.rest.ui/icons/window/window-32.gif" i48="/org.symphonyoss.symphony.tools.rest.ui/icons/window/window-48.gif" i64="/org.symphonyoss.symphony.tools.rest.ui/icons/window/window-64.gif" i128="/org.symphonyoss.symphony.tools.rest.ui/icons/window/window-128.gif" i256="/org.symphonyoss.symphony.tools.rest.ui/icons/window/window-256.gif"/>
+
+   <splash
+      location="org.symphonyoss.symphony.tools.rest.ui" />
+   <launcher name="srt">
+      <linux icon="/icons/srt.xpm"/>
+      <macosx icon="/icons/srt.icns"/>
+      <win useIco="true">
+         <ico path="/icons/SRT.ico"/>
+         <bmp
+            winSmallHigh="/org.symphonyoss.symphony.tools.rest.ui/icons/launcher/window-16.bmp"
+            winSmallLow="/org.symphonyoss.symphony.tools.rest.ui/icons/launcher/window-16-8.bmp"
+            winMediumHigh="/org.symphonyoss.symphony.tools.rest.ui/icons/launcher/window-32.bmp"
+            winMediumLow="/org.symphonyoss.symphony.tools.rest.ui/icons/launcher/window-32-8.bmp"
+            winLargeHigh="/org.symphonyoss.symphony.tools.rest.ui/icons/launcher/window-48.bmp"
+            winExtraLargeHigh="/org.symphonyoss.symphony.tools.rest.ui/icons/launcher/window-256.bmp"/>
+      </win>
+   </launcher>
+
+
+   <vm>
+   </vm>
+
+   <plugins>
+   </plugins>
+
+   <features>
+      <feature id="org.eclipse.e4.rcp"/>
+      <feature id="org.eclipse.emf.common"/>
+      <feature id="org.eclipse.emf.ecore"/>
+      <feature id="org.symphonyoss.symphony.tools.rest.ui.console.feature"/>
+      <feature id="org.symphonyoss.symphony.tools.rest.ui.feature"/>
+   </features>
+
+   <configurations>
+      <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
+      <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
+   </configurations>
+
+   <preferencesInfo>
+      <targetfile overwrite="false"/>
+   </preferencesInfo>
+
+   <cssInfo>
+   </cssInfo>
+
+</product>
