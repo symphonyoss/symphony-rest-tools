@@ -312,7 +312,7 @@ public abstract class SrtCommand extends ConsoleDelegate
   {
     Builder builder = JCurl.builder()
         .extract(Srt.TOKEN, Srt.TOKEN)  // force JCurl to parse JSON
-        .header("User-Agent", programName_ + " / 0.1.0 https://github.com/bruceskingle/symphony-rest-tools");
+        .header("User-Agent", programName_ + " / 0.1.0 https://github.com/symphonyoss/symphony-rest-tools");
 
     if (getConnectTimeoutMillis() > 0)
       builder.connectTimeout(getConnectTimeoutMillis());
@@ -320,22 +320,27 @@ public abstract class SrtCommand extends ConsoleDelegate
     if (getReadTimeoutMillis() > 0)
       builder.readTimeout(getReadTimeoutMillis());
 
-    if(getKeystore() != null)
+    String keystore = getKeystore();
+    
+    if(keystore != null && keystore.length()>0)
     {
-      builder.keystore(getKeystore());
+      builder.keystore(keystore);
       builder.storepass(getStorepass());
     
-      if(getStoretype() != null)
-        builder.storetype(getStoretype());
+      String storetype = getStoretype();
+      if(storetype != null && storetype.length()>0)
+        builder.storetype(storetype);
     }
     
-    if(getTruststore() != null)
+    String truststore = getTruststore();
+    if(truststore != null && truststore.length()>0)
     {
-      builder.truststore(getTruststore());
+      builder.truststore(truststore);
       builder.trustpass(getTrustpass());
     
-      if(getTrusttype() != null)
-        builder.storetype(getTrusttype());
+      String trusttype = getTrusttype();
+      if(trusttype != null && trusttype.length()>0)
+        builder.storetype(trusttype);
     }
     
     if(verbose_.getCount()>0)
