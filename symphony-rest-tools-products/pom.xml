@@ -35,6 +35,7 @@
   
   <modules>
   		<module>org.symphonyoss.symphony.tools.rest.ui.product</module>
+  		<module>symphony-rest-tools-cmdline</module>
   </modules>
   
   <build>

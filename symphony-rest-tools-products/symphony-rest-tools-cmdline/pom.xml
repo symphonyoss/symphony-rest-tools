@@ -2,10 +2,11 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.symphonyoss.symphony.tools.rest</groupId>
-    <artifactId>symphony-rest-tools</artifactId>
+    <artifactId>symphony-rest-tools-products</artifactId>
     <version>0.1.6-SNAPSHOT</version>
   </parent>
-  <artifactId>symphony-rest-tools-samples</artifactId>
+  <artifactId>symphony-rest-tools-cmdline</artifactId>
+  <packaging>pom</packaging>
   
   <properties>
 		<dist.name>${project.artifactId}-${project.version}</dist.name>

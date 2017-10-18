@@ -37,8 +37,11 @@
             <directory>${project.build.directory}/lib</directory>
             <outputDirectory>lib</outputDirectory>
             <includes>
-                <include>**/*.jar</include>
+                <include>*.jar</include>
             </includes>
+            <excludes>
+            		<exclude>org.symphonyoss.symphony.tools.rest.dependencies-*</exclude>
+            </excludes>
             <fileMode>444</fileMode>
             <directoryMode>755</directoryMode>
         </fileSet>

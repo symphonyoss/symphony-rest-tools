@@ -39,7 +39,6 @@
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>symphony-rest-tools-samples</module>
 		<module>symphony-rest-tools-bundles</module>
 		<module>symphony-rest-tools-features</module>
 		<module>symphony-rest-tools-products</module>
