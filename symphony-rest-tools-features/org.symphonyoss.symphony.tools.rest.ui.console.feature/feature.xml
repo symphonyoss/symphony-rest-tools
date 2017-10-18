@@ -2,7 +2,7 @@
 <feature
       id="org.symphonyoss.symphony.tools.rest.ui.console.feature"
       label="E4 Console Feature"
-      version="0.1.6.qualifier"
+      version="0.1.6"
       provider-name="Symphony Communication Services, LLC">
 
    <description url="http://www.example.com/description">

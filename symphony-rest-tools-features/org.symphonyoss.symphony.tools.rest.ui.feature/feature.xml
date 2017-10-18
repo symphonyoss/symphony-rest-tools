@@ -2,7 +2,7 @@
 <feature
       id="org.symphonyoss.symphony.tools.rest.ui.feature"
       label="Symphony REST tools UI Feature"
-      version="0.1.6.qualifier"
+      version="0.1.6"
       provider-name="Symphony Communication Services, LLC">
 
    <description url="http://www.example.com/description">
