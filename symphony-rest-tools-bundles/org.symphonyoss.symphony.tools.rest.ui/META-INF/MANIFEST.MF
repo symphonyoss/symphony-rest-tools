@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Symphony REST Tools UI
 Bundle-SymbolicName: org.symphonyoss.symphony.tools.rest.ui;singleton:=true
-Bundle-Version: 0.1.6
+Bundle-Version: 0.1.7.qualifier
 Bundle-Vendor: Symphony Communication Services
 Require-Bundle: org.eclipse.core.runtime;bundle-version="3.13.0",
  org.eclipse.swt;bundle-version="3.106.0",

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="SRT" uid="srt" id="org.symphonyoss.symphony.tools.rest.ui.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="0.1.6" useFeatures="true" includeLaunchers="true">
+<product name="SRT" uid="srt" id="org.symphonyoss.symphony.tools.rest.ui.product" application="org.eclipse.e4.ui.workbench.swt.E4Application" version="0.1.7.qualifier" useFeatures="true" includeLaunchers="true">
 
    <aboutInfo>
       <image path="/org.symphonyoss.symphony.tools.rest.ui/icons/product_lg.gif"/>
