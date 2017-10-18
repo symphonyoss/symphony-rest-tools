@@ -1,0 +1,90 @@
+!SESSION 2017-10-18 07:49:15.074 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho6269828612514064223secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho6269828612514064223secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 07:49:15.074
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 07:56:56.513 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho3757201991715769063secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho3757201991715769063secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 07:56:56.514
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 07:58:16.903 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho5552232242299523662secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho5552232242299523662secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 07:58:16.903
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 08:17:25.570 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho2876412025657375045secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho2876412025657375045secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 08:17:25.570
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 08:24:52.030 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho8088789810475236265secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho8088789810475236265secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 08:24:52.030
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 08:27:26.685 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho2417216143811213643secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho2417216143811213643secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 08:27:26.685
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 08:44:37.919 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho6893122917998229926secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho6893122917998229926secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 08:44:37.920
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 09:50:53.098 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho341384598557394021secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho341384598557394021secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 09:50:53.098
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+!SESSION 2017-10-18 09:53:21.278 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho4924841310760309240secure_storage
+Command-line arguments:  -eclipse.keyring /var/folders/4k/0sfqq6v1605547b2gjcldk2h0000gn/T/tycho4924841310760309240secure_storage
+
+!ENTRY org.eclipse.core.net 1 0 2017-10-18 09:53:21.278
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences

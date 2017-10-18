@@ -1,0 +1,21 @@
+#!/bin/sh
+
+export SCRIPT_DIR=`dirname $0`
+
+product=SRT
+dir=..
+
+	echo $product...
+	
+	mkdir /tmp/$product.iconset
+	sips -z 16 16    	$dir/$product-300.png --out /tmp/$product.iconset/icon_16x16.png
+	sips -z 32 32    	$dir/$product-300.png --out /tmp/$product.iconset/icon_16x16@2x.png
+	sips -z 32 32    	$dir/$product-300.png --out /tmp/$product.iconset/icon_32x32.png
+	sips -z 64 64     	$dir/$product-300.png --out /tmp/$product.iconset/icon_32x32@2x.png
+	sips -z 128 128   	$dir/$product-300.png --out /tmp/$product.iconset/icon_128x128.png
+	sips -z 256 256   	$dir/$product-300.png --out /tmp/$product.iconset/icon_128x128@2x.png
+	sips -z 256 256   	$dir/$product-300.png --out /tmp/$product.iconset/icon_256x256.png
+	sips -z 512 512   	$dir/$product-300.png --out /tmp/$product.iconset/icon_256x256@2x.png
+	sips -z 512 512   	$dir/$product-300.png --out /tmp/$product.iconset/icon_512x512.png
+	sips -z 1024 1024   $dir/$product-300.png --out /tmp/$product.iconset/icon_512x512@2x.png
+	iconutil -c icns -o ../../icons/$product.icns /tmp/$product.iconset

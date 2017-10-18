@@ -39,10 +39,11 @@
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>org.symphonyoss.symphony.tools.rest</module>
 		<module>symphony-rest-tools-samples</module>
-		<module>org.symphonyoss.symphony.tools.rest.dependencies</module>
-		<module>org.symphonyoss.symphony.tools.rest.test</module>
+		<module>symphony-rest-tools-bundles</module>
+		<module>symphony-rest-tools-features</module>
+		<module>symphony-rest-tools-products</module>
+		<module>symphony-rest-tools-update</module>
 	</modules>
 
 	<licenses>

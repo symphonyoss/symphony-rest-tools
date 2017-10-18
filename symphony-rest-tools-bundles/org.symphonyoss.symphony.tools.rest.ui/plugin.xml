@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="org.eclipse.e4.ui.workbench.swt.E4Application"
+            name="SRT">
+         <property
+               name="appName"
+               value="SRT">
+         </property>
+         <property
+               name="aboutImage"
+               value="icons/product_lg.gif">
+         </property>
+         <property
+               name="windowImages"
+               value="icons/window/window-16.gif,icons/window/window-32.gif,icons/window/window-48.gif,icons/window/window-64.gif,icons/window/window-128.gif,icons/window/window-256.gif">
+         </property>
+      </product>
+   </extension>
+
+</plugin>

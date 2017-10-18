@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ASCII"?>
+<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_Msm_4JqFEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.application">
+  <children xsi:type="basic:TrimmedWindow" xmi:id="_QwmZwJqFEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.trimmedwindow.main" label="Symphony REST Tools">
+    <children xsi:type="basic:PartSashContainer" xmi:id="_EHGtMJqGEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.partsashcontainer.main">
+      <children xsi:type="basic:PartSashContainer" xmi:id="_JOBd4JrtEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.partsashcontainer.top" horizontal="true">
+        <children xsi:type="basic:PartStack" xmi:id="_OyUz8JrtEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.partstack.nav">
+          <children xsi:type="basic:Part" xmi:id="_VUYLsJrtEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.part.pods" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.pods.PodsView" label="Pods" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/obj16/Pod.gif">
+            <menus xsi:type="menu:PopupMenu" xmi:id="_ccvdEJsPEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.popupmenu.pods" label="Pods">
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_lgnRUJsPEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.probe" label="Probe" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/etool16/search.gif" command="_4qDnYJsPEee42oFXabHtOg"/>
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_uDFSgJ5NEee_ZogvD_0JVw" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.healthCheck" label="Health Check" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/obj16/health_check.png" command="_VZS5UJ5NEee_ZogvD_0JVw"/>
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_xa9TsKACEeeKSMg4A20k0A" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.login" label="Login" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/obj16/Principal.gif" command="_bczaUKACEeeKSMg4A20k0A"/>
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_yxHqQKlWEeeKJ5COtsrMRw" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.delete" label="Delete" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/etool16/remove.gif" command="_rJHXEKlWEeeKJ5COtsrMRw"/>
+              <children xsi:type="menu:HandledMenuItem" xmi:id="_paF_sKo2EeeKJ5COtsrMRw" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.checkcerts" label="Check Certs" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/obj16/cert.gif" command="_g2EJIKo2EeeKJ5COtsrMRw"/>
+            </menus>
+          </children>
+        </children>
+        <children xsi:type="basic:PartStack" xmi:id="_RIgoMJrtEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.partstack.work"/>
+      </children>
+      <children xsi:type="basic:PartStack" xmi:id="_MV9fMJrtEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.partstack.console">
+        <children xsi:type="basic:Part" xmi:id="_er7J4JrtEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.console.part" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.views.ConsoleView" label="Console"/>
+      </children>
+    </children>
+    <mainMenu xmi:id="_9ZEhwJrvEee42oFXabHtOg" elementId="org.eclipse.ui.main.menu">
+      <children xsi:type="menu:Menu" xmi:id="_HpMtwJrwEee42oFXabHtOg" elementId="org.eclipse.ui.file.menu" label="File">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_TrTNsJrwEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.new" label="New"/>
+        <children xsi:type="menu:MenuSeparator" xmi:id="_WNuuMJrwEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.menuseparator.0"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_XFn_gJrwEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.handledmenuitem.exit" label="Exit" command="_wmgOMJrvEee42oFXabHtOg"/>
+      </children>
+    </mainMenu>
+    <trimBars xmi:id="_zwCjkJwDEeeESYhIiBZbsg" elementId="org.symphonyoss.symphony.tools.rest.ui.trimbar.top">
+      <children xsi:type="menu:ToolBar" xmi:id="_51OZIJwDEeeESYhIiBZbsg" elementId="org.symphonyoss.symphony.tools.rest.ui.toolbar.0">
+        <children xsi:type="menu:HandledToolItem" xmi:id="_6zkQsJwDEeeESYhIiBZbsg" elementId="org.symphonyoss.symphony.tools.rest.ui.handledtoolitem.probe" label="Probe" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/etool16/search.gif" command="_4qDnYJsPEee42oFXabHtOg"/>
+        <children xsi:type="menu:HandledToolItem" xmi:id="_ssKgYKSDEeeAALx_MVasiQ" elementId="org.symphonyoss.symphony.tools.rest.ui.handledtoolitem.0" iconURI="platform:/plugin/org.symphonyoss.symphony.tools.rest.ui/icons/obj16/Component.gif"/>
+      </children>
+    </trimBars>
+  </children>
+  <handlers xmi:id="_4okAIJrvEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.handler.exit" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.handlers.ExitHandler" command="_wmgOMJrvEee42oFXabHtOg"/>
+  <handlers xmi:id="_7qPa4JsPEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.handler.probe" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.handlers.ProbePodHandler" command="_4qDnYJsPEee42oFXabHtOg"/>
+  <handlers xmi:id="_eEsjMJ5NEee_ZogvD_0JVw" elementId="org.symphonyoss.symphony.tools.rest.ui.handler.0" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.handlers.HealthCheckHandler" command="_VZS5UJ5NEee_ZogvD_0JVw"/>
+  <handlers xmi:id="_gcpYcKACEeeKSMg4A20k0A" elementId="org.symphonyoss.symphony.tools.rest.ui.handler.login" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.handlers.LoginHandler" command="_bczaUKACEeeKSMg4A20k0A"/>
+  <handlers xmi:id="_nPHmsKlWEeeKJ5COtsrMRw" elementId="org.symphonyoss.symphony.tools.rest.ui.handler.deletePod" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.handlers.DeletePodHandler" command="_rJHXEKlWEeeKJ5COtsrMRw"/>
+  <handlers xmi:id="_kKJwEKo2EeeKJ5COtsrMRw" elementId="org.symphonyoss.symphony.tools.rest.ui.handler.checkCerts" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.handlers.CheckCertsHandler" command="_g2EJIKo2EeeKJ5COtsrMRw"/>
+  <commands xmi:id="_wmgOMJrvEee42oFXabHtOg" elementId="org.eclipse.ui.file.exit" commandName="Exit"/>
+  <commands xmi:id="_4qDnYJsPEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.command.probe" commandName="Probe"/>
+  <commands xmi:id="_VZS5UJ5NEee_ZogvD_0JVw" elementId="org.symphonyoss.symphony.tools.rest.ui.command.healthCheck" commandName="Health Check" description="Ping the server to see if it is healthy"/>
+  <commands xmi:id="_bczaUKACEeeKSMg4A20k0A" elementId="org.symphonyoss.symphony.tools.rest.ui.command.login" commandName="Login"/>
+  <commands xmi:id="_rJHXEKlWEeeKJ5COtsrMRw" elementId="org.symphonyoss.symphony.tools.rest.ui.command.deletePod" commandName="Delete Pod" description="Delete a Pod"/>
+  <commands xmi:id="_g2EJIKo2EeeKJ5COtsrMRw" elementId="org.symphonyoss.symphony.tools.rest.ui.command.checkCerts" commandName="Check Certs"/>
+  <addons xmi:id="_UIwugJssEee42oFXabHtOg" elementId="org.symphonyoss.symphony.tools.rest.ui.addon.console" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui.console/org.symphonyoss.symphony.tools.rest.ui.console.ConsoleAddOn"/>
+  <addons xmi:id="__XteYJwQEeeESYhIiBZbsg" elementId="org.symphonyoss.symphony.tools.rest.ui.addon.home" contributionURI="bundleclass://org.symphonyoss.symphony.tools.rest.ui/org.symphonyoss.symphony.tools.rest.ui.addon.UiAddOn"/>
+  <addons xmi:id="_Msm_4ZqFEee42oFXabHtOg" elementId="org.eclipse.e4.core.commands.service" contributionURI="bundleclass://org.eclipse.e4.core.commands/org.eclipse.e4.core.commands.CommandServiceAddon"/>
+  <addons xmi:id="_Msm_4pqFEee42oFXabHtOg" elementId="org.eclipse.e4.ui.contexts.service" contributionURI="bundleclass://org.eclipse.e4.ui.services/org.eclipse.e4.ui.services.ContextServiceAddon"/>
+  <addons xmi:id="_Msm_45qFEee42oFXabHtOg" elementId="org.eclipse.e4.ui.bindings.service" contributionURI="bundleclass://org.eclipse.e4.ui.bindings/org.eclipse.e4.ui.bindings.BindingServiceAddon"/>
+  <addons xmi:id="_Msm_5JqFEee42oFXabHtOg" elementId="org.eclipse.e4.ui.workbench.commands.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.CommandProcessingAddon"/>
+  <addons xmi:id="_Msm_5ZqFEee42oFXabHtOg" elementId="org.eclipse.e4.ui.workbench.contexts.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.ContextProcessingAddon"/>
+  <addons xmi:id="_Msm_5pqFEee42oFXabHtOg" elementId="org.eclipse.e4.ui.workbench.bindings.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench.swt/org.eclipse.e4.ui.workbench.swt.util.BindingProcessingAddon"/>
+  <addons xmi:id="_Msm_55qFEee42oFXabHtOg" elementId="org.eclipse.e4.ui.workbench.handler.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.HandlerProcessingAddon"/>
+</application:Application>
