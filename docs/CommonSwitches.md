@@ -1,6 +1,6 @@
 ---
-nav-sort: 20
-nav-level: 2
+nav-sort: 210
+nav-level: 1
 ---
 # Common Switches
 The following common switches can be applied to most commands:
