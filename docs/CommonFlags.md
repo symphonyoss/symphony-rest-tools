@@ -1,6 +1,6 @@
 ---
-nav-sort: 30
-nav-level: 2
+nav-sort: 220
+nav-level: 1
 ---
 # Common Flags
 The following common flags can be applied to several commands:
