@@ -1,6 +1,6 @@
 ---
 nav-sort: 300
-nav-level: 1
+nav-level: 0
 ---
 # Configuration
 A configuration directory, referred to as **SRT_HOME** is used to store configuration
