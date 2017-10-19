@@ -1,138 +1,191 @@
 # symphony-rest-tools
 Low level tools for use with the Symphony public REST API
 
-## ProbePod
-This command line utility probes a host for the presence of 
-a Symphony pod. If a client certificate is provided then it
-attempts to authenticate and makes a call to the pod and agent
-API endpoints. Without a certificate it will attempt to find
-the configuration but has to assume that an endpoint configured
-for client certificate authentication is a valid endpoint.
+Full documentation is available at https://symphonyoss.github.io/symphony-rest-tools/
 
-As the probe progresses detailed information about the results
-is printed to stdout. If the probe is successful then a
-summary is printed and the following files are created:
+## Quick Start
+Go to the releases page at https://github.com/symphonyoss/symphony-rest-tools/releases and download the latest version of symphony-rest-tools-cmdline-X.Y.Z-bin.tar.gz
 
-* A certificate truststore file containing the root certificates
-provided by the various servers to which connections are made
-* A Java properties file containing the various URLs and path
-to the client certificate (if any). This file is compatible
-with the [Symphony Java Client](https://github.com/symphonyoss/symphony-java-client)
+This is the pure Java, platform neutral, command line implementation.
 
-### Usage:
+Create a directory in a convenient location and extract the tarball:
 
 ```
-probePod [--keystore certFile] [--storepass password] [--storetype keystoreType] [hostname]
+$ mkdir /tmp/srt
+$ cd /tmp/srt
+$ tar zxf ~/Downloads/symphony-rest-tools-cmdline-0.1.6-bin.tar.gz 
+$ ls
+bash	bat	certs	lib
+```
+
+The **bash** directory contains shell scripts for Unix based systems, the **bat** directory contains Windows batch file scripts which do the same thing for that platform.
+
+The **probePod** command requires a host name and will attempt to discover the configuration of a pod on that host. Launch this script, enter a host name (.symphony.com is applied as a suffix if the entered value has no dots) and hit RETURN to accept the defaults for all other parameters:
 
 ```
---keystore certFile
-
-The path to a file containing a client certificate, usually in
-PKCS#12 format with a .p12 extension, if absent then no authentication
-is attempted.
-
- --storepass password
-
-The password for the provided keystore, default "changeit"
-
- --storetype keystoreType
- 
- The format of the provided certificate file, default "pkcs12".
- 
- hostname
- 
- The hostname of the server to probe. If a simple name is provided then
- the domain .symphony.com is assumed.
- 
- If no value is provided the the user is prompted to enter a value
- on the standard input.
- 
-
-### Example:
-
-```
-$ probePod.sh --keystore bot.user5.p12 nexus2
-name=nexus2
+$ bash/probePod 
+Default home area "/Users/bruce/.srt" created.
+SRT_HOME set by Default
+Press RETURN to accept default values
+Enter a space to clear the default value
+Leading and trailing whitespace are deleted
+Location of SRT home[]: 
+Host Name[]: foundation-dev
+Keystore File Name[]: 
+Keystore Type[pkcs12]: 
+Keystore Password[changeit]: 
+Truststore File Name[]: 
+Truststore Type[jks]: 
+Truststore Type[changeit]: 
+name=foundation-dev
 domain=.symphony.com
 
+
+Probing foundation-dev.symphony.com for a Pod
+=============================================
 Probing for Pod
 ===============
-Probing https://nexus2.symphony.com/...
-Root server cert CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
+```
+
+The script then attempts to connect to a variety of host name and port number combinations to locate a Symphony Pod:
+
+```
+Probing foundation-dev.symphony.com for a Pod: Probing Port 443
+===============================================================
+Probing https://foundation-dev.symphony.com/...
+Root server cert CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 End server cert CN=*.symphony.com,OU=Domain Control Validated
-Probing https://nexus2.symphony.com//client/index.html...
-Root server cert CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
+Probing https://foundation-dev.symphony.com/client/index.html...
+Root server cert CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 End server cert CN=*.symphony.com,OU=Domain Control Validated
-Probing https://nexus2.symphony.com//webcontroller/HealthCheck...
-Root server cert CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
+Probing https://foundation-dev.symphony.com/webcontroller/HealthCheck...
+Root server cert CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 End server cert CN=*.symphony.com,OU=Domain Control Validated
 We found a Symphony Pod!
 
+Probing for API Sessionauth
+===========================
+Probing https://foundation-dev-api.symphony.com:8444/sessionauth/v1/authenticate...
+Cannot connect to foundation-dev-api.symphony.com:8444
+Probing https://foundation-dev-api.symphony.com:8445/sessionauth/v1/authenticate...
+Cannot connect to foundation-dev-api.symphony.com:8445
+Probing https://foundation-dev-api.symphony.com:8446/sessionauth/v1/authenticate...
+Cannot connect to foundation-dev-api.symphony.com:8446
+Probing https://foundation-dev.symphony.com:8444/sessionauth/v1/authenticate...
+Cannot connect to foundation-dev.symphony.com:8444
+Probing https://foundation-dev.symphony.com:8445/sessionauth/v1/authenticate...
+Cannot connect to foundation-dev.symphony.com:8445
+Probing https://foundation-dev.symphony.com:8446/sessionauth/v1/authenticate...
+Cannot connect to foundation-dev.symphony.com:8446
+Failed to find any Session Auth endpoint
+Probing https://foundation-dev.symphony.com/pod/v2/sessioninfo...
+Failed with HTTP status 401
+JSON=null
+Failed to connect to POD API
+Probing https://foundation-dev.symphony.com/login/checkauth?type=user...
+Root server cert CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
+End server cert CN=*.symphony.com,OU=Domain Control Validated
+keyManagerUrl is https://foundation-dev.symphony.com/relay
+Probing https://foundation-dev.symphony.com/webcontroller/public/podInfo...
+Failed with HTTP status 401
+Can't get podInfo from this Pod.
+keyManagerName=foundation-dev
+keyManagerDomain=.symphony.com
+Found key manager at https://foundation-dev.symphony.com/relay
+
+Probing for API Keyauth
+=======================
+
+Probing foundation-dev.symphony.com for a Pod: Probing for API Keyauth
+======================================================================
+Probing https://foundation-dev-api.symphony.com:8444/keyauth/v1/authenticate...
+Cannot connect to foundation-dev-api.symphony.com:8444
+Probing https://foundation-dev-api.symphony.com:8445/keyauth/v1/authenticate...
+Cannot connect to foundation-dev-api.symphony.com:8445
+Probing https://foundation-dev-api.symphony.com:8446/keyauth/v1/authenticate...
+Cannot connect to foundation-dev-api.symphony.com:8446
+Probing https://foundation-dev.symphony.com:8444/keyauth/v1/authenticate...
+Cannot connect to foundation-dev.symphony.com:8444
+Probing https://foundation-dev.symphony.com:8445/keyauth/v1/authenticate...
+Cannot connect to foundation-dev.symphony.com:8445
+Probing https://foundation-dev.symphony.com:8446/keyauth/v1/authenticate...
+Cannot connect to foundation-dev.symphony.com:8446
+Failed to find any Key Auth endpoint
+
+Probing foundation-dev.symphony.com for a Pod: Probing for API Agent
+====================================================================
+
+Probing for API Agent
+=====================
+Probing https://foundation-dev-api.symphony.com/agent/v1/util/echo...
+Certificate auth required for foundation-dev-api.symphony.com:443
+Probing https://foundation-dev-api.symphony.com:8444/agent/v1/util/echo...
+Cannot connect to foundation-dev-api.symphony.com:8444
+Probing https://foundation-dev-api.symphony.com:8445/agent/v1/util/echo...
+Cannot connect to foundation-dev-api.symphony.com:8445
+Probing https://foundation-dev-api.symphony.com:8446/agent/v1/util/echo...
+Cannot connect to foundation-dev-api.symphony.com:8446
+Probing https://foundation-dev.symphony.com/agent/v1/util/echo...
+Failed with HTTP status 400
+Probing https://foundation-dev.symphony.com:8444/agent/v1/util/echo...
+Cannot connect to foundation-dev.symphony.com:8444
+Probing https://foundation-dev.symphony.com:8445/agent/v1/util/echo...
+Cannot connect to foundation-dev.symphony.com:8445
+Probing https://foundation-dev.symphony.com:8446/agent/v1/util/echo...
+Cannot connect to foundation-dev.symphony.com:8446
+OK
+Found probable Agent API endpoint at https://foundation-dev-api.symphony.com/agent
 
 Probe Successful
 ================
-Pod URL             =https://nexus2.symphony.com
-Pod ID              =130
-Key Manager URL     =https://nexus2.symphony.com/relay
-Session Auth URL    =https://nexus2.symphony.com:8444/sessionauth
-Key Auth URL        =https://nexus2.symphony.com:8444/keyauth
-Pod API URL         =https://nexus2.symphony.com/pod
-Agent API URL       =https://nexus2.symphony.com/agent
+Web URL             =https://foundation-dev.symphony.com/
+Pod URL             =https://foundation-dev.symphony.com
+Pod ID              =0
+Key Manager URL     =https://foundation-dev.symphony.com/relay
+Session Auth URL    =null
+Key Auth URL        =null
+Pod API URL         =https://foundation-dev.symphony.com/pod
+Agent API URL       =https://foundation-dev-api.symphony.com/agent
 
-Client cert         =/atlas/symphony/global/certs/bot.user1.p12
-We authenticated as
-userInfo.displayName=Bot User 1
-userInfo.id         =8933531975687
-userInfo.company    =Symphony Nexus Team Dev 2
+Client cert         =
+This cert was not accepted for authentication
 
 Root server certs:
-CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
-Truststore saved as /var/folders/1d/8g7d6xdx7_z4xj45j97kgk080000gn/T/server4920420444920238160.truststore
-Config file saved as /var/folders/1d/8g7d6xdx7_z4xj45j97kgk080000gn/T/symphony2279410722209853728.properties
 
 End server certs:
 CN=*.symphony.com,OU=Domain Control Validated
 
-```
-### Building
+Probing foundation-dev.symphony.com for a Pod: Saving Configuration
+===================================================================
+Finished.
 
 ```
-$ git clone https://github.com/bruceskingle/symphony-rest-tools.git
-Cloning into 'symphony-rest-tools'...
-remote: Counting objects: 5, done.
-remote: Compressing objects: 100% (5/5), done.
-remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
-Unpacking objects: 100% (5/5), done.
-$ cd symphony-rest-tools
-$ mvn package
-[INFO] Scanning for projects...
-[INFO]                                                                         
-[INFO] ------------------------------------------------------------------------
-[INFO] Building Symphony REST tools 0.1.0-SNAPSHOT
-[INFO] ------------------------------------------------------------------------
-[INFO] 
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 3.639 s
-[INFO] Finished at: 2017-06-19T19:37:31-07:00
-[INFO] Final Memory: 27M/331M
-[INFO] ------------------------------------------------------------------------
-$ tree target/symphony-rest-tools-0.1.0-SNAPSHOT-bin
-target/symphony-rest-tools-0.1.0-SNAPSHOT-bin
-├── bin
-│   ├── environment.sh
-│   └── probePod.sh
-└── lib
-    ├── jcurl-0.9.4-SNAPSHOT.jar
-    ├── jsr305-3.0.2.jar
-    └── symphony-rest-tools-0.1.0-SNAPSHOT.jar
 
-2 directories, 5 files
-$ ./target/symphony-rest-tools-0.1.0-SNAPSHOT-bin/bin/probePod.sh -keystore /tmp/bot.user1.p12 nexus.symphony.com
+Finally the results are displayed.
 
 ```
+Objectives
+==========
+Locate Pod           OK         
+Locate Session Auth Endpoint Failed     Unable to locate URL
+Locate Pod API Endpoint OK         
+Locate Key Manager   OK         
+Locate Key Manager Auth Endpoint Failed     Unable to locate URL
+Locate Agent         OK         
+
+
+$ 
+
+```
+# Next Steps
+
+Instructions for installing the various releases is available at
+
+https://symphonyoss.github.io/symphony-rest-tools/GettingStarted
+
+
+
 ## Contribute
 This project was initiated at [Symphony Communication Services, LLC.](https://www.symphony.com) and has been developed as open-source from the very beginning.
 
