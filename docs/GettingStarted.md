@@ -3,10 +3,7 @@ nav-sort: 100
 ---
 # Getting Started
 
+The quickest way to get started is to install one of the binary releases. The platform neutral
+[Command Line Release](GettingStarted/CommandLineInstall.md), or one of the binary GUI releases for [OSX](GettingStarted/OSXInstall.md), [Windows](GettingStarted/WindowsInstall.md), or [Linux](GettingStarted/LinuxInstall.md).
 
-<p>[Installing the Command Line Binary Release](GettingStarted/CommandLineInstall.md)</p>
-<p>Installing the OSX GUI Binary Release</p>
-<p>Installing the Windows GUI Binary Release</p>
-<p>Installing the Linux GUI Binary Release</p>
-
-<p>Building From Source Code</p>
+Alternatively you can clone the [GitHub Repo](https://github.com/symphonyoss/symphony-rest-tools) and [Build From Source](Building.md).
