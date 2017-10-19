@@ -1,5 +1,5 @@
 # Component Status
-A Component is part of an application or system which can report status. [ComponentStatus](../org.symphonyoss.symphony.tools.rest/src/main/java/org/symphonyoss/symphony/tools/rest/model/osmosis/ComponentStatus.java) is a Java Enum which is used to represent valid status values.
+A Component is part of an application or system which can report status. [ComponentStatus](../symphony-rest-tools-bundles/org.symphonyoss.symphony.tools.rest/src/org/symphonyoss/symphony/tools/rest/model/osmosis/ComponentStatus.java) is a Java Enum which is used to represent valid status values.
 
 Component Status values are also used to report the outcome of Command Objectives.
 
