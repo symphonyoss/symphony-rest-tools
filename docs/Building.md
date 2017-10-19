@@ -1,13 +1,8 @@
 ---
-nav-sort: 300
+nav-sort: 500
 ---
 # Building
 This project uses maven as its build manager.
-## Quick Start
-Create a suitable directory for your working version 
-```
-cd
-```
 
 ## Eclipse, Maven and Tycho
 **symphony-rest-tools** delivers both a pure Java command line tool set and library distributed via **Maven**, and an **Eclipse E4** based GUI for Windows, Mac, and Linux computers.
