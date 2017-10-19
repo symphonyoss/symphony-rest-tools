@@ -6,7 +6,7 @@ nav-level: 1
 The command line binary release is a pure Java, platform neutral, command line UI. It requires a Java 8 Runtime to be installed.
 
 ## Download
-All Symohony REST Tooles releases are available from the releases page at https://github.com/symphonyoss/symphony-rest-tools/releases.
+All Symohony REST Tools releases are available from the releases page at https://github.com/symphonyoss/symphony-rest-tools/releases.
 
 The command line UI is called **symphony-rest-tools-cmdline-X.Y.Z-bin.tar.gz**
 
