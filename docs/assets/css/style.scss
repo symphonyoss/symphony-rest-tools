@@ -8,3 +8,22 @@ a:active {
 	border-bottom: 1px solid rgba(179, 0, 45, 0.5);
 	transition: none;
     }
+
+.navLevel {
+	background-color: red;
+}
+
+
+.navLevel0 {
+	background-color: blue;
+}
+
+.navLevel1 {
+	background-color: green;
+	padding-left: 30px;
+}
+
+.navLevel2 {
+	background-color: yellow;
+	padding-left: 60px;
+}
