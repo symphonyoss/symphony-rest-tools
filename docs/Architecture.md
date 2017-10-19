@@ -1,6 +1,6 @@
 ---
-nav-sort: 10
-nav-level: 1
+nav-sort: 200
+nav-level: 0
 ---
 # Commands, Switches, Flags and Objectives
 In order to facilitate the implementation of REST Tools capabilities across the command
