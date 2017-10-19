@@ -1,3 +1,6 @@
+---
+nav-sort: 200
+---
 # Building
 This project uses maven as its build manager.
 ## Quick Start
