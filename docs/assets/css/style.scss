@@ -1,0 +1,10 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+a:active {
+	color: #d25;
+	border-bottom: 1px solid rgba(179, 0, 45, 0.5);
+	transition: none;
+    }
