@@ -11,3 +11,6 @@ Notwithstanding the above, this project is intended to be a development and diag
 This project uses JCurl as the HTTP client and leverages the JSON parsing capabilities
 of that project. This project provides a binary distribution with convenience scripts to 
 allow of the ad hoc exercising of various API endpoints from the command line.
+
+It also provides an Eclipse based UI which allows capabilities of this project to be exercised in a UI context.
+
