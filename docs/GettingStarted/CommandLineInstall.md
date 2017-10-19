@@ -79,18 +79,11 @@ $ bash/probePod -v -i
 Exception in thread "main" org.symphonyoss.symphony.tools.rest.util.command.CommandLineParserFault: 
   Switch "i" may be set at most 2 times
 ```
-
-### Common Switches
-The following common switches can be applied to most commands:
-
-| Flag | Multiple Allowed | Meaning																																 |
-|------|------------------|--------------------------------------------------------------------------|
-| v    | Yes							 | 	Verbose mode, the more v's the more detailed the output will be, up to 3. |
-| i    | Yes							 | 	Interactive mode, once causes all required parameters to be prompted for twice causes optional parameters to be prompted as well. | 
-| q 		| No              | Quiet mode. Does not make sense together with verbose mode! |
+There are some [Common Switches](../CommonSwitches.md) which can be applied to most commands.
 
 ### Flags
 A Flag is a named parameter. From the command line flags are entered as a parameter with double hyphen or a Unicode em-dash as an introducer and a variable length name, followed by a separate parameter containing the flag value. So a command which has a flag called storetype which also takes the switches above, could be entered as:
 
 _example -qa --storetype pkcs12_
 
+There are some [Common Flags](../CommonFlags.md) which can be applied to several commands.
