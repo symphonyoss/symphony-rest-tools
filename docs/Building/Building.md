@@ -41,7 +41,7 @@ docs                                                    symphony-rest-tools-upda
 $ 
 ```
 
-### Forking the Repo
+### Fork the Repo
 If you want to be able to contribute to the project then you can fork the repo.
 In your web browser, navigate to https://github.com/symphonyoss/symphony-rest-tools and click the 
 **Fork** button in the top right hand corner.
@@ -78,3 +78,103 @@ $
 ```
 
 Creating the **upstream** remote will allow you to raise a pull request when you are ready to make a contribution.
+
+## Build With Maven
+**DO NOT** attempt to import the sources into your IDE at this stage, you will see build errors if you do.
+
+Run a Maven build like this:
+
+```
+$ mvn clean package
+[INFO] Scanning for projects...
+Downloading: https://repo.symphony.com/artifactory/plugins-snapshot/org/eclipse/tycho/tycho-maven-plugin/1.1.0-SNAPSHOT/maven-metadata.xml
+Downloading: https://oss.sonatype.org/content/repositories/snapshots/org/eclipse/tycho/tycho-maven-plugin/1.1.0-SNAPSHOT/maven-metadata.xml
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] Symphony REST tools
+[INFO] symphony-rest-tools-bundles
+[INFO] org.symphonyoss.symphony.tools.rest.dependencies
+[INFO] org.symphonyoss.symphony.tools.rest
+[INFO] org.symphonyoss.symphony.tools.rest.test
+[INFO] org.symphonyoss.symphony.tools.rest.ui.console
+[INFO] org.symphonyoss.symphony.tools.rest.ui
+[INFO] symphony-rest-tools-features
+[INFO] org.symphonyoss.symphony.tools.rest.ui.feature
+[INFO] org.symphonyoss.symphony.tools.rest.ui.console.feature
+[INFO] symphony-rest-tools-products
+[INFO] org.symphonyoss.symphony.tools.rest.ui.product
+[INFO] symphony-rest-tools-cmdline
+[INFO] symphony-rest-tools-update
+[INFO]
+```
+If this is your first build then you will see many more **Downloading:** lines. Following the snippet above there will be many lines of log output, the following snippet shows the construction of the various platform specific binary zips: 
+
+```
+[INFO] --- tycho-p2-director-plugin:1.1.0-SNAPSHOT:archive-products (archive-products) @ org.symphonyoss.symphony.tools.rest.ui.product ---
+[INFO] Building zip: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/org.symphonyoss.symphony.tools.rest.ui.product/target/products/srt-linux.gtk.x86.zip
+[INFO] Building zip: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/org.symphonyoss.symphony.tools.rest.ui.product/target/products/srt-linux.gtk.x86_64.zip
+[INFO] Building zip: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/org.symphonyoss.symphony.tools.rest.ui.product/target/products/srt-win32.win32.x86.zip
+[INFO] Building zip: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/org.symphonyoss.symphony.tools.rest.ui.product/target/products/srt-win32.win32.x86_64.zip
+[INFO] Building zip: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/org.symphonyoss.symphony.tools.rest.ui.product/target/products/srt-macosx.cocoa.x86_64.zip
+```
+
+You will also find the contents of these zip files expanded in the same location which is convenient if you wish to execute the build immediately for testing.
+
+The snippet below shows the construction of the platform neutral command line build:
+
+```
+[INFO] --- maven-assembly-plugin:2.6:single (assemble) @ symphony-rest-tools-cmdline ---
+[INFO] Reading assembly descriptor: src/main/assembly/assemble.xml
+[INFO] Copying files to /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/symphony-rest-tools-cmdline/target/symphony-rest-tools-cmdline-0.1.7-SNAPSHOT-bin
+[WARNING] Assembly file: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/symphony-rest-tools-cmdline/target/symphony-rest-tools-cmdline-0.1.7-SNAPSHOT-bin is not a regular file (it may be a directory). It cannot be attached to the project build for installation or deployment.
+[INFO] Building tar: /Users/yourname/git/symphony-rest-tools/symphony-rest-tools-products/symphony-rest-tools-cmdline/target/symphony-rest-tools-cmdline-0.1.7-SNAPSHOT-bin.tar.gz
+```
+
+Finally, if all goes well, you will see this completion message:
+
+```
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO]
+[INFO] Symphony REST tools ................................ SUCCESS [  0.494 s]
+[INFO] symphony-rest-tools-bundles ........................ SUCCESS [  0.019 s]
+[INFO] org.symphonyoss.symphony.tools.rest.dependencies ... SUCCESS [  2.479 s]
+[INFO] org.symphonyoss.symphony.tools.rest ................ SUCCESS [ 14.592 s]
+[INFO] org.symphonyoss.symphony.tools.rest.test ........... SUCCESS [  0.240 s]
+[INFO] org.symphonyoss.symphony.tools.rest.ui.console ..... SUCCESS [  1.294 s]
+[INFO] org.symphonyoss.symphony.tools.rest.ui ............. SUCCESS [  2.131 s]
+[INFO] symphony-rest-tools-features ....................... SUCCESS [  0.013 s]
+[INFO] org.symphonyoss.symphony.tools.rest.ui.feature ..... SUCCESS [  0.485 s]
+[INFO] org.symphonyoss.symphony.tools.rest.ui.console.feature SUCCESS [  0.058 s]
+[INFO] symphony-rest-tools-products ....................... SUCCESS [  0.010 s]
+[INFO] org.symphonyoss.symphony.tools.rest.ui.product ..... SUCCESS [ 19.090 s]
+[INFO] symphony-rest-tools-cmdline ........................ SUCCESS [  1.509 s]
+[INFO] symphony-rest-tools-update ......................... SUCCESS [  1.233 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 01:14 min
+[INFO] Finished at: 2017-10-20T07:28:03+01:00
+[INFO] Final Memory: 131M/1350M
+[INFO] ------------------------------------------------------------------------
+```
+
+## Import into Eclipse
+While you could use another IDE, the symphony-rest-tools UI is based an Eclipse E4 RCP application so the development support provided by Eclipse makes this the best choice in this case.
+
+From the Eclipse menu, select File/Import
+
+![File/Import](./import.png)
+
+and then **Existing Maven Projects**
+
+![Import Maven](./importMaven.png)
+
+on the next page navigate to the directory where you cloned the GitHub repo and select all projects:
+
+![Select Maven Projects](./selectMavenProjects.png)
+
+When the import has completed you should see the following list of projects in the Project Explore view:
+
+![Eclipse Projects](./eclipseProjects.png)
