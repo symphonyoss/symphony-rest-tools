@@ -46,7 +46,7 @@ If you want to be able to contribute to the project then you can fork the repo.
 In your web browser, navigate to https://github.com/symphonyoss/symphony-rest-tools and click the 
 **Fork** button in the top right hand corner.
 
-![Fork the Repo](forkRepo.jpg)
+![Fork the Repo](forkRepo.jpg?raw=true "Fork the Repo")
 
 Now you can clone your fork with the following commands, replace **yourname** with your GitHub user name:
 
