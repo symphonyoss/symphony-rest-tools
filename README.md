@@ -189,4 +189,17 @@ https://symphonyoss.github.io/symphony-rest-tools/GettingStarted
 ## Contribute
 This project was initiated at [Symphony Communication Services, LLC.](https://www.symphony.com) and has been developed as open-source from the very beginning.
 
+1. Fork it (<https://github.com/symphonyoss/symphony-rest-tools/fork>)
+2. Create your feature branch (`git checkout -b feature/fooBar`)
+3. Read our [contribution guidelines](.github/CONTRIBUTING.md) and [Community Code of Conduct](https://www.finos.org/code-of-conduct)
+4. Commit your changes (`git commit -am 'Add some fooBar'`)
+5. Push to the branch (`git push origin feature/fooBar`)
+6. Create a new Pull Request
+
 Contributions are accepted via GitHub pull requests. All contributors must be covered by contributor license agreements to comply with the [Code Contribution Process](https://symphonyoss.atlassian.net/wiki/display/FM/Code+Contribution+Process).
+
+## License
+
+Copyright 2017-2019 Symphony Communication Services, LLC.
+
+The code in this repository is distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
