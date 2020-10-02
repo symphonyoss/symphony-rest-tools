@@ -1,3 +1,5 @@
+[![FINOS - Archived](https://github.com/finos/contrib-toolbox/raw/master/images/badge-archived.png)](https://finosfoundation.atlassian.net/wiki/spaces/FINOS/pages/75530367/Archived)
+
 # symphony-rest-tools
 Low level tools for use with the Symphony public REST API
 
